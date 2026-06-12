@@ -491,6 +491,11 @@ html,body{height:100%;font-family:'Inter',system-ui,-apple-system,sans-serif;bac
         <div class="filtbar">
           <input class="inp" id="kbSearch" placeholder="🔍 Buscar..." oninput="renderKanban()">
           <select class="sel" id="kbResp" onchange="renderKanban()"><option value="">Todos responsáveis</option></select>
+          <select class="sel" id="kbKind" onchange="renderKanban()">
+            <option value="all">Tarefas + Entregas</option>
+            <option value="entregas">Só entregas das sprints</option>
+            <option value="tasks">Só tarefas livres</option>
+          </select>
           <select class="sel" id="kbScope" onchange="renderKanban()">
             <option value="sprint">Sprint atual</option>
             <option value="all">Todas as sprints</option>
@@ -1170,22 +1175,34 @@ function renderDash(){
   document.getElementById('dhTitle').textContent = `Sprint ${s.id} — ${s.m}`;
   document.getElementById('dhSub').textContent   = s.foco;
   const ts = spT(s.id);
-  const done = ts.filter(t=>t.status==='concluido').length;
-  const inProg = ts.filter(t=>t.status==='em_andamento').length;
-  const pts = ts.filter(t=>t.status==='concluido').reduce((a,t)=>a+(t.story_points||0),0);
+
+  // Entregas + subtarefas combinadas para metricas
+  const entStatuses = s.entregas.map((_,i)=>gES(s.id,i));
+  const eDone   = entStatuses.filter(x=>x==='concluido').length;
+  const eProg   = entStatuses.filter(x=>x==='em_andamento').length;
+  const eBlock  = entStatuses.filter(x=>x==='bloqueado').length;
+  const tDone   = ts.filter(t=>t.status==='concluido').length;
+  const tProg   = ts.filter(t=>t.status==='em_andamento').length;
+  const tBlock  = ts.filter(t=>t.status==='bloqueado').length;
+  const done    = eDone + tDone;
+  const inProg  = eProg + tProg;
+  const blocked = eBlock + tBlock;
+  const total   = s.entregas.length + ts.length;
+  const pct     = total ? Math.round(100*done/total) : 0;
+  const pts     = ts.filter(t=>t.status==='concluido').reduce((a,t)=>a+(t.story_points||0),0);
   const totalPts = ts.reduce((a,t)=>a+(t.story_points||0),0);
-  const eDone = s.entregas.filter((_,i)=>gES(s.id,i)==='concluido').length;
-  const pct = (s.entregas.length+ts.length) ? Math.round(100*(eDone+done)/(s.entregas.length+ts.length)) : 0;
 
   document.getElementById('metrics').innerHTML = `
     <div class="mc"><div class="lbl">📊 Progresso</div><div class="val">${pct}%</div>
-      <div class="sub">${eDone+done} de ${s.entregas.length+ts.length} concluídos</div>
+      <div class="sub">${done} de ${total} concluídos</div>
       <div class="pw"><div class="pf" style="width:${pct}%"></div></div></div>
-    <div class="mc"><div class="lbl">⚡ Em andamento</div><div class="val">${inProg}</div>
-      <div class="sub">tarefas ativas</div></div>
-    <div class="mc"><div class="lbl">📋 Tarefas</div><div class="val">${ts.length}</div>
-      <div class="sub">${done} concluídas</div></div>
-    <div class="mc"><div class="lbl">🎯 Story Points</div><div class="val">${pts}/${totalPts}</div>
+    <div class="mc"><div class="lbl">⚡ Em andamento</div><div class="val" style="color:var(--amber)">${inProg}</div>
+      <div class="sub">${tProg} tarefa(s) + ${eProg} entrega(s)</div></div>
+    <div class="mc"><div class="lbl">✅ Concluídas</div><div class="val" style="color:var(--green)">${done}</div>
+      <div class="sub">${tDone} tarefa(s) + ${eDone} entrega(s)</div></div>
+    <div class="mc"><div class="lbl">🚫 Bloqueadas</div><div class="val" style="color:var(--red)">${blocked}</div>
+      <div class="sub">${ts.length} tarefas no total</div></div>
+    <div class="mc"><div class="lbl">🎯 Story Points</div><div class="val">${pts}/${totalPts||0}</div>
       <div class="sub">pontos entregues</div></div>
   `;
 
@@ -1243,25 +1260,86 @@ function renderKanban(){
   const q = document.getElementById('kbSearch').value.toLowerCase();
   const resp = document.getElementById('kbResp').value;
   const scope = document.getElementById('kbScope').value;
-  const base = scope==='all' ? TSK : spT(AS);
-  const tasks = base.filter(t=>{
-    if(q && !t.titulo.toLowerCase().includes(q) && !(t.descricao||'').toLowerCase().includes(q)) return false;
-    if(resp && !gTM(t.id).find(m=>m.id===resp)) return false;
-    return true;
+  const showKind = document.getElementById('kbKind')?.value || 'all'; // all|tasks|entregas
+
+  // Subtarefas
+  const baseTasks = scope==='all' ? TSK : spT(AS);
+  const tasks = baseTasks
+    .filter(t => showKind!=='entregas')
+    .filter(t=>{
+      if(q && !t.titulo.toLowerCase().includes(q) && !(t.descricao||'').toLowerCase().includes(q)) return false;
+      if(resp && !gTM(t.id).find(m=>m.id===resp)) return false;
+      return true;
+    })
+    .map(t => ({_kind:'task', _data:t, status:t.status, _sortKey:t.titulo}));
+
+  // Entregas das sprints (todas ou só a atual)
+  const sprintIds = scope==='all' ? SP.map(s=>s.id) : [AS];
+  let entregas = [];
+  sprintIds.forEach(sid=>{
+    const s = SP.find(x=>x.id===sid);
+    s.entregas.forEach((e,i)=>{
+      entregas.push({
+        _kind:'entrega', _data:e, sprint_id:sid, entrega_idx:i,
+        status: gES(sid,i), _sortKey: e.desc
+      });
+    });
   });
+  entregas = entregas
+    .filter(_ => showKind!=='tasks')
+    .filter(c=>{
+      if(q && !c._data.desc.toLowerCase().includes(q)) return false;
+      if(resp && !gEM(c.sprint_id, c.entrega_idx).includes(resp)) return false;
+      return true;
+    });
+
+  const all = [...entregas, ...tasks];
+
   const el = document.getElementById('kanban');
   el.innerHTML = STATUSES.map(st=>{
-    const cards = tasks.filter(t=>t.status===st.k);
+    const cards = all.filter(c=>c.status===st.k);
     return `<div class="kcol">
       <div class="kchead">
         <span class="sdot" style="background:${st.c}"></span>
         <span class="nm">${st.l}</span>
         <span class="ct">${cards.length}</span>
-        <button class="add" onclick="openTask(null,'${st.k}')" title="Adicionar">+</button>
+        <button class="add" onclick="openTask(null,'${st.k}')" title="Adicionar tarefa">+</button>
       </div>
-      ${cards.map(renderCard).join('') || '<div style="text-align:center;color:var(--t3);font-size:11px;padding:1rem 0">Sem tarefas</div>'}
+      ${cards.map(c => c._kind==='entrega' ? renderEntregaCard(c) : renderCard(c._data)).join('') ||
+        '<div style="text-align:center;color:var(--t3);font-size:11px;padding:1rem 0">Vazio</div>'}
     </div>`;
   }).join('');
+}
+
+function renderEntregaCard(c){
+  const e = c._data;
+  const sid = c.sprint_id, idx = c.entrega_idx;
+  const ex = exFor(e);
+  const mems = gEM(sid, idx);
+  const code = (e.desc.match(/^[A-Z][0-9]+[a-z]?/)||[e.eixo||''])[0];
+  const titulo = e.desc.replace(/^[A-Z][0-9]+[a-z]?\s*[—-]?\s*/, '');
+  const sp = SP.find(x=>x.id===sid);
+  const cur = EDB[sid+'-'+idx] || {};
+  return `<div class="card" style="border-left:3px solid ${ex.fg}" onclick="openEntrega(${sid},${idx})">
+    <div class="meta" style="margin-bottom:.35rem">
+      <span class="tag" style="background:${ex.bg};color:${ex.fg};font-weight:800">📦 ${code||'—'}</span>
+      <span style="font-size:10px;color:var(--t3);font-weight:700">S${sid} · ${sp.m}</span>
+    </div>
+    <div class="ttl">${escapeHtml(titulo)}</div>
+    <div class="ftr">
+      <div class="ftr-stats">
+        <span style="color:${ex.fg};font-weight:700">${e.tipo||'Entrega'}</span>
+        ${cur.data_fim?`<span>📅 ${fmtD(cur.data_fim)}</span>`:''}
+      </div>
+      ${mems.length?avS(mems,3):''}
+    </div>
+    <div class="qact" onclick="event.stopPropagation()">
+      <select class="ssel" style="flex:1" onchange="qStEntrega(${sid},${idx},this.value)">
+        ${STATUSES.map(o=>`<option value="${o.k}" ${c.status===o.k?'selected':''}>${o.l}</option>`).join('')}
+      </select>
+      <button class="ib" title="Editar entrega" onclick="openEntrega(${sid},${idx})">✏️</button>
+    </div>
+  </div>`;
 }
 
 function renderCard(t, opts={}){
