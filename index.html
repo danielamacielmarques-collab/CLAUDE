@@ -657,18 +657,130 @@ const db = supabase.createClient(SUPA_URL, SUPA_KEY, { auth: { persistSession: t
    SPRINT PLAN — Abril 2026 / Março 2027
 ============================================================ */
 const SP = [
-  {id:1,  m:'Abr/2026', m1:'2026-04-01', m2:'2026-04-30', risco:'CRÍTICO', foco:'Fundação de Dados e Escuta',         entregas:['A1 Diagnóstico de fontes','B1 Inventário de bases','C1 Mapeamento SUITE','D1 Plano de automação','E1 Painel piloto']},
-  {id:2,  m:'Mai/2026', m1:'2026-05-01', m2:'2026-05-31', risco:'CRÍTICO', foco:'Saneamento e Regras',                 entregas:['A2 Política de dados','B2 Saneamento REG/REPLAN','C2 Templates SUITE','D2 RPA cadastro','E2 Painel sane.']},
-  {id:3,  m:'Jun/2026', m1:'2026-06-01', m2:'2026-06-30', risco:'CRÍTICO', foco:'Simulador REG/REPLAN + Automações',   entregas:['B3 Simulador beneficio','D3 Automação concessão','E3 Painel atendimento','F3 SLA piloto']},
-  {id:4,  m:'Jul/2026', m1:'2026-07-01', m2:'2026-07-31', risco:'ALTO',    foco:'Painéis de Controle + Review Semestral',entregas:['A4 Governança v2','E4 Painel gerencial','F4 Eficiência KPIs','G4 Sondagem NEXUS','H4 Sustentação']},
-  {id:5,  m:'Ago/2026', m1:'2026-08-01', m2:'2026-08-31', risco:'ALTO',    foco:'SUITE e Dossiê Automático',           entregas:['C5 Dossiê auto','C5b SUITE v3','D5 Integração FUNCEFnet','E5 Painel SUITE']},
-  {id:6,  m:'Set/2026', m1:'2026-09-01', m2:'2026-09-30', risco:'ALTO',    foco:'Validação e Painel Gerencial',        entregas:['A6 Validação dados','E6 Painel diretoria','F6 Indicadores']},
-  {id:7,  m:'Out/2026', m1:'2026-10-01', m2:'2026-10-31', risco:'MÉDIO',  foco:'Eficiência Operacional',              entregas:['D7 RPA pagamentos','F7 Otimização atendimento','E7 Painel produtividade']},
-  {id:8,  m:'Nov/2026', m1:'2026-11-01', m2:'2026-11-30', risco:'MÉDIO',  foco:'Reajuste Anual + Carta de Concessão', entregas:['D8 Carta concessão','B8 Reajuste anual','E8 Painel reajuste']},
-  {id:9,  m:'Dez/2026', m1:'2026-12-01', m2:'2026-12-31', risco:'MÉDIO',  foco:'Consolidação e Review Anual',         entregas:['A9 Review anual','E9 Consolidado 2026','F9 Maturidade dados']},
-  {id:10, m:'Jan/2027', m1:'2027-01-01', m2:'2027-01-31', risco:'MÉDIO',  foco:'NEXUS e Simuladores',                  entregas:['G10 NEXUS piloto','B10 Sim. previdência','D10 API NEXUS']},
-  {id:11, m:'Fev/2027', m1:'2027-02-01', m2:'2027-02-28', risco:'BAIXO', foco:'Simuladores e Integração Digital',     entregas:['G11 NEXUS produção','D11 Portal participante','E11 Painel NEXUS']},
-  {id:12, m:'Mar/2027', m1:'2027-03-01', m2:'2027-03-31', risco:'BAIXO', foco:'Encerramento e Planejamento 2027',    entregas:['A12 Encerramento','E12 Painel anual','H12 Plano 2027–2028']},
+  {id:1, m:"Abr/2026", m1:"2026-04-01", m2:"2026-04-30", risco:"CRÍTICO", foco:"Fundação de Dados e Escuta",
+   entregas:[
+    {eixo:"A",tipo:"Entrega",desc:"A2 — Agenda e realização das reuniões de escuta com todos os núcleos",resp:"Núcleo Inovação"},
+    {eixo:"A",tipo:"Entrega",desc:"A2 — Registro estruturado das necessidades e priorização inicial do backlog",resp:"Núcleo Inovação"},
+    {eixo:"B",tipo:"Entrega",desc:"B1 — Inventário completo das bases de dados com classificação de criticidade",resp:"Núcleo Dados"},
+    {eixo:"B",tipo:"Entrega",desc:"B1 — Diagnóstico de inconsistências: cadastral, atuarial, documental",resp:"Núcleo Dados"},
+    {eixo:"B",tipo:"Entrega",desc:"B2 — Mapeamento de todas as consultas existentes no Databricks",resp:"Núcleo Dados"},
+    {eixo:"C",tipo:"Entrega",desc:"C1 — Início do mapeamento AS IS do fluxo de concessão de pensão",resp:"Núcleo SUITE"},
+    {eixo:"C",tipo:"Entrega",desc:"C1 — Início do mapeamento AS IS do fluxo de pecúlio",resp:"Núcleo SUITE"},
+    {eixo:"A",tipo:"Evento",desc:"A1 — GEBEN Conecta: edição de abertura do ciclo 2026",resp:"Núcleo Inovação"},
+    {eixo:"G",tipo:"Entrega",desc:"G1 — Designação de representante COBEN no grupo de trabalho NEXUS",resp:"Gerência COBEN"},
+    {eixo:"H",tipo:"Sustentação",desc:"H1 — Ciclo de testes e sustentação das rotinas existentes",resp:"Núcleo Dados"}
+  ]},
+  {id:2, m:"Mai/2026", m1:"2026-05-01", m2:"2026-05-31", risco:"CRÍTICO", foco:"Saneamento e Regras",
+   entregas:[
+    {eixo:"B",tipo:"Entrega",desc:"B1 — Execução do plano de saneamento: correção das inconsistências prioritárias",resp:"Núcleo Dados"},
+    {eixo:"B",tipo:"Entrega",desc:"B1 — Extração e organização de documentos de sistemas legados",resp:"Núcleo Dados"},
+    {eixo:"B",tipo:"Entrega",desc:"B3 — Alinhamento com COPREV e levantamento dos fatores atuariais vigentes",resp:"Núcleo Dados"},
+    {eixo:"B",tipo:"Entrega",desc:"B3 — Estrutura do repositório de fatores definida com critérios de atualização",resp:"Núcleo Dados"},
+    {eixo:"D",tipo:"Entrega",desc:"D1 — Levantamento e documentação das regras de concessão por tipo de benefício",resp:"Núcleo Dados"},
+    {eixo:"D",tipo:"Entrega",desc:"D1 — Catálogo de regras v1 publicado no Databricks com versionamento",resp:"Núcleo Dados"},
+    {eixo:"C",tipo:"Entrega",desc:"C1 — AS IS completo de pensão e pecúlio validados com os núcleos",resp:"Núcleo SUITE"},
+    {eixo:"D",tipo:"Entrega",desc:"D2 — Mapeamento do modelo de dados exigido pelo Saúde Caixa",resp:"Núcleo Dados"},
+    {eixo:"D",tipo:"Entrega",desc:"D3 — Levantamento dos dados do Calendário Legal e modelagem da base",resp:"Núcleo Dados"},
+    {eixo:"G",tipo:"Entrega",desc:"G1 — Levantamento e formalização dos requisitos COBEN para o NEXUS",resp:"Rep. NEXUS"},
+    {eixo:"H",tipo:"Sustentação",desc:"H1 — Ciclo de testes e sustentação das rotinas existentes",resp:"Núcleo Dados"}
+  ]},
+  {id:3, m:"Jun/2026", m1:"2026-06-01", m2:"2026-06-30", risco:"CRÍTICO", foco:"Simulador REG/REPLAN + Automações",
+   entregas:[
+    {eixo:"D",tipo:"Entrega",desc:"D5 — Definição e validação das regras de cálculo REG/REPLAN com área técnica",resp:"Núcleo Dados"},
+    {eixo:"D",tipo:"Entrega",desc:"D5 — Construção do simulador REG/REPLAN + integração com fatores atuariais (B3)",resp:"Núcleo Dados"},
+    {eixo:"D",tipo:"Entrega",desc:"D5 — Validação extensiva com casos reais e disponibilização para CORAP",resp:"Núcleo Dados"},
+    {eixo:"D",tipo:"Entrega",desc:"D2 — Rotina Saúde Caixa: base estruturada + pipeline automático de simulações",resp:"Núcleo Dados"},
+    {eixo:"D",tipo:"Entrega",desc:"D3 — Rotina Calendário Legal: automação completa do ciclo de envio interáreas",resp:"Núcleo Dados"},
+    {eixo:"B",tipo:"Entrega",desc:"B2 — Repositório oficial COBEN no Databricks: primeira versão publicada",resp:"Núcleo Dados"},
+    {eixo:"B",tipo:"Entrega",desc:"B3 — Primeira carga validada de fatores atuariais no repositório oficial",resp:"Núcleo Dados"},
+    {eixo:"H",tipo:"Sustentação",desc:"H1 — Ciclo de testes e sustentação das rotinas existentes",resp:"Núcleo Dados"}
+  ]},
+  {id:4, m:"Jul/2026", m1:"2026-07-01", m2:"2026-07-31", risco:"ALTO", foco:"Painéis de Controle + Review Semestral",
+   entregas:[
+    {eixo:"E",tipo:"Entrega",desc:"E2 — Painel de Glosas INSS: mapeamento, modelagem, construção e publicação",resp:"Núcleo Dados"},
+    {eixo:"E",tipo:"Entrega",desc:"E3 — Painel de Dívidas Previdenciárias: modelagem, construção e publicação",resp:"Núcleo Dados"},
+    {eixo:"D",tipo:"Entrega",desc:"D1 — Suite de testes automáticos das regras + alertas em produção",resp:"Núcleo Dados"},
+    {eixo:"B",tipo:"Entrega",desc:"B1 — Relatório de qualidade de dados com métricas antes/depois",resp:"Núcleo Dados"},
+    {eixo:"F",tipo:"Entrega",desc:"F2 — Análise de HE: coleta de dados históricos e mapeamento de padrões",resp:"Núcleo Inovação"},
+    {eixo:"A",tipo:"Evento",desc:"A1 — GEBEN Conecta: edição de resultados do 1º semestre",resp:"Núcleo Inovação"},
+    {eixo:"H",tipo:"Sustentação",desc:"H1 — Ciclo de testes e sustentação das rotinas existentes",resp:"Núcleo Dados"}
+  ]},
+  {id:5, m:"Ago/2026", m1:"2026-08-01", m2:"2026-08-31", risco:"ALTO", foco:"SUITE e Dossiê Automático",
+   entregas:[
+    {eixo:"C",tipo:"Entrega",desc:"C1 — TO BE do fluxo de pensão validado e documentado oficialmente",resp:"Núcleo SUITE"},
+    {eixo:"C",tipo:"Entrega",desc:"C1 — TO BE do fluxo de pecúlio validado e documentado oficialmente",resp:"Núcleo SUITE"},
+    {eixo:"C",tipo:"Entrega",desc:"C2 — Modelo oficial de dossiê aprovado + MVP integrado com dados de pensão",resp:"Núcleo SUITE"},
+    {eixo:"A",tipo:"Entrega",desc:"A3 — AS IS + TO BE do fluxo digital de benefícios de risco entregue",resp:"Núcleo Inovação"},
+    {eixo:"D",tipo:"Entrega",desc:"D1 — Primeira emissão do relatório mensal de conformidade das concessões",resp:"Núcleo Dados"},
+    {eixo:"G",tipo:"Entrega",desc:"G1 — Revisão e validação dos fluxos NEXUS com pareceres (rodada 1)",resp:"Rep. NEXUS"},
+    {eixo:"H",tipo:"Sustentação",desc:"H1 — Ciclo de testes e sustentação das rotinas existentes",resp:"Núcleo Dados"}
+  ]},
+  {id:6, m:"Set/2026", m1:"2026-09-01", m2:"2026-09-30", risco:"ALTO", foco:"Validação e Painel Gerencial",
+   entregas:[
+    {eixo:"C",tipo:"Entrega",desc:"C2 — Dossiê Automático: ciclo de testes com casos reais e versão validada",resp:"Núcleo SUITE"},
+    {eixo:"E",tipo:"Entrega",desc:"E1 — Painel Gerencial de Benefícios (SUITE + CONAP): publicação e treinamento",resp:"Núcleo Dados"},
+    {eixo:"B",tipo:"Entrega",desc:"B2 — Dicionário de dados oficial COBEN: publicação completa",resp:"Núcleo Dados"},
+    {eixo:"F",tipo:"Entrega",desc:"F2 — Diagnóstico completo de HE: causas-raiz e propostas entregues à gerência",resp:"Núcleo Inovação"},
+    {eixo:"D",tipo:"Sustentação",desc:"D5 — Suporte e monitoria do simulador REG/REPLAN + ajustes pós-PDV",resp:"Núcleo Dados"},
+    {eixo:"H",tipo:"Sustentação",desc:"H1 — Ciclo de testes e sustentação das rotinas existentes",resp:"Núcleo Dados"}
+  ]},
+  {id:7, m:"Out/2026", m1:"2026-10-01", m2:"2026-10-31", risco:"MÉDIO", foco:"Eficiência Operacional",
+   entregas:[
+    {eixo:"F",tipo:"Entrega",desc:"F1 — Inventário de planilhas + modelagem e construção do BI Unificado",resp:"Núcleo Dados"},
+    {eixo:"E",tipo:"Entrega",desc:"E4 — Painel de Indicadores Operacionais: desenvolvimento e publicação",resp:"Núcleo Dados"},
+    {eixo:"C",tipo:"Entrega",desc:"C1 — Início AS IS do fluxo de aposentadoria por invalidez",resp:"Núcleo SUITE"},
+    {eixo:"F",tipo:"Entrega",desc:"F3 — Pesquisa e avaliação de ferramentas: RPA, BI, IA, gestão de fluxo",resp:"Núcleo Inovação"},
+    {eixo:"A",tipo:"Evento",desc:"A1 — GEBEN Conecta: edição temática eficiência operacional",resp:"Núcleo Inovação"},
+    {eixo:"H",tipo:"Sustentação",desc:"H1 — Ciclo de testes e sustentação das rotinas existentes",resp:"Núcleo Dados"}
+  ]},
+  {id:8, m:"Nov/2026", m1:"2026-11-01", m2:"2026-11-30", risco:"MÉDIO", foco:"Reajuste Anual + Carta de Concessão",
+   entregas:[
+    {eixo:"D",tipo:"Entrega",desc:"D4 — Base histórica de reajustes + integração tabela global de índices",resp:"Núcleo Dados"},
+    {eixo:"D",tipo:"Entrega",desc:"D4 — Painel de Reajuste Anual: desenvolvimento, validação e publicação",resp:"Núcleo Dados"},
+    {eixo:"D",tipo:"Entrega",desc:"D6 — Modelo oficial da carta de concessão + base de alimentação + pipeline",resp:"Núcleo SUITE"},
+    {eixo:"C",tipo:"Entrega",desc:"C1 — AS IS + TO BE do fluxo de invalidez: documentação completa",resp:"Núcleo SUITE"},
+    {eixo:"F",tipo:"Entrega",desc:"F3 — Relatório de recomendações de ferramentas + apresentação à gerência",resp:"Núcleo Inovação"},
+    {eixo:"H",tipo:"Sustentação",desc:"H1 — Ciclo de testes e sustentação das rotinas existentes",resp:"Núcleo Dados"}
+  ]},
+  {id:9, m:"Dez/2026", m1:"2026-12-01", m2:"2026-12-31", risco:"MÉDIO", foco:"Consolidação e Review Anual",
+   entregas:[
+    {eixo:"D",tipo:"Entrega",desc:"D6 — Carta de concessão automática: validação completa + autoatendimento",resp:"Núcleo SUITE"},
+    {eixo:"C",tipo:"Entrega",desc:"C2 — Dossiê Automático: extensão para pecúlio e invalidez",resp:"Núcleo SUITE"},
+    {eixo:"G",tipo:"Entrega",desc:"G1 — Pareceres técnicos finais da COBEN sobre o design do NEXUS",resp:"Rep. NEXUS"},
+    {eixo:"F",tipo:"Entrega",desc:"F2 — Avaliação de impacto das ações de redução de HE",resp:"Núcleo Inovação"},
+    {eixo:"—",tipo:"Entrega",desc:"Relatório final do ciclo 2026: entregas, impactos e métricas consolidadas",resp:"Núcleo Inovação"},
+    {eixo:"A",tipo:"Evento",desc:"A1 — GEBEN Conecta: edição de encerramento do ciclo 2026",resp:"Núcleo Inovação"},
+    {eixo:"H",tipo:"Sustentação",desc:"H1 — Ciclo de testes e sustentação das rotinas existentes",resp:"Núcleo Dados"}
+  ]},
+  {id:10, m:"Jan/2027", m1:"2027-01-01", m2:"2027-01-31", risco:"MÉDIO", foco:"NEXUS e Simuladores",
+   entregas:[
+    {eixo:"D",tipo:"Entrega",desc:"D5 — Simulador de Pensão por Morte: início do desenvolvimento",resp:"Núcleo Dados"},
+    {eixo:"D",tipo:"Entrega",desc:"D5 — Simulador Pensão: definição de regras + integração com B3",resp:"Núcleo Dados"},
+    {eixo:"G",tipo:"Entrega",desc:"G1 — Revisão e validação dos fluxos NEXUS com pareceres (rodada final)",resp:"Rep. NEXUS"},
+    {eixo:"F",tipo:"Entrega",desc:"F2 — Implementação das ações de redistribuição de carga aprovadas",resp:"Núcleo Inovação"},
+    {eixo:"A",tipo:"Entrega",desc:"A2 — Segunda rodada de reuniões com núcleos (escuta 2º semestre)",resp:"Núcleo Inovação"},
+    {eixo:"B",tipo:"Entrega",desc:"B2 — Expansão do repositório Databricks: integração CONAP fase 2",resp:"Núcleo Dados"},
+    {eixo:"H",tipo:"Sustentação",desc:"H1 — Ciclo de testes e sustentação das rotinas existentes",resp:"Núcleo Dados"}
+  ]},
+  {id:11, m:"Fev/2027", m1:"2027-02-01", m2:"2027-02-28", risco:"BAIXO", foco:"Simuladores e Integração Digital",
+   entregas:[
+    {eixo:"D",tipo:"Entrega",desc:"D5 — Simulador de Pensão por Morte: construção, validação e disponibilização",resp:"Núcleo Dados"},
+    {eixo:"D",tipo:"Entrega",desc:"D5 — Roadmap de expansão para simulador de benefícios de risco",resp:"Núcleo Dados"},
+    {eixo:"A",tipo:"Entrega",desc:"A3 — Implementação do fluxo digital TO BE: alinhamento TI + piloto",resp:"Núcleo Inovação"},
+    {eixo:"E",tipo:"Entrega",desc:"E4 — Ciclo de revisão e melhoria dos painéis (feedback pós-uso)",resp:"Núcleo Dados"},
+    {eixo:"D",tipo:"Entrega",desc:"D1 — Revisão do catálogo de regras com atualização de vigências",resp:"Núcleo Dados"},
+    {eixo:"A",tipo:"Evento",desc:"A1 — GEBEN Conecta: edição de abertura do ciclo 2027",resp:"Núcleo Inovação"},
+    {eixo:"H",tipo:"Sustentação",desc:"H1 — Ciclo de testes e sustentação das rotinas existentes",resp:"Núcleo Dados"}
+  ]},
+  {id:12, m:"Mar/2027", m1:"2027-03-01", m2:"2027-03-31", risco:"BAIXO", foco:"Encerramento e Planejamento 2027",
+   entregas:[
+    {eixo:"D",tipo:"Entrega",desc:"D5 — Simulador de Benefícios de Risco: início do desenvolvimento",resp:"Núcleo Dados"},
+    {eixo:"—",tipo:"Entrega",desc:"Relatório consolidado do ciclo Abr/2026–Mar/2027 com métricas completas",resp:"Núcleo Inovação"},
+    {eixo:"—",tipo:"Entrega",desc:"Backlog priorizado para Abr–Set/2027 com base no ciclo encerrado",resp:"Toda equipe"},
+    {eixo:"F",tipo:"Entrega",desc:"F2 — Relatório de impacto das ações de redução de HE no ciclo completo",resp:"Núcleo Inovação"},
+    {eixo:"A",tipo:"Entrega",desc:"A3 — Avaliação do piloto de entrada digital: resultados e ajustes",resp:"Núcleo Inovação"},
+    {eixo:"H",tipo:"Sustentação",desc:"H1 — Ciclo de testes e sustentação das rotinas existentes",resp:"Núcleo Dados"}
+  ]},
 ];
 
 const RC = {'CRÍTICO':'#FF4757', 'ALTO':'#F5A524', 'MÉDIO':'#2B6AFF', 'BAIXO':'#22D172'};
@@ -913,7 +1025,7 @@ function toast(msg, type='ok'){
 }
 function statL(k){ return (STATUSES.find(s=>s.k===k)||{}).l || k; }
 function faseL(k){ return (FASES.find(f=>f.k===k)||{}).l || k; }
-function exFor(name){ return EX[name.charAt(0)] || EX.A; }
+function exFor(e){ const k = typeof e==="string" ? e.charAt(0) : (e?.eixo?.[0] || "A"); return EX[k] || EX.A; }
 
 /* ============================================================
    NAVIGATION
@@ -995,9 +1107,12 @@ function renderDash(){
     const ex = exFor(e);
     const st = gES(s.id, i);
     const mems = gEM(s.id, i);
+    const code = (e.desc.match(/^[A-Z][0-9]+[a-z]?/)||[''])[0] || e.eixo;
+    const titulo = e.desc.replace(/^[A-Z][0-9]+[a-z]?\s*[—-]?\s*/, '');
     return `<tr onclick="openEntrega(${s.id},${i})">
-      <td><span class="tag" style="background:${ex.bg};color:${ex.fg}">${e.charAt(0)}</span></td>
-      <td>${e}</td>
+      <td><span class="tag" style="background:${ex.bg};color:${ex.fg};font-weight:800">${code}</span></td>
+      <td><div style="font-weight:700;color:var(--text);line-height:1.35">${escapeHtml(titulo)}</div>
+          <div style="font-size:10.5px;color:var(--t3);margin-top:2px">${e.tipo||'Entrega'}${e.resp?' • '+escapeHtml(e.resp):''}</div></td>
       <td><span class="badge ${st}">${statL(st)}</span></td>
       <td>${mems.length?avS(mems,4):'<span style="color:var(--t3)">—</span>'}</td>
     </tr>`;
@@ -1159,8 +1274,8 @@ function renderCal(){
       ${evs.map(t=>`<div class="cevt" onclick="openTask('${t.id}')" style="background:${prioBg(t.prioridade)};color:${prioFg(t.prioridade)}">${escapeHtml(t.titulo.slice(0,18))}</div>`).join('')}
       ${ents.map(e=>{
         const sp = SP.find(s=>s.id===e.sprint_id);
-        const lbl = sp ? sp.entregas[e.entrega_idx] : '?';
-        const ex = exFor(lbl||'');
+        const ent = sp ? sp.entregas[e.entrega_idx] : null; const lbl = ent ? (ent.desc || '?') : '?';
+        const ex = ent ? exFor(ent) : EX.A;
         return `<div class="cevt" style="background:${ex.bg};color:${ex.fg}">📦 ${escapeHtml((lbl||'').slice(0,16))}</div>`;
       }).join('')}
     </div>`;
@@ -1454,7 +1569,7 @@ async function delTask(){
 /* Entrega: status quick update via prompt */
 async function openEntrega(sid, idx){
   const cur = EDB[sid+'-'+idx];
-  const status = prompt(`Status da entrega "${SP.find(s=>s.id===sid).entregas[idx]}":\n\npendente | em_andamento | em_revisao | concluido | bloqueado`, cur?.status || 'pendente');
+  const status = prompt(`Status da entrega "${SP.find(s=>s.id===sid).entregas[idx].desc}":\n\npendente | em_andamento | em_revisao | concluido | bloqueado`, cur?.status || 'pendente');
   if(!status) return;
   if(!['pendente','em_andamento','em_revisao','concluido','bloqueado'].includes(status)){
     toast('Status inválido','err'); return;
