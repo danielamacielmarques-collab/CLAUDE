@@ -295,6 +295,39 @@ html,body{height:100%;font-family:'Inter',system-ui,-apple-system,sans-serif;bac
 .toast.ok{border-color:var(--green);color:var(--green)}
 .toast.err{border-color:var(--red);color:var(--red)}
 
+.cbadge{font-size:11px;font-weight:700;color:var(--t2);background:var(--bg3);border:1px solid var(--border);padding:2px 10px;border-radius:20px}
+.nps{display:flex;gap:4px;flex-wrap:wrap}
+.nps button{background:var(--bg3);border:1.5px solid var(--border);color:var(--t2);width:36px;height:36px;border-radius:8px;cursor:pointer;font-size:12.5px;font-weight:700;font-family:inherit}
+.nps button.on{background:linear-gradient(135deg,var(--accent),#5B9FFF);color:#fff;border-color:transparent;box-shadow:0 2px 8px var(--acc-glow)}
+.gp-bar{background:var(--bg4);border-radius:var(--r);height:28px;overflow:hidden;margin-top:.5rem}
+.gp-bar div{height:100%;background:linear-gradient(90deg,var(--accent),var(--purple));border-radius:var(--r);display:flex;align-items:center;padding:0 12px;font-size:11px;font-weight:800;color:#fff}
+
+/* Inline status select */
+.ssel{font-size:11px;padding:4px 9px;border-radius:var(--r);border:1px solid var(--border);background:var(--bg3);color:var(--text);cursor:pointer;outline:none;font-family:inherit;font-weight:600}
+.ssel:hover{border-color:var(--border2)}
+.ssel:focus{border-color:var(--accent)}
+.card .qact{display:flex;align-items:center;gap:5px;margin-top:.4rem;padding-top:.4rem;border-top:1px solid var(--border)}
+.card .qact .ib{background:transparent;border:1px solid transparent;color:var(--t2);width:26px;height:26px;border-radius:6px;cursor:pointer;font-size:12px;font-family:inherit;display:inline-flex;align-items:center;justify-content:center}
+.card .qact .ib:hover{background:var(--bg4);color:var(--text)}
+.card .qact .ib.del:hover{background:var(--r-bg);color:var(--red)}
+.clmini{display:flex;align-items:center;gap:8px;margin-top:.4rem;font-size:10.5px;color:var(--t2);font-weight:600}
+.clmini .barbg{flex:1;height:3px;background:var(--bg);border-radius:20px;overflow:hidden}
+.clmini .barbg div{height:100%;background:var(--green);border-radius:20px}
+
+/* Dashboard entrega rows */
+.dlist{display:flex;flex-direction:column;gap:6px}
+.drow{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rlg);padding:.6rem .9rem;display:flex;align-items:center;gap:11px;cursor:pointer;transition:all .15s}
+.drow:hover{border-color:var(--border2);background:var(--bg3);transform:translateX(2px)}
+.drow.concluido{opacity:.55}
+.drow.bloqueado{border-left:3px solid var(--red)}
+.drow.em_andamento{border-left:3px solid var(--amber)}
+.drow.em_revisao{border-left:3px solid var(--purple)}
+.echip{width:30px;height:30px;border-radius:var(--r);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0}
+.dbody{flex:1;min-width:0}
+.dproj{font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:1px}
+.ddesc{font-size:13px;color:var(--text);font-weight:600;line-height:1.4}
+.dmeta{display:flex;align-items:center;gap:8px;margin-top:5px;flex-wrap:wrap}
+
 /* tables */
 .tbl{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:var(--rlg);overflow:hidden;border-collapse:collapse}
 .tbl th{background:var(--bg3);text-align:left;padding:.6rem .85rem;font-size:10.5px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--border)}
@@ -421,6 +454,30 @@ html,body{height:100%;font-family:'Inter',system-ui,-apple-system,sans-serif;bac
           <button class="btn" onclick="openTask()">+ Nova tarefa</button>
         </div>
         <div class="metrics" id="metrics"></div>
+        <div class="filtbar">
+          <strong style="font-size:13px;font-weight:800">📦 Entregas do Ciclo</strong>
+          <span class="cbadge" id="dhCount">0</span>
+          <div style="flex:1"></div>
+          <select class="sel" id="dfEixo" onchange="renderDash()">
+            <option value="">Todos os eixos</option>
+            <option value="A">A · Governança</option>
+            <option value="B">B · Dados</option>
+            <option value="C">C · SUITE</option>
+            <option value="D">D · Automação</option>
+            <option value="E">E · Painéis</option>
+            <option value="F">F · Eficiência</option>
+            <option value="G">G · NEXUS</option>
+            <option value="H">H · Sustentação</option>
+          </select>
+          <select class="sel" id="dfStat" onchange="renderDash()">
+            <option value="">Todos os status</option>
+            <option value="pendente">Pendente</option>
+            <option value="em_andamento">Em andamento</option>
+            <option value="em_revisao">Em revisão</option>
+            <option value="concluido">Concluído</option>
+            <option value="bloqueado">Bloqueado</option>
+          </select>
+        </div>
         <div id="dashList"></div>
       </section>
 
@@ -639,6 +696,36 @@ html,body{height:100%;font-family:'Inter',system-ui,-apple-system,sans-serif;bac
       <div style="flex:1"></div>
       <button class="btn" onclick="closeProfile()">Cancelar</button>
       <button class="btn primary" onclick="saveProfile()">💾 Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODAL ENTREGA ============ -->
+<div class="mbg" id="entregaModal">
+  <div class="modal" style="max-width:560px">
+    <div class="mhead"><h2 id="emTitle">Entrega</h2><button class="mclose" onclick="closeEntrega()">✕</button></div>
+    <div class="mbody">
+      <div class="frow">
+        <div class="field"><label>Status</label>
+          <select id="emStatus">
+            <option value="pendente">Pendente</option>
+            <option value="em_andamento">Em andamento</option>
+            <option value="em_revisao">Em revisão</option>
+            <option value="concluido">Concluído</option>
+            <option value="bloqueado">Bloqueado</option>
+          </select>
+        </div>
+        <div class="field"><label>Data de entrega</label><input type="date" id="emData"></div>
+      </div>
+      <div class="field" style="margin-bottom:.85rem"><label>Responsáveis</label>
+        <div class="mpicker" id="emMembers"></div>
+      </div>
+      <div class="field"><label>Observações</label><textarea id="emObs" placeholder="Anotações, riscos, decisões..."></textarea></div>
+    </div>
+    <div class="mfoot">
+      <div style="flex:1"></div>
+      <button class="btn" onclick="closeEntrega()">Cancelar</button>
+      <button class="btn primary" onclick="saveEntrega()">💾 Salvar</button>
     </div>
   </div>
 </div>
@@ -1102,28 +1189,51 @@ function renderDash(){
       <div class="sub">pontos entregues</div></div>
   `;
 
-  // Entregas planejadas
-  const rows = s.entregas.map((e,i)=>{
+  // Entregas planejadas — filtros e linhas
+  const fE = document.getElementById('dfEixo')?.value || '';
+  const fS = document.getElementById('dfStat')?.value || '';
+  const filtered = s.entregas
+    .map((e,i)=>({e,i,st:gES(s.id,i)}))
+    .filter(r => (!fE || (r.e.eixo||'')===fE) && (!fS || r.st===fS));
+  document.getElementById('dhCount').textContent = filtered.length;
+
+  const rows = filtered.map(({e,i,st})=>{
     const ex = exFor(e);
-    const st = gES(s.id, i);
     const mems = gEM(s.id, i);
     const code = (e.desc.match(/^[A-Z][0-9]+[a-z]?/)||[''])[0] || e.eixo;
     const titulo = e.desc.replace(/^[A-Z][0-9]+[a-z]?\s*[—-]?\s*/, '');
-    return `<tr onclick="openEntrega(${s.id},${i})">
-      <td><span class="tag" style="background:${ex.bg};color:${ex.fg};font-weight:800">${code}</span></td>
-      <td><div style="font-weight:700;color:var(--text);line-height:1.35">${escapeHtml(titulo)}</div>
-          <div style="font-size:10.5px;color:var(--t3);margin-top:2px">${e.tipo||'Entrega'}${e.resp?' • '+escapeHtml(e.resp):''}</div></td>
-      <td><span class="badge ${st}">${statL(st)}</span></td>
-      <td>${mems.length?avS(mems,4):'<span style="color:var(--t3)">—</span>'}</td>
-    </tr>`;
+    const star = /★/.test(e.desc) ? ' ★' : '';
+    return `<div class="drow ${st}" onclick="openEntrega(${s.id},${i})">
+      <span class="echip" style="background:${ex.bg};color:${ex.fg}">${e.eixo||'—'}</span>
+      <div class="dbody">
+        <div class="dproj">${code}${star} · ${e.tipo||'Entrega'}${e.resp?' • '+escapeHtml(e.resp):''}</div>
+        <div class="ddesc">${escapeHtml(titulo)}</div>
+        <div class="dmeta">
+          <span class="badge ${st}">${statL(st)}</span>
+          ${mems.length?avS(mems,4):''}
+        </div>
+      </div>
+      <div onclick="event.stopPropagation()">
+        <select class="ssel" onchange="qStEntrega(${s.id},${i},this.value)">
+          ${STATUSES.map(o=>`<option value="${o.k}" ${st===o.k?'selected':''}>${o.l}</option>`).join('')}
+        </select>
+      </div>
+    </div>`;
   }).join('');
-  document.getElementById('dashList').innerHTML = `
-    <h2 style="font-size:14px;margin:0 0 .7rem">📦 Entregas planejadas da Sprint</h2>
-    <table class="tbl">
-      <thead><tr><th>Eixo</th><th>Entrega</th><th>Status</th><th>Equipe</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table>
-  `;
+  document.getElementById('dashList').innerHTML = filtered.length
+    ? `<div class="dlist">${rows}</div>`
+    : `<div class="empty"><div class="ic">📭</div>Nenhuma entrega com esses filtros</div>`;
+}
+
+async function qStEntrega(sid, idx, status){
+  ss('loading','Salvando...');
+  const {error} = await db.from('sprint_entregas').upsert({sprint_id:sid,entrega_idx:idx,status}, {onConflict:'sprint_id,entrega_idx'});
+  if(error){ toast('Erro: '+error.message,'err'); ss('err','Erro'); return; }
+  EDB[sid+'-'+idx] = {...(EDB[sid+'-'+idx]||{}), sprint_id:sid, entrega_idx:idx, status};
+  ss('ok','Salvo'); toast('Status atualizado');
+  renderSnav();
+  if(AV==='dashboard') renderDash();
+  if(AV==='calendar')  renderCal();
 }
 
 /* ============================================================
@@ -1154,11 +1264,13 @@ function renderKanban(){
   }).join('');
 }
 
-function renderCard(t){
+function renderCard(t, opts={}){
   const mems = gTM(t.id).map(m=>m.id);
   const tagIds = gTT(t.id);
   const ck = gCL(t.id);
   const ckDone = ck.filter(c=>c.concluido).length;
+  const ckPct = ck.length ? Math.round(100*ckDone/ck.length) : 0;
+  const showActions = opts.actions !== false;
   return `<div class="card ${t.prioridade}" onclick="openTask('${t.id}')">
     <div class="ttl">${escapeHtml(t.titulo)}</div>
     <div class="meta">
@@ -1169,14 +1281,44 @@ function renderCard(t){
     </div>
     <div class="ftr">
       <div class="ftr-stats">
-        ${ck.length?`<span>✓ ${ckDone}/${ck.length}</span>`:''}
         ${t.story_points?`<span>🎯 ${t.story_points}</span>`:''}
         ${t.data_fim?`<span>📅 ${fmtD(t.data_fim)}</span>`:''}
       </div>
       ${mems.length?avS(mems,3):''}
     </div>
+    ${ck.length?`<div class="clmini">☑️ ${ckDone}/${ck.length} <div class="barbg"><div style="width:${ckPct}%"></div></div></div>`:''}
     ${t.progresso>0 ? `<div class="cprog"><div class="cprog-fill" style="width:${t.progresso}%"></div></div>`:''}
+    ${showActions ? `<div class="qact" onclick="event.stopPropagation()">
+      <select class="ssel" style="flex:1" onchange="qStTask('${t.id}',this.value)">
+        ${STATUSES.map(o=>`<option value="${o.k}" ${t.status===o.k?'selected':''}>${o.l}</option>`).join('')}
+      </select>
+      <button class="ib" title="Editar" onclick="openTask('${t.id}')">✏️</button>
+      <button class="ib del" title="Excluir" onclick="confirmDelTask('${t.id}')">🗑️</button>
+    </div>`:''}
   </div>`;
+}
+
+async function qStTask(id, status){
+  const t = TSK.find(x=>x.id===id); if(!t) return;
+  t.status = status;
+  ss('loading','Salvando...');
+  const {error} = await db.from('subtarefas').update({status}).eq('id', id);
+  if(error){ toast('Erro: '+error.message,'err'); ss('err','Erro'); return; }
+  ss('ok','Salvo'); toast('Status atualizado');
+  renderSnav();
+  if(AV==='kanban')  renderKanban();
+  if(AV==='backlog') renderBacklog();
+}
+
+async function confirmDelTask(id){
+  if(!confirm('Excluir esta tarefa? Esta ação não pode ser desfeita.')) return;
+  ss('loading','Excluindo...');
+  const {error} = await db.from('subtarefas').delete().eq('id', id);
+  if(error){ toast('Erro: '+error.message,'err'); ss('err','Erro'); return; }
+  TSK = TSK.filter(t=>t.id!==id);
+  delete TMB[id]; delete TTG[id]; delete CLD[id];
+  ss('ok','Excluído'); toast('Tarefa removida');
+  renderAll();
 }
 
 /* ============================================================
@@ -1332,25 +1474,36 @@ function renderReview(){
   document.getElementById('rvTitle').textContent = `Review da Sprint ${s.id}`;
   document.getElementById('rvSub').textContent = `${s.m} • ${s.foco}`;
   const r = RVD[s.id] || {};
+  const nps = (r.nps_equipe != null) ? r.nps_equipe : -1;
+  _NPS = nps;
   document.getElementById('reviewForm').innerHTML = `
     <div class="frow">
-      <div class="field"><label>% Entregue</label><input type="number" id="rvPct" min="0" max="100" value="${r.percentual_entregue||0}"></div>
-      <div class="field"><label>Velocidade (pontos)</label><input type="number" id="rvVel" min="0" value="${r.velocidade_pontos||0}"></div>
-      <div class="field"><label>NPS Equipe (0-10)</label><input type="number" id="rvNps" min="0" max="10" value="${r.nps_equipe||0}"></div>
+      <div class="field"><label>% Entregue</label><input type="number" id="rvPct" min="0" max="100" value="${r.percentual_entregue||''}"></div>
+      <div class="field"><label>Velocidade (pontos)</label><input type="number" id="rvVel" min="0" value="${r.velocidade_pontos||''}"></div>
       <div class="field"><label>Data da review</label><input type="date" id="rvData" value="${r.data_realizacao||''}"></div>
     </div>
     <div class="field" style="margin-bottom:.85rem"><label>✅ Entregas realizadas</label><textarea id="rvEnt" placeholder="O que foi entregue nesta sprint?">${r.entregas_realizadas||''}</textarea></div>
     <div class="field" style="margin-bottom:.85rem"><label>⚠️ Riscos e bloqueadores</label><textarea id="rvRisc" placeholder="O que travou ou ameaçou a sprint?">${r.riscos_bloqueadores||''}</textarea></div>
-    <div class="field"><label>🎯 Próximas ações</label><textarea id="rvProx" placeholder="O que vai para a próxima sprint?">${r.proximas_acoes||''}</textarea></div>
+    <div class="field" style="margin-bottom:.85rem"><label>🎯 Próximas ações</label><textarea id="rvProx" placeholder="O que vai para a próxima sprint?">${r.proximas_acoes||''}</textarea></div>
+    <div class="field"><label>😊 Satisfação da equipe (NPS 0–10)</label>
+      <div class="nps" id="rvNpsWrap">
+        ${Array.from({length:11},(_,i)=>`<button class="${nps===i?'on':''}" data-nps="${i}" onclick="selNPS(${i})">${i}</button>`).join('')}
+      </div>
+    </div>
   `;
+}
+let _NPS = -1;
+function selNPS(n){
+  _NPS = n;
+  document.querySelectorAll('#rvNpsWrap button').forEach(b=>b.classList.toggle('on', +b.dataset.nps===n));
 }
 async function saveReview(){
   const s = cs();
   const payload = {
     sprint_id: s.id,
-    percentual_entregue: +document.getElementById('rvPct').value || 0,
-    velocidade_pontos: +document.getElementById('rvVel').value || 0,
-    nps_equipe: +document.getElementById('rvNps').value || 0,
+    percentual_entregue: parseInt(document.getElementById('rvPct').value) || null,
+    velocidade_pontos: parseInt(document.getElementById('rvVel').value) || null,
+    nps_equipe: _NPS >= 0 ? _NPS : null,
     data_realizacao: document.getElementById('rvData').value || null,
     entregas_realizadas: document.getElementById('rvEnt').value,
     riscos_bloqueadores: document.getElementById('rvRisc').value,
@@ -1491,8 +1644,9 @@ function updateSchedPreview(){
   const el = document.getElementById('schedPreview');
   if(!s || !e){ el.innerHTML='Defina datas para visualizar o cronograma'; return; }
   const dur = Math.round((new Date(e)-new Date(s))/86400000) + 1;
-  el.innerHTML = `<div style="font-size:13px;font-weight:700;color:var(--text)">${fmtD(s)} → ${fmtD(e)}</div>
-    <div style="margin-top:.4rem;color:var(--accent);font-size:18px;font-weight:800">${dur} dias</div>`;
+  el.innerHTML = `
+    <div style="font-size:11px;color:var(--t2)">Duração: <strong style="color:var(--text)">${dur} dias</strong> · ${fmtD(s)} → ${fmtD(e)}</div>
+    <div class="gp-bar"><div style="width:100%">${dur}d</div></div>`;
 }
 document.addEventListener('change', (e)=>{
   if(e.target.id==='tStart' || e.target.id==='tEnd') updateSchedPreview();
@@ -1566,18 +1720,62 @@ async function delTask(){
   closeTask(); renderAll();
 }
 
-/* Entrega: status quick update via prompt */
-async function openEntrega(sid, idx){
-  const cur = EDB[sid+'-'+idx];
-  const status = prompt(`Status da entrega "${SP.find(s=>s.id===sid).entregas[idx].desc}":\n\npendente | em_andamento | em_revisao | concluido | bloqueado`, cur?.status || 'pendente');
-  if(!status) return;
-  if(!['pendente','em_andamento','em_revisao','concluido','bloqueado'].includes(status)){
-    toast('Status inválido','err'); return;
-  }
+/* ============================================================
+   ENTREGA MODAL
+============================================================ */
+let editingEnt = null;
+let entMembersSel = {};
+
+function openEntrega(sid, idx){
+  const s = SP.find(x=>x.id===sid);
+  const e = s.entregas[idx];
+  const cur = EDB[sid+'-'+idx] || {};
+  editingEnt = {sid, idx};
+  const code = (e.desc.match(/^[A-Z][0-9]+[a-z]?/)||[e.eixo||''])[0];
+  document.getElementById('emTitle').textContent = `${code} · ${e.desc.slice(0,60)}${e.desc.length>60?'…':''}`;
+  document.getElementById('emStatus').value = cur.status || 'pendente';
+  document.getElementById('emData').value = cur.data_fim || '';
+  document.getElementById('emObs').value = cur.obs || '';
+  entMembersSel = {};
+  gEM(sid, idx).forEach(id => entMembersSel[id] = true);
+  renderEntMembersPicker();
+  document.getElementById('entregaModal').classList.add('on');
+}
+function closeEntrega(){ document.getElementById('entregaModal').classList.remove('on'); editingEnt=null; }
+function renderEntMembersPicker(){
+  const el = document.getElementById('emMembers');
+  if(!MB.length){ el.innerHTML='<div style="color:var(--t3);font-size:12px">Nenhum usuário cadastrado.</div>'; return; }
+  el.innerHTML = MB.map(m=>{
+    const on = !!entMembersSel[m.id];
+    return `<div class="mp-chip ${on?'on':''}" onclick="togEntMem('${m.id}')">${avH(m,'sm')}<span>${m.nome}</span></div>`;
+  }).join('');
+}
+function togEntMem(id){
+  if(entMembersSel[id]) delete entMembersSel[id];
+  else entMembersSel[id]=true;
+  renderEntMembersPicker();
+}
+async function saveEntrega(){
+  if(!editingEnt) return;
+  const {sid, idx} = editingEnt;
   ss('loading','Salvando...');
-  const {error} = await db.from('sprint_entregas').upsert({sprint_id:sid,entrega_idx:idx,status}, {onConflict:'sprint_id,entrega_idx'});
+  const payload = {
+    sprint_id: sid, entrega_idx: idx,
+    status: document.getElementById('emStatus').value,
+    data_fim: document.getElementById('emData').value || null,
+    obs: document.getElementById('emObs').value.trim() || null,
+  };
+  const {error} = await db.from('sprint_entregas').upsert(payload, {onConflict:'sprint_id,entrega_idx'});
   if(error){ toast('Erro: '+error.message,'err'); ss('err','Erro'); return; }
-  await loadAll(); ss('ok','Salvo'); renderAll();
+  await db.from('entrega_members').delete().match({sprint_id:sid, entrega_idx:idx});
+  const ids = Object.keys(entMembersSel);
+  if(ids.length){
+    await db.from('entrega_members').insert(ids.map(pid=>({sprint_id:sid, entrega_idx:idx, profile_id:pid})));
+  }
+  EDB[sid+'-'+idx] = payload;
+  EMB[sid+'-'+idx] = ids;
+  ss('ok','Salvo'); toast('Entrega atualizada');
+  closeEntrega(); renderAll();
 }
 
 /* ============================================================
