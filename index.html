@@ -37,6 +37,25 @@ html[data-theme="light"]{
 }
 
 html,body{height:100%;font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);font-size:13px;line-height:1.55;overflow:hidden;transition:background .25s,color .25s}
+html[data-theme="dark"] body{background:
+  radial-gradient(ellipse 70% 50% at 0% 0%,rgba(43,106,255,.08),transparent 55%),
+  radial-gradient(ellipse 60% 40% at 100% 0%,rgba(255,123,57,.06),transparent 55%),
+  var(--bg)}
+html[data-theme="light"] body{background:
+  radial-gradient(ellipse 70% 50% at 0% 0%,rgba(43,106,255,.07),transparent 55%),
+  radial-gradient(ellipse 60% 40% at 100% 0%,rgba(255,123,57,.04),transparent 55%),
+  var(--bg)}
+
+/* ============ GLOBAL FILTER BAR ============ */
+.gfilter{background:var(--bg2);border-bottom:1px solid var(--border);padding:.6rem 1.25rem;display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap;flex-shrink:0;backdrop-filter:blur(10px)}
+.gf-group{display:flex;flex-direction:column;gap:3px;min-width:150px;flex:1;max-width:230px}
+.gf-lbl{font-size:9.5px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:.07em}
+.gf-sel{background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--rlg);padding:.45rem .7rem;font-size:12.5px;color:var(--text);font-family:inherit;outline:none;cursor:pointer;transition:all .15s;font-weight:500}
+.gf-sel:focus,.gf-sel:hover{border-color:var(--accent);box-shadow:0 0 0 3px var(--acc-glow)}
+.gf-clear{background:var(--bg3);border:1.5px solid var(--border);border-radius:var(--rlg);padding:.5rem 1rem;font-size:12px;color:var(--t2);cursor:pointer;font-weight:700;font-family:inherit;transition:all .15s;height:36px;align-self:flex-end}
+.gf-clear:hover{background:var(--r-bg);color:var(--red);border-color:rgba(255,71,87,.35)}
+.gf-active{position:relative}
+.gf-active::after{content:'';position:absolute;top:-3px;right:-3px;width:8px;height:8px;background:var(--orange);border:2px solid var(--bg2);border-radius:50%}
 
 /* ============ LOGIN ============ */
 #authPage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:1000;background:var(--bg);
@@ -162,8 +181,10 @@ html,body{height:100%;font-family:'Inter',system-ui,-apple-system,sans-serif;bac
 .kchead .add:hover{background:var(--bg3);color:var(--accent);border-color:var(--accent)}
 
 /* CARDS */
-.card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--rlg);padding:.65rem .75rem;margin-bottom:.5rem;cursor:pointer;transition:all .15s;position:relative;overflow:hidden}
-.card:hover{border-color:var(--border2);transform:translateY(-1px);box-shadow:var(--shadow)}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rlg);padding:.75rem .85rem;margin-bottom:.55rem;cursor:pointer;transition:all .18s cubic-bezier(.2,.8,.4,1);position:relative;overflow:hidden}
+.card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 6px 20px rgba(43,106,255,.18)}
+html[data-theme="light"] .card{background:#FFF;box-shadow:0 1px 3px rgba(20,30,60,.04)}
+html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
 .card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent)}
 .card.critica::before{background:var(--red)}
 .card.alta::before{background:var(--orange)}
@@ -179,7 +200,8 @@ html,body{height:100%;font-family:'Inter',system-ui,-apple-system,sans-serif;bac
 .cprog-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--green));border-radius:20px;transition:width .4s}
 
 /* ============ BACKLOG / STAGES ============ */
-.filtbar{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rlg);padding:.7rem;display:flex;flex-wrap:wrap;gap:8px;margin-bottom:1rem;align-items:center}
+.filtbar{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rlg);padding:.55rem .85rem;display:flex;flex-wrap:wrap;gap:10px;margin-bottom:1rem;align-items:center}
+.filt-info{font-size:10.5px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:.06em}
 .filtbar .inp{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:.45rem .7rem;font-size:12px;color:var(--text);font-family:inherit;outline:none;min-width:180px}
 .filtbar .inp:focus{border-color:var(--accent)}
 .filtbar .sel{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:.45rem .65rem;font-size:12px;color:var(--text);font-family:inherit;cursor:pointer;outline:none}
@@ -422,6 +444,36 @@ html,body{height:100%;font-family:'Inter',system-ui,-apple-system,sans-serif;bac
     </div>
   </div>
 
+  <!-- GLOBAL FILTER BAR -->
+  <div class="gfilter">
+    <div class="gf-group">
+      <label class="gf-lbl">📍 Sprint</label>
+      <select class="gf-sel" id="gfSprint" onchange="setGF('sprint',this.value)"></select>
+    </div>
+    <div class="gf-group">
+      <label class="gf-lbl">👤 Pessoa</label>
+      <select class="gf-sel" id="gfPerson" onchange="setGF('person',this.value)">
+        <option value="">Todas as pessoas</option>
+      </select>
+    </div>
+    <div class="gf-group">
+      <label class="gf-lbl">📌 Situação</label>
+      <select class="gf-sel" id="gfStatus" onchange="setGF('status',this.value)">
+        <option value="">Todas as situações</option>
+        <option value="pendente">Pendente</option>
+        <option value="em_andamento">Em andamento</option>
+        <option value="em_revisao">Em revisão</option>
+        <option value="concluido">Concluído</option>
+        <option value="bloqueado">Bloqueado</option>
+      </select>
+    </div>
+    <div class="gf-group">
+      <label class="gf-lbl">🔍 Buscar</label>
+      <input class="gf-sel" id="gfSearch" placeholder="Título, descrição..." oninput="setGF('search',this.value)">
+    </div>
+    <button class="gf-clear" onclick="clearGF()" title="Limpar filtros">↺ Limpar</button>
+  </div>
+
   <!-- LAYOUT -->
   <div class="split">
     <aside class="sidebar">
@@ -455,11 +507,12 @@ html,body{height:100%;font-family:'Inter',system-ui,-apple-system,sans-serif;bac
         </div>
         <div class="metrics" id="metrics"></div>
         <div class="filtbar">
-          <strong style="font-size:13px;font-weight:800">📦 Entregas do Ciclo</strong>
+          <strong style="font-size:13px;font-weight:800">📦 Entregas</strong>
           <span class="cbadge" id="dhCount">0</span>
           <div style="flex:1"></div>
+          <span class="filt-info">Eixo:</span>
           <select class="sel" id="dfEixo" onchange="renderDash()">
-            <option value="">Todos os eixos</option>
+            <option value="">Todos</option>
             <option value="A">A · Governança</option>
             <option value="B">B · Dados</option>
             <option value="C">C · SUITE</option>
@@ -468,14 +521,6 @@ html,body{height:100%;font-family:'Inter',system-ui,-apple-system,sans-serif;bac
             <option value="F">F · Eficiência</option>
             <option value="G">G · NEXUS</option>
             <option value="H">H · Sustentação</option>
-          </select>
-          <select class="sel" id="dfStat" onchange="renderDash()">
-            <option value="">Todos os status</option>
-            <option value="pendente">Pendente</option>
-            <option value="em_andamento">Em andamento</option>
-            <option value="em_revisao">Em revisão</option>
-            <option value="concluido">Concluído</option>
-            <option value="bloqueado">Bloqueado</option>
           </select>
         </div>
         <div id="dashList"></div>
@@ -489,17 +534,13 @@ html,body{height:100%;font-family:'Inter',system-ui,-apple-system,sans-serif;bac
           <button class="btn primary" onclick="openTask()">+ Nova tarefa</button>
         </div>
         <div class="filtbar">
-          <input class="inp" id="kbSearch" placeholder="🔍 Buscar..." oninput="renderKanban()">
-          <select class="sel" id="kbResp" onchange="renderKanban()"><option value="">Todos responsáveis</option></select>
+          <span class="filt-info">Mostrando:</span>
           <select class="sel" id="kbKind" onchange="renderKanban()">
-            <option value="all">Tarefas + Entregas</option>
-            <option value="entregas">Só entregas das sprints</option>
-            <option value="tasks">Só tarefas livres</option>
+            <option value="all">📋 Tarefas + 📦 Entregas</option>
+            <option value="entregas">📦 Só entregas das sprints</option>
+            <option value="tasks">📋 Só tarefas livres</option>
           </select>
-          <select class="sel" id="kbScope" onchange="renderKanban()">
-            <option value="sprint">Sprint atual</option>
-            <option value="all">Todas as sprints</option>
-          </select>
+          <span style="font-size:11px;color:var(--t3)">Use os filtros do topo para refinar por sprint, pessoa ou situação</span>
         </div>
         <div class="kanban" id="kanban"></div>
       </section>
@@ -512,25 +553,13 @@ html,body{height:100%;font-family:'Inter',system-ui,-apple-system,sans-serif;bac
           <button class="btn primary" onclick="openTask()">+ Nova tarefa</button>
         </div>
         <div class="filtbar">
-          <input class="inp" id="bgSearch"  placeholder="🔍 Buscar tarefa..." oninput="renderBacklog()">
-          <select class="sel" id="bgResp"  onchange="renderBacklog()"><option value="">Todos responsáveis</option></select>
+          <span class="filt-info">Prioridade:</span>
           <select class="sel" id="bgPrio"  onchange="renderBacklog()">
-            <option value="">Toda prioridade</option>
-            <option value="critica">Crítica</option><option value="alta">Alta</option>
-            <option value="media">Média</option><option value="baixa">Baixa</option>
+            <option value="">Todas</option>
+            <option value="critica">🔴 Crítica</option><option value="alta">🟠 Alta</option>
+            <option value="media">🟡 Média</option><option value="baixa">🟢 Baixa</option>
           </select>
-          <select class="sel" id="bgStat" onchange="renderBacklog()">
-            <option value="">Todo status</option>
-            <option value="pendente">Pendente</option>
-            <option value="em_andamento">Em andamento</option>
-            <option value="em_revisao">Em revisão</option>
-            <option value="concluido">Concluído</option>
-            <option value="bloqueado">Bloqueado</option>
-          </select>
-          <select class="sel" id="bgScope" onchange="renderBacklog()">
-            <option value="sprint">Sprint atual</option>
-            <option value="all">Todas as sprints</option>
-          </select>
+          <span style="font-size:11px;color:var(--t3)">Use os filtros do topo para refinar por sprint, pessoa ou situação</span>
         </div>
         <!-- Stage pipeline filter -->
         <div class="stages" id="stagebar"></div>
@@ -909,6 +938,8 @@ const POINTS = [1,2,3,5,8,13,21];
 ============================================================ */
 let AS = 1;
 let AV = 'dashboard';
+// Global filters (apply across all views)
+let gF = { sprint:'current', person:'', status:'', search:'' };
 let CU = null;       // current user (auth session user)
 let CP = null;       // current profile (row from `profiles`)
 let MB = [];         // profiles[]
@@ -1116,6 +1147,62 @@ function toast(msg, type='ok'){
   setTimeout(()=>t.classList.remove('on'), 2400);
 }
 function statL(k){ return (STATUSES.find(s=>s.k===k)||{}).l || k; }
+
+/* GLOBAL FILTERS */
+function setGF(key, val){
+  gF[key] = val;
+  if(key==='sprint' && val!=='all' && val!=='current'){
+    AS = +val;
+  } else if(key==='sprint' && val==='current'){
+    // keep AS as is, but treat as "single sprint" mode
+  }
+  paintGFActive();
+  renderAll();
+}
+function clearGF(){
+  gF = {sprint:'current', person:'', status:'', search:''};
+  document.getElementById('gfPerson').value = '';
+  document.getElementById('gfStatus').value = '';
+  document.getElementById('gfSearch').value = '';
+  document.getElementById('gfSprint').value = 'current';
+  paintGFActive();
+  renderAll();
+}
+function paintGFActive(){
+  document.getElementById('gfPerson').parentElement.classList.toggle('gf-active', !!gF.person);
+  document.getElementById('gfStatus').parentElement.classList.toggle('gf-active', !!gF.status);
+  document.getElementById('gfSearch').parentElement.classList.toggle('gf-active', !!gF.search);
+  document.getElementById('gfSprint').parentElement.classList.toggle('gf-active', gF.sprint==='all');
+}
+// Get tasks subject to global filters
+function gTasks(){
+  let arr = gF.sprint==='all' ? TSK.slice() : spT(AS);
+  if(gF.person) arr = arr.filter(t => gTM(t.id).find(m=>m.id===gF.person));
+  if(gF.status) arr = arr.filter(t => t.status===gF.status);
+  if(gF.search){
+    const q = gF.search.toLowerCase();
+    arr = arr.filter(t => (t.titulo||'').toLowerCase().includes(q) || (t.descricao||'').toLowerCase().includes(q));
+  }
+  return arr;
+}
+// Get entregas subject to global filters
+function gEntregas(){
+  const sprintIds = gF.sprint==='all' ? SP.map(s=>s.id) : [AS];
+  let arr = [];
+  sprintIds.forEach(sid=>{
+    const s = SP.find(x=>x.id===sid);
+    s.entregas.forEach((e,i)=>{
+      arr.push({_data:e, sprint_id:sid, entrega_idx:i, status:gES(sid,i)});
+    });
+  });
+  if(gF.person) arr = arr.filter(c => gEM(c.sprint_id, c.entrega_idx).includes(gF.person));
+  if(gF.status) arr = arr.filter(c => c.status===gF.status);
+  if(gF.search){
+    const q = gF.search.toLowerCase();
+    arr = arr.filter(c => c._data.desc.toLowerCase().includes(q));
+  }
+  return arr;
+}
 function faseL(k){ return (FASES.find(f=>f.k===k)||{}).l || k; }
 function exFor(e){ const k = typeof e==="string" ? e.charAt(0) : (e?.eixo?.[0] || "A"); return EX[k] || EX.A; }
 
@@ -1132,16 +1219,29 @@ function nav(view, btn){
 }
 function selSprint(id){
   AS = id;
+  gF.sprint = 'current';
   const s = cs();
   if(s){ calDate = new Date(s.m1); }
+  const gs = document.getElementById('gfSprint');
+  if(gs) gs.value = String(id);
+  // re-render filter options to update "Sprint atual" label
+  initFilters();
   renderAll();
 }
 function renderAll(){
-  const s = cs();
-  document.getElementById('topPill').textContent = `S${s.id} • ${s.m}`;
-  document.getElementById('topPill').style.color = RC[s.risco];
-  document.getElementById('topPill').style.borderColor = RC[s.risco];
-  document.getElementById('topPill').style.background = RC[s.risco] + '20';
+  const pill = document.getElementById('topPill');
+  if(gF.sprint==='all'){
+    pill.textContent = '📚 Todas as sprints';
+    pill.style.color = 'var(--accent)';
+    pill.style.borderColor = 'var(--accent)';
+    pill.style.background = 'var(--acc-bg)';
+  } else {
+    const s = cs();
+    pill.textContent = `S${s.id} • ${s.m}`;
+    pill.style.color = RC[s.risco];
+    pill.style.borderColor = RC[s.risco];
+    pill.style.background = RC[s.risco] + '20';
+  }
   renderSnav();
   if(AV==='dashboard') renderDash();
   if(AV==='kanban')    renderKanban();
@@ -1171,26 +1271,45 @@ function renderSnav(){
    DASHBOARD
 ============================================================ */
 function renderDash(){
-  const s = cs();
-  document.getElementById('dhTitle').textContent = `Sprint ${s.id} — ${s.m}`;
-  document.getElementById('dhSub').textContent   = s.foco;
-  const ts = spT(s.id);
+  const isAll = gF.sprint==='all';
+  if(isAll){
+    document.getElementById('dhTitle').textContent = `Todas as sprints`;
+    document.getElementById('dhSub').textContent   = `Ciclo Abr/2026 – Mar/2027 · ${SP.length} sprints`;
+  } else {
+    const s = cs();
+    document.getElementById('dhTitle').textContent = `Sprint ${s.id} — ${s.m}`;
+    document.getElementById('dhSub').textContent   = s.foco;
+  }
 
-  // Entregas + subtarefas combinadas para metricas
-  const entStatuses = s.entregas.map((_,i)=>gES(s.id,i));
-  const eDone   = entStatuses.filter(x=>x==='concluido').length;
-  const eProg   = entStatuses.filter(x=>x==='em_andamento').length;
-  const eBlock  = entStatuses.filter(x=>x==='bloqueado').length;
-  const tDone   = ts.filter(t=>t.status==='concluido').length;
-  const tProg   = ts.filter(t=>t.status==='em_andamento').length;
-  const tBlock  = ts.filter(t=>t.status==='bloqueado').length;
-  const done    = eDone + tDone;
-  const inProg  = eProg + tProg;
-  const blocked = eBlock + tBlock;
-  const total   = s.entregas.length + ts.length;
-  const pct     = total ? Math.round(100*done/total) : 0;
-  const pts     = ts.filter(t=>t.status==='concluido').reduce((a,t)=>a+(t.story_points||0),0);
-  const totalPts = ts.reduce((a,t)=>a+(t.story_points||0),0);
+  // Métricas a partir dos filtros globais
+  const ts = gTasks();
+  const ents = gEntregas(); // já filtrado por person/status/search no escopo de sprint
+  // Para os contadores totais por status, removemos o filtro de status pra mostrar o panorama
+  const tsAll = (gF.sprint==='all' ? TSK : spT(AS))
+    .filter(t => !gF.person || gTM(t.id).find(m=>m.id===gF.person));
+  const sprintIdsAll = gF.sprint==='all' ? SP.map(s=>s.id) : [AS];
+  let entsAll = [];
+  sprintIdsAll.forEach(sid=>{
+    const s = SP.find(x=>x.id===sid);
+    s.entregas.forEach((e,i)=>{
+      const mems = gEM(sid,i);
+      if(gF.person && !mems.includes(gF.person)) return;
+      entsAll.push({status: gES(sid,i)});
+    });
+  });
+
+  const cnt = (st)=> entsAll.filter(e=>e.status===st).length + tsAll.filter(t=>t.status===st).length;
+  const eDone = entsAll.filter(e=>e.status==='concluido').length;
+  const tDone = tsAll.filter(t=>t.status==='concluido').length;
+  const eProg = entsAll.filter(e=>e.status==='em_andamento').length;
+  const tProg = tsAll.filter(t=>t.status==='em_andamento').length;
+  const done = cnt('concluido');
+  const inProg = cnt('em_andamento');
+  const blocked = cnt('bloqueado');
+  const total = entsAll.length + tsAll.length;
+  const pct = total ? Math.round(100*done/total) : 0;
+  const pts = tsAll.filter(t=>t.status==='concluido').reduce((a,t)=>a+(t.story_points||0),0);
+  const totalPts = tsAll.reduce((a,t)=>a+(t.story_points||0),0);
 
   document.getElementById('metrics').innerHTML = `
     <div class="mc"><div class="lbl">📊 Progresso</div><div class="val">${pct}%</div>
@@ -1201,29 +1320,28 @@ function renderDash(){
     <div class="mc"><div class="lbl">✅ Concluídas</div><div class="val" style="color:var(--green)">${done}</div>
       <div class="sub">${tDone} tarefa(s) + ${eDone} entrega(s)</div></div>
     <div class="mc"><div class="lbl">🚫 Bloqueadas</div><div class="val" style="color:var(--red)">${blocked}</div>
-      <div class="sub">${ts.length} tarefas no total</div></div>
+      <div class="sub">no escopo selecionado</div></div>
     <div class="mc"><div class="lbl">🎯 Story Points</div><div class="val">${pts}/${totalPts||0}</div>
       <div class="sub">pontos entregues</div></div>
   `;
 
-  // Entregas planejadas — filtros e linhas
-  const fE = document.getElementById('dfEixo')?.value || '';
-  const fS = document.getElementById('dfStat')?.value || '';
-  const filtered = s.entregas
-    .map((e,i)=>({e,i,st:gES(s.id,i)}))
-    .filter(r => (!fE || (r.e.eixo||'')===fE) && (!fS || r.st===fS));
+  // Entregas (já filtradas via globais)
+  const fEixo = document.getElementById('dfEixo')?.value || '';
+  let filtered = ents.slice();
+  if(fEixo) filtered = filtered.filter(c => (c._data.eixo||'')===fEixo);
   document.getElementById('dhCount').textContent = filtered.length;
 
-  const rows = filtered.map(({e,i,st})=>{
+  const rows = filtered.map(({_data:e, sprint_id:sid, entrega_idx:i, status:st})=>{
     const ex = exFor(e);
-    const mems = gEM(s.id, i);
+    const mems = gEM(sid, i);
     const code = (e.desc.match(/^[A-Z][0-9]+[a-z]?/)||[''])[0] || e.eixo;
     const titulo = e.desc.replace(/^[A-Z][0-9]+[a-z]?\s*[—-]?\s*/, '');
     const star = /★/.test(e.desc) ? ' ★' : '';
-    return `<div class="drow ${st}" onclick="openEntrega(${s.id},${i})">
+    const sp = SP.find(x=>x.id===sid);
+    return `<div class="drow ${st}" onclick="openEntrega(${sid},${i})">
       <span class="echip" style="background:${ex.bg};color:${ex.fg}">${e.eixo||'—'}</span>
       <div class="dbody">
-        <div class="dproj">${code}${star} · ${e.tipo||'Entrega'}${e.resp?' • '+escapeHtml(e.resp):''}</div>
+        <div class="dproj">${code}${star} · ${e.tipo||'Entrega'}${isAll?` · S${sid} · ${sp.m}`:''}${e.resp?' • '+escapeHtml(e.resp):''}</div>
         <div class="ddesc">${escapeHtml(titulo)}</div>
         <div class="dmeta">
           <span class="badge ${st}">${statL(st)}</span>
@@ -1231,7 +1349,7 @@ function renderDash(){
         </div>
       </div>
       <div onclick="event.stopPropagation()">
-        <select class="ssel" onchange="qStEntrega(${s.id},${i},this.value)">
+        <select class="ssel" onchange="qStEntrega(${sid},${i},this.value)">
           ${STATUSES.map(o=>`<option value="${o.k}" ${st===o.k?'selected':''}>${o.l}</option>`).join('')}
         </select>
       </div>
@@ -1257,42 +1375,11 @@ async function qStEntrega(sid, idx, status){
    KANBAN
 ============================================================ */
 function renderKanban(){
-  const q = document.getElementById('kbSearch').value.toLowerCase();
-  const resp = document.getElementById('kbResp').value;
-  const scope = document.getElementById('kbScope').value;
   const showKind = document.getElementById('kbKind')?.value || 'all'; // all|tasks|entregas
-
-  // Subtarefas
-  const baseTasks = scope==='all' ? TSK : spT(AS);
-  const tasks = baseTasks
-    .filter(t => showKind!=='entregas')
-    .filter(t=>{
-      if(q && !t.titulo.toLowerCase().includes(q) && !(t.descricao||'').toLowerCase().includes(q)) return false;
-      if(resp && !gTM(t.id).find(m=>m.id===resp)) return false;
-      return true;
-    })
-    .map(t => ({_kind:'task', _data:t, status:t.status, _sortKey:t.titulo}));
-
-  // Entregas das sprints (todas ou só a atual)
-  const sprintIds = scope==='all' ? SP.map(s=>s.id) : [AS];
-  let entregas = [];
-  sprintIds.forEach(sid=>{
-    const s = SP.find(x=>x.id===sid);
-    s.entregas.forEach((e,i)=>{
-      entregas.push({
-        _kind:'entrega', _data:e, sprint_id:sid, entrega_idx:i,
-        status: gES(sid,i), _sortKey: e.desc
-      });
-    });
-  });
-  entregas = entregas
-    .filter(_ => showKind!=='tasks')
-    .filter(c=>{
-      if(q && !c._data.desc.toLowerCase().includes(q)) return false;
-      if(resp && !gEM(c.sprint_id, c.entrega_idx).includes(resp)) return false;
-      return true;
-    });
-
+  const tasks = (showKind==='entregas' ? [] : gTasks())
+    .map(t => ({_kind:'task', _data:t, status:t.status}));
+  const entregas = (showKind==='tasks' ? [] : gEntregas())
+    .map(c => ({_kind:'entrega', ...c}));
   const all = [...entregas, ...tasks];
 
   const el = document.getElementById('kanban');
@@ -1403,19 +1490,9 @@ async function confirmDelTask(id){
    BACKLOG (com pipeline de fases)
 ============================================================ */
 function renderBacklog(){
-  const q = document.getElementById('bgSearch').value.toLowerCase();
-  const resp = document.getElementById('bgResp').value;
   const prio = document.getElementById('bgPrio').value;
-  const stat = document.getElementById('bgStat').value;
-  const scope = document.getElementById('bgScope').value;
-  const base = scope==='all' ? TSK : spT(AS);
-  let tasks = base.filter(t=>{
-    if(q && !t.titulo.toLowerCase().includes(q)) return false;
-    if(resp && !gTM(t.id).find(m=>m.id===resp)) return false;
-    if(prio && t.prioridade!==prio) return false;
-    if(stat && t.status!==stat) return false;
-    return true;
-  });
+  let tasks = gTasks();
+  if(prio) tasks = tasks.filter(t=>t.prioridade===prio);
 
   // Stage chips
   const sb = document.getElementById('stagebar');
@@ -1481,22 +1558,22 @@ function renderCal(){
     const d = new Date(y,m,-fdow+i+1);
     html += `<div class="calday muted"><span class="dno">${d.getDate()}</span></div>`;
   }
+  // Aplica filtros globais ao calendário
+  const tasksAll = gTasks();
+  const entsAll  = gEntregas();
   for(let d=1; d<=last.getDate(); d++){
     const dt = new Date(y,m,d);
     const iso = dt.toISOString().slice(0,10);
     const isT = dt.getTime()===today.getTime();
-    // events: subtarefas data_fim
-    const evs = TSK.filter(t=>t.data_fim===iso).slice(0,3);
-    // entregas com data_fim
-    const ents = Object.values(EDB).filter(e=>e.data_fim===iso).slice(0,2);
+    const evs = tasksAll.filter(t=>t.data_fim===iso).slice(0,3);
+    const ents = entsAll.filter(c => (EDB[c.sprint_id+'-'+c.entrega_idx]||{}).data_fim===iso).slice(0,2);
     html += `<div class="calday ${isT?'today':''}">
       <span class="dno">${d}</span>
       ${evs.map(t=>`<div class="cevt" onclick="openTask('${t.id}')" style="background:${prioBg(t.prioridade)};color:${prioFg(t.prioridade)}">${escapeHtml(t.titulo.slice(0,18))}</div>`).join('')}
-      ${ents.map(e=>{
-        const sp = SP.find(s=>s.id===e.sprint_id);
-        const ent = sp ? sp.entregas[e.entrega_idx] : null; const lbl = ent ? (ent.desc || '?') : '?';
-        const ex = ent ? exFor(ent) : EX.A;
-        return `<div class="cevt" style="background:${ex.bg};color:${ex.fg}">📦 ${escapeHtml((lbl||'').slice(0,16))}</div>`;
+      ${ents.map(c=>{
+        const ex = exFor(c._data);
+        const lbl = c._data.desc || '?';
+        return `<div class="cevt" onclick="openEntrega(${c.sprint_id},${c.entrega_idx})" style="background:${ex.bg};color:${ex.fg}">📦 ${escapeHtml(lbl.slice(0,16))}</div>`;
       }).join('')}
     </div>`;
   }
@@ -1897,6 +1974,22 @@ function initFilters(){
     MB.map(m=>`<option value="${m.id}">${m.nome}</option>`).join('');
   const kb = document.getElementById('kbResp'); if(kb) kb.innerHTML = opts;
   const bg = document.getElementById('bgResp'); if(bg) bg.innerHTML = opts;
+
+  // Global sprint filter
+  const gs = document.getElementById('gfSprint');
+  gs.innerHTML = `<option value="current">Sprint atual (S${AS})</option>
+    <option value="all">📚 Todas as sprints</option>
+    <optgroup label="Selecionar específica">
+    ${SP.map(s=>`<option value="${s.id}" ${s.id===AS?'selected':''}>S${s.id} · ${s.m} · ${s.foco}</option>`).join('')}
+    </optgroup>`;
+  if(gF.sprint==='all') gs.value='all';
+  else if(gF.sprint==='current') gs.value='current';
+  else gs.value = String(AS);
+
+  // Global person filter
+  document.getElementById('gfPerson').innerHTML =
+    '<option value="">Todas as pessoas</option>' +
+    MB.map(m=>`<option value="${m.id}">${m.nome}</option>`).join('');
 }
 
 /* ============================================================
