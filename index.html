@@ -799,16 +799,29 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
 
 <!-- ============ MODAL ENTREGA ============ -->
 <div class="mbg" id="entregaModal">
-  <div class="modal" style="max-width:760px">
+  <div class="modal" style="max-width:820px">
     <div class="mhead"><h2 id="emTitle">Entrega</h2><button class="mclose" onclick="closeEntrega()">✕</button></div>
     <div class="mtabs">
-      <button class="mtab on" data-p="em-details"    onclick="swPaneEm(this)">📝 Detalhes</button>
+      <button class="mtab on" data-p="em-details"     onclick="swPaneEm(this)">📝 Detalhes</button>
       <button class="mtab"    data-p="em-attachments" onclick="swPaneEm(this)">📎 Anexos <span class="tab-ct" id="emAtCt">0</span></button>
       <button class="mtab"    data-p="em-comments"    onclick="swPaneEm(this)">💬 Comentários <span class="tab-ct" id="emCmCt">0</span></button>
+      <button class="mtab"    data-p="em-checklist"   onclick="swPaneEm(this)">✅ Checklist</button>
+      <button class="mtab"    data-p="em-members"     onclick="swPaneEm(this)">👥 Equipe</button>
+      <button class="mtab"    data-p="em-tags"        onclick="swPaneEm(this)">🏷️ Tags</button>
+      <button class="mtab"    data-p="em-schedule"    onclick="swPaneEm(this)">📅 Cronograma</button>
     </div>
     <div class="mbody">
       <!-- Detalhes -->
       <div class="mpane on" data-pane="em-details">
+        <div id="emPlanInfo" style="background:var(--bg3);border-left:3px solid var(--accent);border-radius:var(--rlg);padding:.7rem .9rem;margin-bottom:.85rem">
+          <div style="font-size:10px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">📋 Da planilha de planejamento</div>
+          <div id="emPlanDesc" style="font-size:13px;font-weight:700;color:var(--text)"></div>
+          <div id="emPlanMeta" style="font-size:11px;color:var(--t2);margin-top:3px"></div>
+        </div>
+        <div class="field" style="margin-bottom:.85rem">
+          <label>Descrição adicional (notas, contexto, decisões)</label>
+          <textarea id="emDesc" placeholder="Adicione contexto, escopo detalhado..."></textarea>
+        </div>
         <div class="frow">
           <div class="field"><label>Status</label>
             <select id="emStatus">
@@ -819,12 +832,31 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
               <option value="bloqueado">Bloqueado</option>
             </select>
           </div>
-          <div class="field"><label>Data de entrega</label><input type="date" id="emData"></div>
+          <div class="field"><label>Prioridade</label>
+            <select id="emPrio">
+              <option value="critica">🔴 Crítica</option>
+              <option value="alta">🟠 Alta</option>
+              <option value="media" selected>🟡 Média</option>
+              <option value="baixa">🟢 Baixa</option>
+            </select>
+          </div>
         </div>
-        <div class="field" style="margin-bottom:.85rem"><label>Responsáveis</label>
-          <div class="mpicker" id="emMembers"></div>
+        <div class="field" style="margin-bottom:.85rem">
+          <label>Fase do ciclo</label>
+          <div class="fasebar" id="emFaseBar"></div>
         </div>
-        <div class="field"><label>Observações</label><textarea id="emObs" placeholder="Anotações, riscos, decisões..."></textarea></div>
+        <div class="field" style="margin-bottom:.85rem">
+          <label>Story Points (Fibonacci)</label>
+          <div class="pts" id="emPtsBar"></div>
+        </div>
+        <div class="field" style="margin-bottom:.85rem">
+          <label>Progresso (<span id="emProgVal">0</span>%)</label>
+          <input type="range" class="slider" id="emProg" min="0" max="100" value="0" oninput="document.getElementById('emProgVal').textContent=this.value">
+        </div>
+        <div class="field">
+          <label>Observações rápidas</label>
+          <textarea id="emObs" placeholder="Anotações, riscos, decisões..." style="min-height:60px"></textarea>
+        </div>
       </div>
       <!-- Anexos -->
       <div class="mpane" data-pane="em-attachments">
@@ -847,11 +879,40 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
           <button class="btn primary sm" onclick="addEntregaComment()">💬 Comentar</button>
         </div>
       </div>
+      <!-- Checklist -->
+      <div class="mpane" data-pane="em-checklist">
+        <div class="field"><label>Checklist (<span id="emCkCt">0</span> itens)</label></div>
+        <ul class="cklist" id="emCkList"></ul>
+        <div class="ck-add">
+          <input class="inp" style="flex:1" id="emCkIn" placeholder="Adicionar item e Enter..." onkeydown="if(event.key==='Enter')addEmCkItem()">
+          <button class="btn primary sm" onclick="addEmCkItem()">+ Adicionar</button>
+        </div>
+      </div>
+      <!-- Equipe -->
+      <div class="mpane" data-pane="em-members">
+        <div class="field"><label>Responsáveis pela entrega</label>
+          <div class="mpicker" id="emMembers"></div>
+        </div>
+      </div>
+      <!-- Tags -->
+      <div class="mpane" data-pane="em-tags">
+        <div class="field"><label>Tags</label>
+          <div class="tg-picker" id="emTagPicker"></div>
+        </div>
+      </div>
+      <!-- Cronograma -->
+      <div class="mpane" data-pane="em-schedule">
+        <div class="frow">
+          <div class="field"><label>Data início</label><input type="date" id="emStart"></div>
+          <div class="field"><label>Data entrega</label><input type="date" id="emData"></div>
+        </div>
+        <div id="emSchedPreview" style="background:var(--bg3);border:1px dashed var(--border2);padding:1rem;border-radius:var(--rlg);text-align:center;font-size:12px;color:var(--t2)">Defina datas para visualizar o cronograma</div>
+      </div>
     </div>
     <div class="mfoot">
       <div style="flex:1"></div>
       <button class="btn" onclick="closeEntrega()">Cancelar</button>
-      <button class="btn primary" onclick="saveEntrega()">💾 Salvar</button>
+      <button class="btn primary" onclick="saveEntrega()">💾 Salvar entrega</button>
     </div>
   </div>
 </div>
@@ -1218,8 +1279,14 @@ async function loadAll(){
     });
     TSK = r5.data || [];
     TMB = {}; (r6.data||[]).forEach(t=>{(TMB[t.tarefa_id]=TMB[t.tarefa_id]||[]).push({id:t.profile_id,papel:t.papel})});
-    TTG = {}; (r7.data||[]).forEach(t=>{(TTG[t.tarefa_id]=TTG[t.tarefa_id]||[]).push(t.tag_id)});
-    CLD = {}; (r8.data||[]).forEach(c=>{(CLD[c.tarefa_id]=CLD[c.tarefa_id]||[]).push(c)});
+    TTG = {}; (r7.data||[]).forEach(t=>{
+      const k = t.tarefa_id || `e_${t.sprint_id}_${t.entrega_idx}`;
+      (TTG[k]=TTG[k]||[]).push(t.tag_id);
+    });
+    CLD = {}; (r8.data||[]).forEach(c=>{
+      const k = c.tarefa_id || `e_${c.sprint_id}_${c.entrega_idx}`;
+      (CLD[k]=CLD[k]||[]).push(c);
+    });
     // Comments + attachments + reviews em paralelo (toleram tabelas ausentes)
     const [rv, rc, ra] = await Promise.all([
       db.from('sprint_reviews').select('*'),
@@ -1528,21 +1595,36 @@ function renderEntregaCard(c){
   const titulo = e.desc.replace(/^[A-Z][0-9]+[a-z]?\s*[—-]?\s*/, '');
   const sp = SP.find(x=>x.id===sid);
   const cur = EDB[sid+'-'+idx] || {};
-  return `<div class="card" style="border-left:3px solid ${ex.fg}" onclick="openEntrega(${sid},${idx})">
+  const key = `e_${sid}_${idx}`;
+  const prio = cur.prioridade || 'media';
+  const tagIds = TTG[key] || [];
+  const ck = CLD[key] || [];
+  const ckDone = ck.filter(x=>x.concluido).length;
+  const ckPct = ck.length ? Math.round(100*ckDone/ck.length) : 0;
+  return `<div class="card ${prio}" style="border-left:3px solid ${ex.fg}" onclick="openEntrega(${sid},${idx})">
     <div class="meta" style="margin-bottom:.35rem">
       <span class="tag" style="background:${ex.bg};color:${ex.fg};font-weight:800">📦 ${code||'—'}</span>
       <span style="font-size:10px;color:var(--t3);font-weight:700">S${sid} · ${sp.m}</span>
     </div>
     <div class="ttl">${escapeHtml(titulo)}</div>
+    <div class="meta">
+      ${tagIds.slice(0,3).map(id=>{
+        const tg = tBI(id); if(!tg) return '';
+        return `<span class="tag" style="background:${tg.cor}25;color:${tg.cor}">${tg.nome}</span>`;
+      }).join('')}
+    </div>
     <div class="ftr">
       <div class="ftr-stats">
         <span style="color:${ex.fg};font-weight:700">${e.tipo||'Entrega'}</span>
+        ${cur.story_points?`<span>🎯 ${cur.story_points}</span>`:''}
         ${cur.data_fim?`<span>📅 ${fmtD(cur.data_fim)}</span>`:''}
-        ${(CMT[`e_${sid}_${idx}`]||[]).length?`<span>💬 ${(CMT[`e_${sid}_${idx}`]||[]).length}</span>`:''}
-        ${(ATT[`e_${sid}_${idx}`]||[]).length?`<span>📎 ${(ATT[`e_${sid}_${idx}`]||[]).length}</span>`:''}
+        ${(CMT[key]||[]).length?`<span>💬 ${(CMT[key]||[]).length}</span>`:''}
+        ${(ATT[key]||[]).length?`<span>📎 ${(ATT[key]||[]).length}</span>`:''}
       </div>
       ${mems.length?avS(mems,3):''}
     </div>
+    ${ck.length?`<div class="clmini">☑️ ${ckDone}/${ck.length} <div class="barbg"><div style="width:${ckPct}%"></div></div></div>`:''}
+    ${cur.progresso>0?`<div class="cprog"><div class="cprog-fill" style="width:${cur.progresso}%"></div></div>`:''}
     <div class="qact" onclick="event.stopPropagation()">
       <select class="ssel" style="flex:1" onchange="qStEntrega(${sid},${idx},this.value)">
         ${STATUSES.map(o=>`<option value="${o.k}" ${c.status===o.k?'selected':''}>${o.l}</option>`).join('')}
@@ -2173,28 +2255,114 @@ async function delTask(){
 let editingEnt = null;
 let entMembersSel = {};
 
+let entPending = { tags:{}, checklist:[] };
 function openEntrega(sid, idx){
   const s = SP.find(x=>x.id===sid);
   const e = s.entregas[idx];
   const cur = EDB[sid+'-'+idx] || {};
   editingEnt = {sid, idx};
   const code = (e.desc.match(/^[A-Z][0-9]+[a-z]?/)||[e.eixo||''])[0];
-  document.getElementById('emTitle').textContent = `${code} · ${e.desc.slice(0,60)}${e.desc.length>60?'…':''}`;
+  const titulo = e.desc.replace(/^[A-Z][0-9]+[a-z]?\s*[—-]?\s*/, '');
+  document.getElementById('emTitle').textContent = `${code} · ${titulo.slice(0,55)}${titulo.length>55?'…':''}`;
+
+  // Plan info block (read-only)
+  document.getElementById('emPlanDesc').textContent = e.desc;
+  document.getElementById('emPlanMeta').textContent = `Sprint ${sid} · ${s.m} · Eixo ${e.eixo||'—'} · ${e.tipo||'Entrega'}${e.resp?' · Resp: '+e.resp:''}`;
+
+  // Editable fields
+  document.getElementById('emDesc').value   = cur.descricao || '';
   document.getElementById('emStatus').value = cur.status || 'pendente';
-  document.getElementById('emData').value = cur.data_fim || '';
-  document.getElementById('emObs').value = cur.obs || '';
+  document.getElementById('emPrio').value   = cur.prioridade || 'media';
+  document.getElementById('emData').value   = cur.data_fim || '';
+  document.getElementById('emStart').value  = cur.data_inicio || '';
+  document.getElementById('emObs').value    = cur.obs || '';
+  document.getElementById('emProg').value   = cur.progresso || 0;
+  document.getElementById('emProgVal').textContent = cur.progresso || 0;
+
+  // Fase pills
+  const fase = cur.fase || 'execucao';
+  document.getElementById('emFaseBar').innerHTML = FASES.map(f=>
+    `<button class="${fase===f.k?'on':''}" data-fase="${f.k}" onclick="document.querySelectorAll('#emFaseBar button').forEach(b=>b.classList.remove('on'));this.classList.add('on')">${f.ic} ${f.l}</button>`
+  ).join('');
+
+  // Story points
+  const sp = cur.story_points || 0;
+  document.getElementById('emPtsBar').innerHTML = POINTS.map(p=>
+    `<button class="${sp===p?'on':''}" data-pts="${p}" onclick="document.querySelectorAll('#emPtsBar button').forEach(b=>b.classList.remove('on'));this.classList.add('on')">${p}</button>`
+  ).join('');
+
+  // Members
   entMembersSel = {};
   gEM(sid, idx).forEach(id => entMembersSel[id] = true);
   renderEntMembersPicker();
-  // Reset abas para Detalhes
+
+  // Tags
+  entPending = { tags:{}, checklist:[] };
+  const key = `e_${sid}_${idx}`;
+  (TTG[key]||[]).forEach(tid => entPending.tags[tid] = true);
+  renderEntTagPicker();
+
+  // Checklist
+  entPending.checklist = [...(CLD[key]||[])].sort((a,b)=>a.ordem-b.ordem).map(c=>({...c}));
+  renderEmCkList();
+
+  // Comments + attachments
+  renderEntregaComments();
+  renderEntregaAttachments();
+
+  // Reset to Detalhes tab
   document.querySelectorAll('#entregaModal .mtab').forEach(t=>t.classList.remove('on'));
   document.querySelectorAll('#entregaModal .mpane').forEach(p=>p.classList.remove('on'));
   document.querySelector('#entregaModal .mtab[data-p="em-details"]').classList.add('on');
   document.querySelector('#entregaModal .mpane[data-pane="em-details"]').classList.add('on');
-  renderEntregaComments();
-  renderEntregaAttachments();
+  updateEmSchedPreview();
+
   document.getElementById('entregaModal').classList.add('on');
 }
+
+function renderEntTagPicker(){
+  const el = document.getElementById('emTagPicker');
+  el.innerHTML = TG.map(t=>{
+    const on = !!entPending.tags[t.id];
+    return `<span class="tg-chip ${on?'on':''}" style="background:${t.cor}30;color:${t.cor}" onclick="togEntTag('${t.id}')">${t.nome}</span>`;
+  }).join('');
+}
+function togEntTag(id){
+  if(entPending.tags[id]) delete entPending.tags[id];
+  else entPending.tags[id]=true;
+  renderEntTagPicker();
+}
+function renderEmCkList(){
+  const el = document.getElementById('emCkList');
+  document.getElementById('emCkCt').textContent = entPending.checklist.length;
+  el.innerHTML = entPending.checklist.map((c,i)=>`
+    <li class="ckitem ${c.concluido?'done':''}">
+      <input type="checkbox" ${c.concluido?'checked':''} onchange="togEmCk(${i})">
+      <span class="txt">${escapeHtml(c.texto)}</span>
+      <button class="rm" onclick="rmEmCk(${i})">✕</button>
+    </li>`).join('') || '<li style="color:var(--t3);font-size:12px;padding:.5rem 0">Sem itens. Adicione abaixo.</li>';
+}
+function togEmCk(i){ entPending.checklist[i].concluido = !entPending.checklist[i].concluido; renderEmCkList(); }
+function rmEmCk(i){ entPending.checklist.splice(i,1); renderEmCkList(); }
+function addEmCkItem(){
+  const v = document.getElementById('emCkIn').value.trim();
+  if(!v) return;
+  entPending.checklist.push({texto:v, concluido:false, ordem:entPending.checklist.length});
+  document.getElementById('emCkIn').value='';
+  renderEmCkList();
+}
+function updateEmSchedPreview(){
+  const s = document.getElementById('emStart').value;
+  const e = document.getElementById('emData').value;
+  const el = document.getElementById('emSchedPreview');
+  if(!s || !e){ el.innerHTML='Defina datas para visualizar o cronograma'; return; }
+  const dur = Math.round((new Date(e)-new Date(s))/86400000) + 1;
+  el.innerHTML = `<div style="font-size:11px;color:var(--t2)">Duração: <strong style="color:var(--text)">${dur} dias</strong> · ${fmtD(s)} → ${fmtD(e)}</div>
+    <div class="gp-bar"><div style="width:100%">${dur}d</div></div>`;
+}
+document.addEventListener('change', (e)=>{
+  if(e.target.id==='emStart' || e.target.id==='emData') updateEmSchedPreview();
+});
 function closeEntrega(){ document.getElementById('entregaModal').classList.remove('on'); editingEnt=null; }
 function swPaneEm(btn){
   document.querySelectorAll('#entregaModal .mtab').forEach(b=>b.classList.remove('on'));
@@ -2330,21 +2498,53 @@ async function saveEntrega(){
   if(!editingEnt) return;
   const {sid, idx} = editingEnt;
   ss('loading','Salvando...');
+  const faseBtn = document.querySelector('#emFaseBar button.on');
+  const ptsBtn  = document.querySelector('#emPtsBar button.on');
   const payload = {
     sprint_id: sid, entrega_idx: idx,
-    status: document.getElementById('emStatus').value,
-    data_fim: document.getElementById('emData').value || null,
-    obs: document.getElementById('emObs').value.trim() || null,
+    status:       document.getElementById('emStatus').value,
+    prioridade:   document.getElementById('emPrio').value,
+    descricao:    document.getElementById('emDesc').value.trim() || null,
+    fase:         faseBtn ? faseBtn.dataset.fase : 'execucao',
+    story_points: ptsBtn ? +ptsBtn.dataset.pts : null,
+    progresso:    +document.getElementById('emProg').value,
+    data_inicio:  document.getElementById('emStart').value || null,
+    data_fim:     document.getElementById('emData').value || null,
+    obs:          document.getElementById('emObs').value.trim() || null,
   };
   const {error} = await db.from('sprint_entregas').upsert(payload, {onConflict:'sprint_id,entrega_idx'});
   if(error){ toast('Erro: '+error.message,'err'); ss('err','Erro'); return; }
+
+  // Members
   await db.from('entrega_members').delete().match({sprint_id:sid, entrega_idx:idx});
   const ids = Object.keys(entMembersSel);
   if(ids.length){
     await db.from('entrega_members').insert(ids.map(pid=>({sprint_id:sid, entrega_idx:idx, profile_id:pid})));
   }
+
+  // Tags (sync via task_tags com sprint_id+entrega_idx)
+  await db.from('task_tags').delete().match({sprint_id:sid, entrega_idx:idx});
+  const tagIds = Object.keys(entPending.tags);
+  if(tagIds.length){
+    await db.from('task_tags').insert(tagIds.map(tg=>({sprint_id:sid, entrega_idx:idx, tag_id:tg})));
+  }
+
+  // Checklist
+  await db.from('checklist_items').delete().match({sprint_id:sid, entrega_idx:idx});
+  if(entPending.checklist.length){
+    const ckIns = entPending.checklist.map((c,i)=>({
+      sprint_id:sid, entrega_idx:idx, texto:c.texto, concluido:c.concluido, ordem:i
+    }));
+    await db.from('checklist_items').insert(ckIns);
+  }
+
+  // Update local state
   EDB[sid+'-'+idx] = payload;
   EMB[sid+'-'+idx] = ids;
+  const key = `e_${sid}_${idx}`;
+  TTG[key] = tagIds;
+  CLD[key] = entPending.checklist.map((c,i)=>({...c, sprint_id:sid, entrega_idx:idx, ordem:i}));
+
   ss('ok','Salvo'); toast('Entrega atualizada');
   closeEntrega(); renderAll();
 }

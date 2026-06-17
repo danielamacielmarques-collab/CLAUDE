@@ -1,23 +1,35 @@
 -- ============================================================
--- NID/COBEN Agile Board v5 — ADDON: Comentários e Anexos
+-- NID/COBEN Agile Board v6 — ADDON
+-- Comentários, Anexos, Checklist, Tags em ENTREGAS (não só tarefas)
+-- Campos extras nas entregas: prioridade, fase, story points, progresso
 -- ============================================================
--- Execute APÓS o schema.sql principal (já existente)
--- Esta migração é idempotente: pode ser executada várias vezes
+-- Execute APÓS o schema.sql principal.
+-- Esta migração é idempotente: pode ser executada várias vezes.
+-- Inclui também o conteúdo do schema_addon.sql v5 (comentários e anexos).
 -- ============================================================
 
 -- =====================================================
--- COMENTÁRIOS POR TAREFA OU ENTREGA
+-- SPRINT_ENTREGAS — colunas extras
+-- =====================================================
+alter table sprint_entregas add column if not exists descricao    text;
+alter table sprint_entregas add column if not exists prioridade   text default 'media';
+alter table sprint_entregas add column if not exists fase         text default 'execucao';
+alter table sprint_entregas add column if not exists story_points integer;
+alter table sprint_entregas add column if not exists progresso    integer default 0;
+alter table sprint_entregas add column if not exists data_inicio  date;
+
+-- =====================================================
+-- COMENTÁRIOS (vincula a tarefa OU entrega)
 -- =====================================================
 create table if not exists task_comments (
   id          uuid primary key default gen_random_uuid(),
   tarefa_id   uuid references subtarefas(id) on delete cascade,
   sprint_id   integer,
   entrega_idx integer,
-  profile_id  uuid references profiles(id)   on delete set null,
+  profile_id  uuid references profiles(id) on delete set null,
   texto       text not null,
   created_at  timestamptz default now()
 );
--- Permite vincular a uma tarefa OU a uma entrega (sprint+idx)
 alter table task_comments alter column tarefa_id drop not null;
 alter table task_comments add column if not exists sprint_id   integer;
 alter table task_comments add column if not exists entrega_idx integer;
@@ -25,14 +37,14 @@ create index if not exists idx_task_comments_tarefa  on task_comments(tarefa_id)
 create index if not exists idx_task_comments_entrega on task_comments(sprint_id, entrega_idx);
 
 -- =====================================================
--- ANEXOS POR TAREFA OU ENTREGA
+-- ANEXOS (vincula a tarefa OU entrega)
 -- =====================================================
 create table if not exists task_attachments (
   id           uuid primary key default gen_random_uuid(),
   tarefa_id    uuid references subtarefas(id) on delete cascade,
   sprint_id    integer,
   entrega_idx  integer,
-  profile_id   uuid references profiles(id)   on delete set null,
+  profile_id   uuid references profiles(id) on delete set null,
   nome         text not null,
   storage_path text not null,
   url          text not null,
@@ -47,7 +59,23 @@ create index if not exists idx_task_attachments_tarefa  on task_attachments(tare
 create index if not exists idx_task_attachments_entrega on task_attachments(sprint_id, entrega_idx);
 
 -- =====================================================
--- RLS — leitura/escrita autenticada
+-- CHECKLIST — tarefa OU entrega
+-- =====================================================
+alter table checklist_items alter column tarefa_id drop not null;
+alter table checklist_items add column if not exists sprint_id   integer;
+alter table checklist_items add column if not exists entrega_idx integer;
+create index if not exists idx_checklist_entrega on checklist_items(sprint_id, entrega_idx);
+
+-- =====================================================
+-- TAGS — tarefa OU entrega
+-- =====================================================
+alter table task_tags alter column tarefa_id drop not null;
+alter table task_tags add column if not exists sprint_id   integer;
+alter table task_tags add column if not exists entrega_idx integer;
+create index if not exists idx_task_tags_entrega on task_tags(sprint_id, entrega_idx);
+
+-- =====================================================
+-- RLS
 -- =====================================================
 alter table task_comments    enable row level security;
 alter table task_attachments enable row level security;
