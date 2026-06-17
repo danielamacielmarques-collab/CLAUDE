@@ -999,7 +999,13 @@ async function doLogin(){
   const btn = document.getElementById('btnLogin'); btn.disabled=true; btn.textContent='Entrando...';
   const {data, error} = await db.auth.signInWithPassword({email, password:pass});
   btn.disabled=false; btn.textContent='Entrar';
-  if(error){ aerr('Falha: ' + error.message); return; }
+  if(error){
+    let msg = error.message;
+    if(/invalid login/i.test(msg)) msg = 'E-mail ou senha incorretos.';
+    else if(/email not confirmed/i.test(msg)) msg = 'E-mail ainda não confirmado. Peça ao admin para desligar "Confirm email" no Supabase, ou verifique sua caixa de entrada.';
+    else msg = 'Falha ao entrar: ' + msg;
+    aerr(msg); return;
+  }
   await bootApp(data.user);
 }
 
@@ -1016,7 +1022,15 @@ async function doSignup(){
     options: { data: { nome, area } }
   });
   btn.disabled=false; btn.textContent='Criar conta';
-  if(error){ aerr('Falha: ' + error.message); return; }
+  if(error){
+    let msg = error.message;
+    if(/rate limit/i.test(msg)) msg = 'Limite de e-mails atingido no Supabase. Peça ao admin para desligar "Confirm email" em Authentication → Providers → Email, ou aguarde 1h.';
+    else if(/already registered|already exists/i.test(msg)) msg = 'Já existe conta com esse e-mail. Faça login.';
+    else if(/password/i.test(msg)) msg = 'Senha inválida: mínimo 6 caracteres.';
+    else msg = 'Falha ao criar conta: ' + msg;
+    aerr(msg);
+    return;
+  }
   if(data.session){
     aok('Conta criada com sucesso!');
     setTimeout(()=>bootApp(data.user), 600);
