@@ -253,12 +253,14 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
 /* ============ MODAL ============ */
 .mbg{position:fixed;inset:0;background:rgba(7,10,18,.65);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:200;padding:1rem}
 .mbg.on{display:flex}
-.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--rxl);width:100%;max-width:740px;max-height:92vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--shadow-lg)}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--rxl);width:100%;max-width:820px;max-height:92vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--shadow-lg)}
 .mhead{padding:1rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px}
 .mhead h2{font-size:15px;font-weight:800;flex:1;letter-spacing:-.01em}
 .mclose{background:var(--bg3);border:1px solid var(--border);color:var(--t2);width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:16px;font-family:inherit}
-.mtabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);padding:0 .5rem}
-.mtab{padding:.7rem 1rem;background:none;border:none;color:var(--t2);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;border-bottom:2px solid transparent;transition:all .15s}
+.mtabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);padding:0 .5rem;overflow-x:auto;scrollbar-width:thin}
+.mtabs::-webkit-scrollbar{height:4px}
+.mtabs::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+.mtab{padding:.7rem .65rem;background:none;border:none;color:var(--t2);font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap;flex-shrink:0}
 .mtab:hover{color:var(--text)}
 .mtab.on{color:var(--accent);border-bottom-color:var(--accent)}
 .mbody{padding:1.1rem 1.25rem;overflow-y:auto;flex:1}
@@ -740,7 +742,9 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
           <textarea id="cmIn" placeholder="Escreva um comentário... (Ctrl+Enter para enviar)" rows="2"></textarea>
           <button class="btn primary sm" onclick="addComment()">💬 Comentar</button>
         </div>
-        <div id="cmHint" style="display:none;text-align:center;padding:1rem;color:var(--t3);font-size:11.5px">Salve a tarefa primeiro pra liberar comentários.</div>
+        <div id="cmHint" style="display:none;background:var(--a-bg);border:1px dashed var(--amber);color:var(--amber);padding:1rem;border-radius:var(--rlg);text-align:center;font-size:12.5px;font-weight:600">
+          ⚠️ Preencha o título e clique em <strong>"💾 Salvar tarefa"</strong> abaixo. Depois reabra essa tarefa para adicionar comentários.
+        </div>
       </div>
 
       <!-- ATTACHMENTS -->
@@ -753,7 +757,9 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
           <input type="file" id="atFile" style="display:none" onchange="uploadAttachment(event)">
         </div>
         <ul class="atlist" id="atList"></ul>
-        <div id="atHint" style="display:none;text-align:center;padding:1rem;color:var(--t3);font-size:11.5px">Salve a tarefa primeiro pra liberar anexos.</div>
+        <div id="atHint" style="display:none;background:var(--a-bg);border:1px dashed var(--amber);color:var(--amber);padding:1rem;border-radius:var(--rlg);text-align:center;font-size:12.5px;font-weight:600">
+          ⚠️ Preencha o título e clique em <strong>"💾 Salvar tarefa"</strong> abaixo. Depois reabra essa tarefa para anexar documentos.
+        </div>
       </div>
     </div>
     <div class="mfoot">
