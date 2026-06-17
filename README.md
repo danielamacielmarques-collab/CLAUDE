@@ -38,7 +38,10 @@ visual FUNCEF, com login real (Supabase Auth) e modo claro/escuro.
    - Promove automaticamente `daniela.ribas@funcef.com.br` a admin.
    - Cria tabela `audit_log`.
    - Adiciona coluna `tipo` em `profiles`: admin, integrante, gestor, coordenador, visitante.
-5. Em **Authentication → Providers → Email** desabilite "Confirm email".
+5. (Calendário com eventos custom) Execute `schema_addon_v8.sql`.
+   - Cria tabelas `calendar_events` e `event_members`.
+   - Insere o "Weekly do Núcleo de Dados" como evento recorrente padrão.
+6. Em **Authentication → Providers → Email** desabilite "Confirm email".
 
 ### 2) Rodar localmente
 Abra `index.html` direto no navegador, ou:

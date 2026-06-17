@@ -389,6 +389,26 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
 .tbl tr:last-child td{border-bottom:none}
 .tbl tr:hover td{background:var(--bg3);cursor:pointer}
 
+/* CALENDAR — richer */
+.calday{background:var(--bg3);border:1px solid transparent;border-radius:var(--r);min-height:96px;padding:.4rem;font-size:11px;display:flex;flex-direction:column;gap:3px;position:relative;transition:all .15s;cursor:pointer}
+.calday:hover{border-color:var(--accent);background:var(--bg4)}
+.calday .day-add{position:absolute;top:4px;right:4px;background:var(--accent);color:#fff;border:none;width:18px;height:18px;border-radius:50%;font-size:11px;cursor:pointer;opacity:0;transition:all .15s;font-family:inherit;display:flex;align-items:center;justify-content:center;line-height:1}
+.calday:hover .day-add{opacity:1}
+.cevt{font-size:10px;padding:2px 6px;border-radius:5px;background:var(--acc-bg);color:var(--accent);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;display:flex;align-items:center;gap:3px}
+.cevt:hover{filter:brightness(1.15)}
+.cevt-more{font-size:9.5px;color:var(--t3);font-weight:700;padding:1px 4px}
+
+/* event type selector */
+.evtype-bar{display:flex;flex-wrap:wrap;gap:6px}
+.evtype-bar button{flex:1;min-width:90px;background:var(--bg3);border:1.5px solid var(--border);color:var(--t2);padding:.55rem .65rem;border-radius:var(--rlg);cursor:pointer;font-size:12px;font-weight:700;font-family:inherit;display:flex;align-items:center;gap:6px;justify-content:center;transition:all .15s}
+.evtype-bar button:hover{background:var(--bg4)}
+.evtype-bar button.on{background:var(--acc-bg);border-color:var(--accent);color:var(--accent)}
+
+/* calendar legend */
+.cal-legend{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:.75rem;font-size:11px;color:var(--t2)}
+.cal-legend span{display:inline-flex;align-items:center;gap:5px}
+.cal-legend .dot{width:9px;height:9px;border-radius:50%}
+
 /* AUDIT LOG TIMELINE */
 .timeline{display:flex;flex-direction:column;gap:.45rem}
 .tl-row{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rlg);padding:.7rem .95rem;display:flex;align-items:flex-start;gap:11px;border-left:3px solid var(--accent)}
@@ -634,8 +654,17 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
       <!-- CALENDAR -->
       <section class="view" id="vCalendar">
         <div class="vh">
-          <div><h1>Calendário</h1><div class="vh-sub">Entregas e tarefas por data</div></div>
+          <div><h1>📅 Calendário</h1><div class="vh-sub">Entregas, reviews, weekly do núcleo + suas reuniões e atividades</div></div>
           <div class="vh-grow"></div>
+          <button class="btn primary" onclick="openEvent()">+ Novo evento</button>
+        </div>
+        <div class="cal-legend">
+          <span><span class="dot" style="background:#FF7B39"></span>Weekly / reunião</span>
+          <span><span class="dot" style="background:#A78BFA"></span>Review</span>
+          <span><span class="dot" style="background:#22D172"></span>Fim de sprint</span>
+          <span><span class="dot" style="background:#2B6AFF"></span>Entrega planejada</span>
+          <span><span class="dot" style="background:#F5A524"></span>Tarefa</span>
+          <span><span class="dot" style="background:#14B8A6"></span>Atividade</span>
         </div>
         <div class="calwrap">
           <div class="calhead">
@@ -989,6 +1018,61 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
   </div>
 </div>
 
+<!-- ============ MODAL EVENTO CALENDÁRIO ============ -->
+<div class="mbg" id="eventModal">
+  <div class="modal" style="max-width:640px">
+    <div class="mhead"><h2 id="evTitle">Novo evento</h2><button class="mclose" onclick="closeEvent()">✕</button></div>
+    <div class="mbody">
+      <div class="field" style="margin-bottom:.85rem">
+        <label>Tipo</label>
+        <div class="evtype-bar" id="evTypeBar"></div>
+      </div>
+      <div class="field" style="margin-bottom:.85rem">
+        <label>Título <span class="req">*</span></label>
+        <input id="evTitleIn" placeholder="Ex.: Reunião de alinhamento com COBEN">
+      </div>
+      <div class="field" style="margin-bottom:.85rem">
+        <label>Descrição</label>
+        <textarea id="evDesc" placeholder="Pauta, link da reunião, detalhes..."></textarea>
+      </div>
+      <div class="frow">
+        <div class="field"><label>Data</label><input type="date" id="evData"></div>
+        <div class="field"><label>Hora início</label><input type="time" id="evHoraIni"></div>
+        <div class="field"><label>Hora fim</label><input type="time" id="evHoraFim"></div>
+      </div>
+      <div class="frow">
+        <div class="field"><label>Local / Link</label><input id="evLocal" placeholder="Sala 5 · Teams · link..."></div>
+        <div class="field"><label>Duração (min)</label><input type="number" id="evDur" min="0" placeholder="Auto se houver hora"></div>
+      </div>
+      <div class="frow">
+        <div class="field"><label>Recorrência</label>
+          <select id="evRec">
+            <option value="nenhuma">Não se repete</option>
+            <option value="semanal">Semanal (toda mesma data da semana)</option>
+            <option value="quinzenal">Quinzenal</option>
+            <option value="mensal">Mensal (mesmo dia do mês)</option>
+          </select>
+        </div>
+        <div class="field"><label>Cor</label><input type="color" id="evCor" value="#2B6AFF"></div>
+        <div class="field"><label>Vincular sprint (opcional)</label>
+          <select id="evSprint">
+            <option value="">Nenhuma</option>
+          </select>
+        </div>
+      </div>
+      <div class="field"><label>Participantes</label>
+        <div class="mpicker" id="evMembers"></div>
+      </div>
+    </div>
+    <div class="mfoot">
+      <button class="btn danger" id="evDelBtn" onclick="delEvent()" style="display:none">🗑️ Excluir</button>
+      <div style="flex:1"></div>
+      <button class="btn" onclick="closeEvent()">Cancelar</button>
+      <button class="btn primary" onclick="saveEvent()">💾 Salvar evento</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1179,6 +1263,8 @@ let CMT = {};        // task_comments — chave: tarefa_id -> array
 let ATT = {};        // task_attachments — chave: tarefa_id -> array
 let RVD = {};        // reviews
 let AUD = [];        // audit_log entries
+let EV  = [];        // calendar_events
+let EVM = {};        // event_members — chave: evento_id -> [profile_id]
 let calDate = new Date();
 let calSel = null;
 let stageFilter = 'todos';
@@ -1336,7 +1422,8 @@ const AUD_LABELS = {
   task_create:'Tarefa criada', task_update:'Tarefa atualizada', task_delete:'Tarefa excluída',
   task_status:'Status de tarefa', entrega_update:'Entrega atualizada', entrega_status:'Status de entrega',
   comment_add:'Comentário', attachment_add:'Anexo', review_save:'Review salva',
-  user_tipo:'Tipo de usuário', user_login:'Login'
+  user_tipo:'Tipo de usuário', user_login:'Login',
+  event_create:'Evento criado', event_update:'Evento atualizado', event_delete:'Evento excluído'
 };
 async function logAudit({action, entityType, entityId, sprintId, summary, details}){
   if(!CP) return;
@@ -1386,14 +1473,18 @@ async function loadAll(){
       const k = c.tarefa_id || `e_${c.sprint_id}_${c.entrega_idx}`;
       (CLD[k]=CLD[k]||[]).push(c);
     });
-    // Comments + attachments + reviews + audit em paralelo
-    const [rv, rc, ra, rau] = await Promise.all([
+    // Comments + attachments + reviews + audit + eventos em paralelo
+    const [rv, rc, ra, rau, rev, revm] = await Promise.all([
       db.from('sprint_reviews').select('*'),
       db.from('task_comments').select('*').order('created_at',{ascending:true}),
       db.from('task_attachments').select('*').order('created_at',{ascending:false}),
       db.from('audit_log').select('*').order('created_at',{ascending:false}).limit(500),
+      db.from('calendar_events').select('*').order('data',{ascending:true}),
+      db.from('event_members').select('*'),
     ]);
     AUD = rau.data || [];
+    EV  = rev.data || [];
+    EVM = {}; (revm.data||[]).forEach(em=>{ (EVM[em.evento_id]=EVM[em.evento_id]||[]).push(em.profile_id); });
     RVD={}; (rv.data||[]).forEach(r=>RVD[r.sprint_id]=r);
     CMT={}; (rc.data||[]).forEach(c=>{
       const k = c.tarefa_id || `e_${c.sprint_id}_${c.entrega_idx}`;
@@ -1436,6 +1527,140 @@ function toast(msg, type='ok'){
   setTimeout(()=>t.classList.remove('on'), 2400);
 }
 function statL(k){ return (STATUSES.find(s=>s.k===k)||{}).l || k; }
+
+/* ============================================================
+   EVENT MODAL (calendário)
+============================================================ */
+const EV_TYPES = [
+  {k:'reuniao',   l:'🤝 Reunião',   cor:'#FF7B39'},
+  {k:'weekly',    l:'🔁 Weekly',    cor:'#FF7B39'},
+  {k:'tarefa',    l:'📋 Tarefa',    cor:'#F5A524'},
+  {k:'atividade', l:'🎯 Atividade', cor:'#14B8A6'},
+  {k:'outro',     l:'📌 Outro',     cor:'#2B6AFF'},
+];
+let editingEv = null;
+let evMembersSel = {};
+function openEvent(id=null, isoDate=null){
+  editingEv = id ? EV.find(e=>e.id===id) : null;
+  document.getElementById('evTitle').textContent = editingEv ? 'Editar evento' : 'Novo evento';
+  document.getElementById('evDelBtn').style.display = editingEv ? '' : 'none';
+
+  const tipo = editingEv?.tipo || 'reuniao';
+  document.getElementById('evTypeBar').innerHTML = EV_TYPES.map(t=>
+    `<button class="${tipo===t.k?'on':''}" data-tipo="${t.k}" data-cor="${t.cor}" onclick="setEvType(this)">${t.l}</button>`
+  ).join('');
+
+  document.getElementById('evTitleIn').value = editingEv?.titulo || '';
+  document.getElementById('evDesc').value    = editingEv?.descricao || '';
+  document.getElementById('evData').value    = editingEv?.data || isoDate || new Date().toISOString().slice(0,10);
+  document.getElementById('evHoraIni').value = editingEv?.hora_inicio?.slice(0,5) || '';
+  document.getElementById('evHoraFim').value = editingEv?.hora_fim?.slice(0,5) || '';
+  document.getElementById('evLocal').value   = editingEv?.local || '';
+  document.getElementById('evDur').value     = editingEv?.duracao_min || '';
+  document.getElementById('evRec').value     = editingEv?.recorrencia || (editingEv?.recorrente?'semanal':'nenhuma');
+  document.getElementById('evCor').value     = editingEv?.cor || (EV_TYPES.find(t=>t.k===tipo)?.cor || '#2B6AFF');
+
+  // Sprint select
+  document.getElementById('evSprint').innerHTML = '<option value="">Nenhuma</option>' +
+    SP.map(s=>`<option value="${s.id}" ${editingEv?.sprint_id===s.id?'selected':''}>S${s.id} · ${s.m}</option>`).join('');
+
+  // Members
+  evMembersSel = {};
+  if(editingEv) (EVM[editingEv.id]||[]).forEach(pid => evMembersSel[pid] = true);
+  renderEvMembersPicker();
+
+  document.getElementById('eventModal').classList.add('on');
+}
+function closeEvent(){ document.getElementById('eventModal').classList.remove('on'); editingEv=null; }
+function setEvType(btn){
+  document.querySelectorAll('#evTypeBar button').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  // Adapta cor padrão se ainda não foi customizada
+  if(!editingEv) document.getElementById('evCor').value = btn.dataset.cor;
+}
+function renderEvMembersPicker(){
+  const el = document.getElementById('evMembers');
+  if(!MB.length){ el.innerHTML='<div style="color:var(--t3);font-size:12px">Nenhum usuário cadastrado.</div>'; return; }
+  el.innerHTML = MB.map(m=>{
+    const on = !!evMembersSel[m.id];
+    return `<div class="mp-chip ${on?'on':''}" onclick="togEvMem('${m.id}')">${avH(m,'sm')}<span>${m.nome}</span></div>`;
+  }).join('');
+}
+function togEvMem(id){
+  if(evMembersSel[id]) delete evMembersSel[id];
+  else evMembersSel[id]=true;
+  renderEvMembersPicker();
+}
+
+async function saveEvent(){
+  const titulo = document.getElementById('evTitleIn').value.trim();
+  const data   = document.getElementById('evData').value;
+  if(!titulo || !data){ toast('Título e data são obrigatórios','err'); return; }
+  const tipoBtn = document.querySelector('#evTypeBar button.on');
+  const tipo = tipoBtn ? tipoBtn.dataset.tipo : 'reuniao';
+  const rec  = document.getElementById('evRec').value;
+  const hi   = document.getElementById('evHoraIni').value || null;
+  const hf   = document.getElementById('evHoraFim').value || null;
+  let dur = parseInt(document.getElementById('evDur').value) || null;
+  if(!dur && hi && hf){
+    const [a,b]=[hi,hf].map(t=>{const [h,m]=t.split(':').map(Number); return h*60+m;});
+    if(b>a) dur = b-a;
+  }
+  const sprintVal = document.getElementById('evSprint').value;
+  const payload = {
+    tipo, titulo,
+    descricao: document.getElementById('evDesc').value.trim() || null,
+    data,
+    hora_inicio: hi, hora_fim: hf,
+    local: document.getElementById('evLocal').value.trim() || null,
+    duracao_min: dur,
+    recorrente: rec !== 'nenhuma',
+    recorrencia: rec === 'nenhuma' ? null : rec,
+    cor: document.getElementById('evCor').value,
+    sprint_id: sprintVal ? +sprintVal : null,
+    criado_por: CP?.id,
+  };
+
+  ss('loading','Salvando...');
+  let evId;
+  if(editingEv){
+    const {error} = await db.from('calendar_events').update(payload).eq('id', editingEv.id);
+    if(error){ toast('Erro: '+error.message,'err'); ss('err','Erro'); return; }
+    evId = editingEv.id;
+  } else {
+    const {data:ins, error} = await db.from('calendar_events').insert(payload).select().single();
+    if(error){ toast('Erro: '+error.message,'err'); ss('err','Erro'); return; }
+    evId = ins.id;
+  }
+
+  // Members
+  await db.from('event_members').delete().eq('evento_id', evId);
+  const ids = Object.keys(evMembersSel);
+  if(ids.length){
+    await db.from('event_members').insert(ids.map(pid=>({evento_id:evId, profile_id:pid})));
+  }
+  EVM[evId] = ids;
+
+  await loadAll(); ss('ok','Salvo'); toast(editingEv?'Evento atualizado':'Evento criado');
+  logAudit({action:editingEv?'event_update':'event_create', entityType:'event', entityId:evId,
+    sprintId:payload.sprint_id, summary:`${editingEv?'Editou':'Criou'} ${tipo}: "${titulo.slice(0,80)}"`,
+    details:{data, hora_inicio:hi, local:payload.local}});
+  closeEvent(); renderAll();
+}
+
+async function delEvent(){
+  if(!editingEv) return;
+  if(!confirm('Excluir este evento?')) return;
+  ss('loading','Excluindo...');
+  const tit = editingEv.titulo, eid = editingEv.id;
+  const {error} = await db.from('calendar_events').delete().eq('id', eid);
+  if(error){ toast('Erro: '+error.message,'err'); ss('err','Erro'); return; }
+  EV = EV.filter(e=>e.id!==eid); delete EVM[eid];
+  ss('ok','Excluído'); toast('Evento excluído');
+  logAudit({action:'event_delete', entityType:'event', entityId:eid,
+    summary:`Excluiu evento "${tit}"`});
+  closeEvent(); renderAll();
+}
 
 /* GLOBAL FILTERS */
 function setGF(key, val){
@@ -1874,32 +2099,109 @@ function renderCal(){
   let html = dows.map(d=>`<div class="calday-head">${d}</div>`).join('');
 
   const today = new Date(); today.setHours(0,0,0,0);
+  const tasksAll = gTasks();
+  const entsAll  = gEntregas();
 
-  // pre-day for prev month
+  // Indexa eventos por dia (expandindo recorrências dentro do mês)
+  const eventsByDay = {};
+  const monthStart = new Date(y,m,1), monthEnd = new Date(y,m+1,0);
+  EV.forEach(ev=>{
+    const startDate = new Date(ev.data + 'T00:00');
+    if(ev.recorrente && ev.recorrencia){
+      // Expande dentro do mês visível
+      const stepDays = ev.recorrencia==='semanal'?7:ev.recorrencia==='quinzenal'?14:0;
+      if(stepDays>0){
+        let d = new Date(startDate);
+        while(d <= monthEnd){
+          if(d >= monthStart){
+            const k = d.toISOString().slice(0,10);
+            (eventsByDay[k]=eventsByDay[k]||[]).push(ev);
+          }
+          d.setDate(d.getDate()+stepDays);
+        }
+      } else if(ev.recorrencia==='mensal'){
+        // Mesmo dia do mês corrente
+        const dom = startDate.getDate();
+        if(dom <= monthEnd.getDate()){
+          const k = new Date(y,m,dom).toISOString().slice(0,10);
+          (eventsByDay[k]=eventsByDay[k]||[]).push(ev);
+        }
+      }
+    } else {
+      const k = ev.data;
+      if(k >= monthStart.toISOString().slice(0,10) && k <= monthEnd.toISOString().slice(0,10)){
+        (eventsByDay[k]=eventsByDay[k]||[]).push(ev);
+      }
+    }
+  });
+
+  // Pre-day for prev month
   for(let i=0;i<fdow;i++){
     const d = new Date(y,m,-fdow+i+1);
     html += `<div class="calday muted"><span class="dno">${d.getDate()}</span></div>`;
   }
-  // Aplica filtros globais ao calendário
-  const tasksAll = gTasks();
-  const entsAll  = gEntregas();
+
   for(let d=1; d<=last.getDate(); d++){
     const dt = new Date(y,m,d);
     const iso = dt.toISOString().slice(0,10);
     const isT = dt.getTime()===today.getTime();
-    const evs = tasksAll.filter(t=>t.data_fim===iso).slice(0,3);
-    const ents = entsAll.filter(c => (EDB[c.sprint_id+'-'+c.entrega_idx]||{}).data_fim===iso).slice(0,2);
-    html += `<div class="calday ${isT?'today':''}">
-      <span class="dno">${d}</span>
-      ${evs.map(t=>`<div class="cevt" onclick="openTask('${t.id}')" style="background:${prioBg(t.prioridade)};color:${prioFg(t.prioridade)}">${escapeHtml(t.titulo.slice(0,18))}</div>`).join('')}
-      ${ents.map(c=>{
+
+    // Reúne tudo que cai nesse dia
+    const items = [];
+
+    // Fim de cada sprint (último dia)
+    SP.forEach(sp=>{
+      if(sp.m2===iso) items.push({kind:'sprint-end', sprint:sp,
+        label:`🏁 Fim S${sp.id}`, color:'#22D172', bg:'rgba(34,209,114,.15)', sort:1});
+    });
+
+    // Data de review se houver
+    Object.values(RVD).forEach(r=>{
+      if(r.data_realizacao===iso){
+        const sp = SP.find(s=>s.id===r.sprint_id);
+        items.push({kind:'review', review:r,
+          label:`🎯 Review S${r.sprint_id}`, color:'#A78BFA', bg:'rgba(167,139,250,.15)', sort:2});
+      }
+    });
+
+    // Custom events
+    (eventsByDay[iso]||[]).forEach(ev=>{
+      const ic = ({reuniao:'🤝', tarefa:'📋', atividade:'🎯', weekly:'🔁', outro:'📌'})[ev.tipo] || '📌';
+      const cor = ev.cor || '#2B6AFF';
+      const hora = ev.hora_inicio ? ev.hora_inicio.slice(0,5)+' ' : '';
+      items.push({kind:'event', event:ev,
+        label:`${ic} ${hora}${ev.titulo}`, color:cor, bg:cor+'25', sort:3});
+    });
+
+    // Entregas planejadas (data_fim)
+    entsAll.forEach(c=>{
+      if((EDB[c.sprint_id+'-'+c.entrega_idx]||{}).data_fim===iso){
         const ex = exFor(c._data);
-        const lbl = c._data.desc || '?';
-        return `<div class="cevt" onclick="openEntrega(${c.sprint_id},${c.entrega_idx})" style="background:${ex.bg};color:${ex.fg}">📦 ${escapeHtml(lbl.slice(0,16))}</div>`;
-      }).join('')}
+        items.push({kind:'entrega', sid:c.sprint_id, idx:c.entrega_idx,
+          label:`📦 ${(c._data.desc||'').slice(0,18)}`, color:ex.fg, bg:ex.bg, sort:4});
+      }
+    });
+
+    // Tarefas
+    tasksAll.forEach(t=>{
+      if(t.data_fim===iso){
+        items.push({kind:'task', task:t,
+          label:`📝 ${(t.titulo||'').slice(0,18)}`, color:prioFg(t.prioridade), bg:prioBg(t.prioridade), sort:5});
+      }
+    });
+
+    items.sort((a,b)=>a.sort-b.sort);
+    const visible = items.slice(0,4);
+    const extra = items.length - visible.length;
+
+    html += `<div class="calday ${isT?'today':''}" onclick="onCalDayClick('${iso}', event)">
+      <span class="dno">${d}</span>
+      <button class="day-add" onclick="event.stopPropagation();openEvent(null,'${iso}')" title="Novo evento">+</button>
+      ${visible.map(it => renderCalItem(it)).join('')}
+      ${extra>0?`<div class="cevt-more">+${extra} mais</div>`:''}
     </div>`;
   }
-  // post-day
+
   const totalCells = fdow + last.getDate();
   const fill = (7 - totalCells%7) % 7;
   for(let i=1;i<=fill;i++){
@@ -1907,6 +2209,23 @@ function renderCal(){
   }
   grid.innerHTML = html;
 }
+
+function renderCalItem(it){
+  let onclick = '';
+  if(it.kind==='task')    onclick = `onclick="event.stopPropagation();openTask('${it.task.id}')"`;
+  if(it.kind==='entrega') onclick = `onclick="event.stopPropagation();openEntrega(${it.sid},${it.idx})"`;
+  if(it.kind==='event')   onclick = `onclick="event.stopPropagation();openEvent('${it.event.id}')"`;
+  if(it.kind==='review')  onclick = `onclick="event.stopPropagation();nav('reviews',document.querySelector('.nb[data-v=reviews]'))"`;
+  return `<div class="cevt" ${onclick} style="background:${it.bg};color:${it.color}" title="${escapeHtml(it.label)}">${escapeHtml(it.label)}</div>`;
+}
+
+function onCalDayClick(iso, e){
+  // só dispara se não clicou em filho interativo
+  if(e.target.classList.contains('calday') || e.target.classList.contains('dno')){
+    openEvent(null, iso);
+  }
+}
+
 function prioBg(p){ return ({critica:'var(--r-bg)',alta:'var(--org-bg)',media:'var(--a-bg)',baixa:'var(--g-bg)'})[p] || 'var(--acc-bg)'; }
 function prioFg(p){ return ({critica:'var(--red)',alta:'var(--orange)',media:'var(--amber)',baixa:'var(--green)'})[p] || 'var(--accent)'; }
 
