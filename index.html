@@ -290,6 +290,36 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
 .slider::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;background:var(--accent);border:3px solid var(--bg2);border-radius:50%;cursor:pointer;box-shadow:0 0 8px var(--acc-glow)}
 .slider::-moz-range-thumb{width:16px;height:16px;background:var(--accent);border:3px solid var(--bg2);border-radius:50%;cursor:pointer}
 
+/* comments + attachments */
+.tab-ct{background:var(--accent);color:#fff;font-size:9.5px;font-weight:800;padding:1px 6px;border-radius:20px;margin-left:5px;display:inline-block;min-width:18px;text-align:center}
+.tab-ct:empty,.tab-ct.zero{display:none}
+.cmlist{list-style:none;display:flex;flex-direction:column;gap:.6rem;margin-bottom:1rem}
+.cmitem{background:var(--bg3);border:1px solid var(--border);border-radius:var(--rlg);padding:.7rem .85rem;position:relative}
+.cmitem .head{display:flex;align-items:center;gap:8px;margin-bottom:.4rem}
+.cmitem .head .nm{font-size:12px;font-weight:700}
+.cmitem .head .dt{font-size:10.5px;color:var(--t3);margin-left:auto}
+.cmitem .txt{font-size:12.5px;line-height:1.5;color:var(--text);white-space:pre-wrap;word-break:break-word}
+.cmitem .rmc{position:absolute;top:.55rem;right:.55rem;background:transparent;border:none;color:var(--t3);cursor:pointer;font-size:13px;padding:2px 6px;border-radius:5px;font-family:inherit;opacity:.5}
+.cmitem:hover .rmc{opacity:1}
+.cmitem .rmc:hover{background:var(--r-bg);color:var(--red)}
+.cm-add{display:flex;flex-direction:column;gap:6px}
+.cm-add textarea{background:var(--bg3);border:1px solid var(--border);border-radius:var(--rlg);padding:.55rem .75rem;font-size:12.5px;color:var(--text);font-family:inherit;outline:none;resize:vertical;min-height:60px}
+.cm-add textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--acc-glow)}
+.cm-add button{align-self:flex-end}
+
+.dropzone{background:var(--bg3);border:2px dashed var(--border2);border-radius:var(--rlg);padding:1.4rem 1rem;text-align:center;cursor:pointer;transition:all .15s;margin-bottom:.8rem}
+.dropzone:hover{background:var(--bg4);border-color:var(--accent);color:var(--accent)}
+.atlist{list-style:none;display:flex;flex-direction:column;gap:.45rem}
+.atitem{display:flex;align-items:center;gap:10px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rlg);padding:.55rem .8rem}
+.atitem .ic{font-size:18px;flex-shrink:0}
+.atitem .info{flex:1;min-width:0}
+.atitem .info .nm{font-size:12.5px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.atitem .info .meta{font-size:10.5px;color:var(--t3);margin-top:1px}
+.atitem .acts{display:flex;gap:4px}
+.atitem .acts a,.atitem .acts button{background:transparent;border:1px solid var(--border);color:var(--t2);width:28px;height:28px;border-radius:6px;cursor:pointer;font-size:13px;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;font-family:inherit;transition:all .15s}
+.atitem .acts a:hover{background:var(--acc-bg);color:var(--accent);border-color:var(--accent)}
+.atitem .acts button:hover{background:var(--r-bg);color:var(--red);border-color:var(--red)}
+
 /* checklist */
 .cklist{list-style:none}
 .ckitem{display:flex;align-items:center;gap:9px;padding:.45rem 0;border-bottom:1px solid var(--border)}
@@ -613,11 +643,13 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
       <button class="mclose" onclick="closeTask()">✕</button>
     </div>
     <div class="mtabs">
-      <button class="mtab on" data-p="details"   onclick="swPane(this)">📝 Detalhes</button>
-      <button class="mtab"    data-p="members"   onclick="swPane(this)">👥 Equipe</button>
-      <button class="mtab"    data-p="tags"      onclick="swPane(this)">🏷️ Tags</button>
-      <button class="mtab"    data-p="checklist" onclick="swPane(this)">✅ Checklist</button>
-      <button class="mtab"    data-p="schedule"  onclick="swPane(this)">📅 Cronograma</button>
+      <button class="mtab on" data-p="details"     onclick="swPane(this)">📝 Detalhes</button>
+      <button class="mtab"    data-p="members"     onclick="swPane(this)">👥 Equipe</button>
+      <button class="mtab"    data-p="tags"        onclick="swPane(this)">🏷️ Tags</button>
+      <button class="mtab"    data-p="checklist"   onclick="swPane(this)">✅ Checklist</button>
+      <button class="mtab"    data-p="schedule"    onclick="swPane(this)">📅 Cronograma</button>
+      <button class="mtab"    data-p="comments"    onclick="swPane(this)">💬 Comentários <span class="tab-ct" id="cmCt">0</span></button>
+      <button class="mtab"    data-p="attachments" onclick="swPane(this)">📎 Anexos <span class="tab-ct" id="atCt">0</span></button>
     </div>
     <div class="mbody">
       <!-- DETAILS -->
@@ -697,6 +729,31 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
           <div class="field"><label>Data entrega</label><input type="date" id="tEnd"></div>
         </div>
         <div id="schedPreview" style="background:var(--bg3);border:1px dashed var(--border2);padding:1rem;border-radius:var(--rlg);text-align:center;font-size:12px;color:var(--t2)">Defina datas para visualizar o cronograma</div>
+      </div>
+
+      <!-- COMMENTS -->
+      <div class="mpane" data-pane="comments">
+        <div class="field"><label>💬 Comentários da tarefa</label></div>
+        <div id="cmEmpty" style="display:none;text-align:center;padding:1.5rem;color:var(--t3);font-size:12px">Sem comentários ainda. Seja o primeiro!</div>
+        <ul class="cmlist" id="cmList"></ul>
+        <div class="cm-add" id="cmAddWrap">
+          <textarea id="cmIn" placeholder="Escreva um comentário... (Ctrl+Enter para enviar)" rows="2"></textarea>
+          <button class="btn primary sm" onclick="addComment()">💬 Comentar</button>
+        </div>
+        <div id="cmHint" style="display:none;text-align:center;padding:1rem;color:var(--t3);font-size:11.5px">Salve a tarefa primeiro pra liberar comentários.</div>
+      </div>
+
+      <!-- ATTACHMENTS -->
+      <div class="mpane" data-pane="attachments">
+        <div class="field"><label>📎 Documentos da tarefa</label></div>
+        <div id="atDrop" class="dropzone" onclick="document.getElementById('atFile').click()">
+          <div style="font-size:24px">📂</div>
+          <div style="font-weight:700;margin-top:6px">Clique para anexar arquivo</div>
+          <div style="font-size:11px;color:var(--t3);margin-top:4px">PDF, Word, Excel, imagens — até 50MB</div>
+          <input type="file" id="atFile" style="display:none" onchange="uploadAttachment(event)">
+        </div>
+        <ul class="atlist" id="atList"></ul>
+        <div id="atHint" style="display:none;text-align:center;padding:1rem;color:var(--t3);font-size:11.5px">Salve a tarefa primeiro pra liberar anexos.</div>
       </div>
     </div>
     <div class="mfoot">
@@ -950,6 +1007,8 @@ let TSK = [];        // subtarefas
 let TMB = {};        // task_members
 let TTG = {};        // task_tags
 let CLD = {};        // checklist items
+let CMT = {};        // task_comments — chave: tarefa_id -> array
+let ATT = {};        // task_attachments — chave: tarefa_id -> array
 let RVD = {};        // reviews
 let calDate = new Date();
 let calSel = null;
@@ -1126,8 +1185,15 @@ async function loadAll(){
     TMB = {}; (r6.data||[]).forEach(t=>{(TMB[t.tarefa_id]=TMB[t.tarefa_id]||[]).push({id:t.profile_id,papel:t.papel})});
     TTG = {}; (r7.data||[]).forEach(t=>{(TTG[t.tarefa_id]=TTG[t.tarefa_id]||[]).push(t.tag_id)});
     CLD = {}; (r8.data||[]).forEach(c=>{(CLD[c.tarefa_id]=CLD[c.tarefa_id]||[]).push(c)});
-    const rv = await db.from('sprint_reviews').select('*');
+    // Comments + attachments + reviews em paralelo (toleram tabelas ausentes)
+    const [rv, rc, ra] = await Promise.all([
+      db.from('sprint_reviews').select('*'),
+      db.from('task_comments').select('*').order('created_at',{ascending:true}),
+      db.from('task_attachments').select('*').order('created_at',{ascending:false}),
+    ]);
     RVD={}; (rv.data||[]).forEach(r=>RVD[r.sprint_id]=r);
+    CMT={}; (rc.data||[]).forEach(c=>{(CMT[c.tarefa_id]=CMT[c.tarefa_id]||[]).push(c)});
+    ATT={}; (ra.data||[]).forEach(a=>{(ATT[a.tarefa_id]=ATT[a.tarefa_id]||[]).push(a)});
     ss('ok','Sincronizado');
   } catch(e) {
     console.error(e);
@@ -1462,6 +1528,8 @@ function renderCard(t, opts={}){
       <div class="ftr-stats">
         ${t.story_points?`<span>🎯 ${t.story_points}</span>`:''}
         ${t.data_fim?`<span>📅 ${fmtD(t.data_fim)}</span>`:''}
+        ${(CMT[t.id]||[]).length?`<span>💬 ${(CMT[t.id]||[]).length}</span>`:''}
+        ${(ATT[t.id]||[]).length?`<span>📎 ${(ATT[t.id]||[]).length}</span>`:''}
       </div>
       ${mems.length?avS(mems,3):''}
     </div>
@@ -1607,32 +1675,57 @@ function prioFg(p){ return ({critica:'var(--red)',alta:'var(--orange)',media:'va
 ============================================================ */
 function renderTeam(){
   const el = document.getElementById('teamgrid');
+  // Escopo: respeita filtro global de sprint
+  const sprintIds = gF.sprint==='all' ? SP.map(s=>s.id) : [AS];
+  const tasksInScope = TSK.filter(t => sprintIds.includes(t.sprint_id));
+
   el.innerHTML = MB.map(m=>{
-    const myT = TSK.filter(t=>(TMB[t.id]||[]).find(x=>x.id===m.id));
-    const done = myT.filter(t=>t.status==='concluido').length;
-    const prog = myT.filter(t=>t.status==='em_andamento').length;
-    const bloc = myT.filter(t=>t.status==='bloqueado').length;
+    // Subtarefas atribuídas a essa pessoa no escopo
+    const myT = tasksInScope.filter(t => (TMB[t.id]||[]).some(x=>x.id===m.id));
+    // Entregas planejadas atribuídas no escopo
+    let myE = [];
+    sprintIds.forEach(sid=>{
+      const sp = SP.find(s=>s.id===sid);
+      sp.entregas.forEach((e,i)=>{
+        if(gEM(sid,i).includes(m.id)) myE.push({sid, idx:i, status: gES(sid,i)});
+      });
+    });
+    const tDone = myT.filter(t=>t.status==='concluido').length;
+    const tProg = myT.filter(t=>t.status==='em_andamento').length;
+    const tBloc = myT.filter(t=>t.status==='bloqueado').length;
+    const eDone = myE.filter(x=>x.status==='concluido').length;
+    const eProg = myE.filter(x=>x.status==='em_andamento').length;
+    const eBloc = myE.filter(x=>x.status==='bloqueado').length;
+    const totalItems = myT.length + myE.length;
+    const done = tDone + eDone;
+    const prog = tProg + eProg;
+    const bloc = tBloc + eBloc;
     const pts = myT.filter(t=>t.status==='concluido').reduce((a,t)=>a+(t.story_points||0),0);
-    const pct = myT.length ? Math.round(100*done/myT.length) : 0;
+    const pct = totalItems ? Math.round(100*done/totalItems) : 0;
     return `<div class="tcard">
       <div class="tcard-head">
         ${avH(m,'xl')}
         <div class="meta">
-          <div class="nm">${m.nome}</div>
-          <div class="role">${m.cargo || m.area || '—'}</div>
+          <div class="nm">${escapeHtml(m.nome)}</div>
+          <div class="role">${escapeHtml(m.cargo || m.area || '—')}</div>
         </div>
       </div>
       <div class="tmetrics">
-        <div class="tmetric"><div class="v">${myT.length}</div><div class="l">Tarefas</div></div>
+        <div class="tmetric"><div class="v">${totalItems}</div><div class="l">Total</div></div>
         <div class="tmetric"><div class="v" style="color:var(--green)">${done}</div><div class="l">Feitas</div></div>
         <div class="tmetric"><div class="v" style="color:var(--amber)">${prog}</div><div class="l">Em curso</div></div>
         <div class="tmetric"><div class="v" style="color:var(--red)">${bloc}</div><div class="l">Bloqueio</div></div>
         <div class="tmetric"><div class="v" style="color:var(--accent)">${pts}</div><div class="l">Pontos</div></div>
         <div class="tmetric"><div class="v">${pct}%</div><div class="l">Conclusão</div></div>
       </div>
+      <div style="display:flex;gap:6px;margin:.45rem 0 .6rem;font-size:10.5px;color:var(--t3);font-weight:600">
+        <span>📋 ${myT.length} tarefa(s)</span>
+        <span>•</span>
+        <span>📦 ${myE.length} entrega(s)</span>
+      </div>
       <div class="pw"><div class="pf" style="width:${pct}%"></div></div>
     </div>`;
-  }).join('') || `<div class="empty">Nenhum membro carregado. Crie sua conta para começar.</div>`;
+  }).join('') || `<div class="empty"><div class="ic">👥</div>Nenhum membro carregado. Crie sua conta para começar.</div>`;
 }
 
 /* ============================================================
@@ -1740,6 +1833,10 @@ function openTask(id=null, defStatus=null){
   pending.checklist = editing ? [...gCL(editing.id)].sort((a,b)=>a.ordem-b.ordem).map(c=>({...c})) : [];
   renderCkList();
 
+  // comments + attachments
+  renderComments();
+  renderAttachments();
+
   // reset to first tab
   document.querySelectorAll('.mtab').forEach(t=>t.classList.remove('on'));
   document.querySelectorAll('.mpane').forEach(p=>p.classList.remove('on'));
@@ -1805,6 +1902,138 @@ function addCkItem(){
   pending.checklist.push({texto:v, concluido:false, ordem:pending.checklist.length});
   document.getElementById('ckIn').value='';
   renderCkList();
+}
+
+/* ============================================================
+   COMMENTS
+============================================================ */
+function renderComments(){
+  const list = editing ? (CMT[editing.id]||[]).slice().sort((a,b)=>new Date(a.created_at)-new Date(b.created_at)) : [];
+  document.getElementById('cmCt').textContent = list.length;
+  document.getElementById('cmCt').classList.toggle('zero', list.length===0);
+  document.getElementById('cmEmpty').style.display = (editing && list.length===0) ? '' : 'none';
+  document.getElementById('cmAddWrap').style.display = editing ? '' : 'none';
+  document.getElementById('cmHint').style.display = editing ? 'none' : '';
+  const ul = document.getElementById('cmList');
+  if(!editing){ ul.innerHTML=''; return; }
+  ul.innerHTML = list.map(c=>{
+    const m = mBI(c.profile_id);
+    const dt = new Date(c.created_at).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+    const own = c.profile_id===CP?.id;
+    return `<li class="cmitem">
+      <div class="head">
+        ${avH(m,'sm')}
+        <span class="nm">${m?escapeHtml(m.nome):'Usuário removido'}</span>
+        <span class="dt">${dt}</span>
+      </div>
+      <div class="txt">${escapeHtml(c.texto)}</div>
+      ${own?`<button class="rmc" onclick="delComment('${c.id}')" title="Excluir">✕</button>`:''}
+    </li>`;
+  }).join('');
+}
+async function addComment(){
+  if(!editing){ toast('Salve a tarefa primeiro','err'); return; }
+  const txt = document.getElementById('cmIn').value.trim();
+  if(!txt) return;
+  ss('loading','Enviando...');
+  const {data, error} = await db.from('task_comments').insert({
+    tarefa_id: editing.id, profile_id: CP?.id, texto: txt
+  }).select().single();
+  if(error){ toast('Erro: '+error.message,'err'); ss('err','Erro'); return; }
+  (CMT[editing.id] = CMT[editing.id]||[]).push(data);
+  document.getElementById('cmIn').value = '';
+  ss('ok','Salvo'); renderComments();
+}
+async function delComment(id){
+  if(!confirm('Excluir este comentário?')) return;
+  const {error} = await db.from('task_comments').delete().eq('id', id);
+  if(error){ toast('Erro: '+error.message,'err'); return; }
+  if(editing && CMT[editing.id]) CMT[editing.id] = CMT[editing.id].filter(c=>c.id!==id);
+  renderComments();
+}
+document.addEventListener('keydown', e=>{
+  if(e.target?.id==='cmIn' && e.key==='Enter' && (e.ctrlKey||e.metaKey)){
+    e.preventDefault(); addComment();
+  }
+});
+
+/* ============================================================
+   ATTACHMENTS
+============================================================ */
+function fileIcon(mime, nm){
+  if(!mime && nm) mime = nm.toLowerCase();
+  if(/pdf/.test(mime)) return '📕';
+  if(/image|png|jpg|jpeg|gif|webp|svg/.test(mime)) return '🖼️';
+  if(/word|docx?|odt/.test(mime)) return '📘';
+  if(/excel|sheet|xlsx?|csv/.test(mime)) return '📗';
+  if(/powerpoint|presentation|pptx?/.test(mime)) return '📙';
+  if(/zip|rar|7z|tar|gz/.test(mime)) return '🗜️';
+  if(/text|json|xml|html/.test(mime)) return '📄';
+  return '📎';
+}
+function fmtBytes(b){
+  if(!b) return '';
+  if(b<1024) return b+' B';
+  if(b<1048576) return (b/1024).toFixed(1)+' KB';
+  return (b/1048576).toFixed(1)+' MB';
+}
+function renderAttachments(){
+  const list = editing ? (ATT[editing.id]||[]) : [];
+  document.getElementById('atCt').textContent = list.length;
+  document.getElementById('atCt').classList.toggle('zero', list.length===0);
+  document.getElementById('atDrop').style.display = editing ? '' : 'none';
+  document.getElementById('atHint').style.display = editing ? 'none' : '';
+  const ul = document.getElementById('atList');
+  if(!editing){ ul.innerHTML=''; return; }
+  ul.innerHTML = list.map(a=>{
+    const m = mBI(a.profile_id);
+    const dt = new Date(a.created_at).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+    return `<li class="atitem">
+      <span class="ic">${fileIcon(a.mime, a.nome)}</span>
+      <div class="info">
+        <div class="nm" title="${escapeHtml(a.nome)}">${escapeHtml(a.nome)}</div>
+        <div class="meta">${fmtBytes(a.tamanho)} • por ${m?escapeHtml(m.nome):'?'} • ${dt}</div>
+      </div>
+      <div class="acts">
+        <a href="${a.url}" target="_blank" title="Baixar/Abrir">↓</a>
+        <button onclick="delAttachment('${a.id}','${a.storage_path}')" title="Excluir">✕</button>
+      </div>
+    </li>`;
+  }).join('') || '<li style="color:var(--t3);font-size:12px;padding:.5rem 0;text-align:center">Sem anexos ainda.</li>';
+}
+async function uploadAttachment(evt){
+  if(!editing){ toast('Salve a tarefa primeiro','err'); return; }
+  const file = evt.target.files?.[0];
+  if(!file) return;
+  if(file.size > 50*1024*1024){ toast('Arquivo maior que 50MB','err'); return; }
+  ss('loading','Enviando arquivo...');
+  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+  const path = `${editing.id}/${Date.now()}_${safeName}`;
+  const up = await db.storage.from('task-files').upload(path, file, { upsert:false, contentType: file.type });
+  if(up.error){ toast('Falha no upload: '+up.error.message,'err'); ss('err','Erro'); evt.target.value=''; return; }
+  const { data:pub } = db.storage.from('task-files').getPublicUrl(path);
+  const payload = {
+    tarefa_id: editing.id, profile_id: CP?.id,
+    nome: file.name, storage_path: path, url: pub.publicUrl,
+    mime: file.type, tamanho: file.size
+  };
+  const {data, error} = await db.from('task_attachments').insert(payload).select().single();
+  if(error){
+    await db.storage.from('task-files').remove([path]);
+    toast('Erro: '+error.message,'err'); ss('err','Erro'); evt.target.value=''; return;
+  }
+  (ATT[editing.id] = ATT[editing.id]||[]).unshift(data);
+  evt.target.value='';
+  ss('ok','Anexado'); toast('Documento anexado'); renderAttachments();
+}
+async function delAttachment(id, path){
+  if(!confirm('Excluir este anexo?')) return;
+  ss('loading','Excluindo...');
+  await db.storage.from('task-files').remove([path]);
+  const {error} = await db.from('task_attachments').delete().eq('id', id);
+  if(error){ toast('Erro: '+error.message,'err'); ss('err','Erro'); return; }
+  if(editing && ATT[editing.id]) ATT[editing.id] = ATT[editing.id].filter(a=>a.id!==id);
+  ss('ok','Removido'); renderAttachments();
 }
 
 function updateSchedPreview(){
