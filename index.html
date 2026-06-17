@@ -389,6 +389,35 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
 .tbl tr:last-child td{border-bottom:none}
 .tbl tr:hover td{background:var(--bg3);cursor:pointer}
 
+/* AUDIT LOG TIMELINE */
+.timeline{display:flex;flex-direction:column;gap:.45rem}
+.tl-row{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rlg);padding:.7rem .95rem;display:flex;align-items:flex-start;gap:11px;border-left:3px solid var(--accent)}
+.tl-row.task_create,.tl-row.entrega_update,.tl-row.task_update{border-left-color:var(--accent)}
+.tl-row.task_delete{border-left-color:var(--red)}
+.tl-row.task_status,.tl-row.entrega_status{border-left-color:var(--amber)}
+.tl-row.comment_add{border-left-color:var(--purple)}
+.tl-row.attachment_add{border-left-color:var(--orange)}
+.tl-row.review_save{border-left-color:var(--green)}
+.tl-row.user_tipo{border-left-color:var(--pink)}
+.tl-body{flex:1;min-width:0}
+.tl-head{display:flex;align-items:center;gap:8px;margin-bottom:3px;font-size:11px;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+.tl-action{padding:1px 7px;border-radius:20px;background:var(--bg3)}
+.tl-time{margin-left:auto;font-weight:600;text-transform:none;letter-spacing:0;color:var(--t2);font-size:11px}
+.tl-summary{font-size:12.5px;font-weight:600;color:var(--text);line-height:1.45}
+.tl-details{font-size:11px;color:var(--t2);margin-top:3px}
+
+/* USERS */
+.userrow{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rlg);padding:.7rem .95rem;display:flex;align-items:center;gap:13px;margin-bottom:.5rem}
+.userrow .info{flex:1;min-width:0}
+.userrow .nm{font-size:13px;font-weight:700;color:var(--text)}
+.userrow .em{font-size:11px;color:var(--t2);margin-top:1px}
+.tipo-pill{font-size:10px;font-weight:800;padding:2px 9px;border-radius:20px;text-transform:uppercase;letter-spacing:.04em}
+.tipo-admin{background:var(--org-bg);color:var(--orange);border:1px solid var(--orange)}
+.tipo-integrante{background:var(--g-bg);color:var(--green)}
+.tipo-gestor{background:var(--p-bg);color:var(--purple)}
+.tipo-coordenador{background:var(--acc-bg);color:var(--accent)}
+.tipo-visitante{background:var(--bg4);color:var(--t2)}
+
 /* utils */
 .row{display:flex;align-items:center;gap:8px}
 .gap-sm{gap:6px}
@@ -436,10 +465,12 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
       <input class="lin" id="suNome"  type="text" placeholder="Iago Gabriel">
       <label class="lbl">E-mail</label>
       <input class="lin" id="suEmail" type="email" placeholder="seu.email@funcef.com.br" autocomplete="email">
-      <label class="lbl">Área</label>
-      <select class="lin" id="suArea">
-        <option>NID</option><option>Dados</option><option>Inovação</option>
-        <option>SUITE</option><option>Gestão</option><option>COBEN</option>
+      <label class="lbl">Tipo de usuário</label>
+      <select class="lin" id="suTipo">
+        <option value="integrante">Integrante do Núcleo de Dados</option>
+        <option value="gestor">Gestor</option>
+        <option value="coordenador">Coordenador</option>
+        <option value="visitante">Visitante</option>
       </select>
       <label class="lbl">Senha (mínimo 6 caracteres)</label>
       <input class="lin" id="suPass" type="password" placeholder="••••••••" autocomplete="new-password">
@@ -516,6 +547,8 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
       <button class="nb" data-v="calendar" onclick="nav('calendar',this)"><span class="ic">📅</span>Calendário</button>
       <button class="nb" data-v="team"     onclick="nav('team',this)"><span class="ic">👥</span>Equipe</button>
       <button class="nb" data-v="reviews"  onclick="nav('reviews',this)"><span class="ic">📈</span>Reviews</button>
+      <button class="nb" data-v="audit"    onclick="nav('audit',this)"><span class="ic">🔍</span>Governança</button>
+      <button class="nb" data-v="users"    onclick="nav('users',this)" id="navUsers" style="display:none"><span class="ic">⚙️</span>Usuários <span style="background:var(--orange);color:#fff;font-size:9px;padding:1px 6px;border-radius:20px;margin-left:auto;font-weight:800">ADMIN</span></button>
 
       <div class="sb-sect">Sprints 2026–2027</div>
       <div id="snav"></div>
@@ -631,6 +664,43 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
           <button class="btn primary" onclick="saveReview()">💾 Salvar review</button>
         </div>
         <div id="reviewForm"></div>
+      </section>
+
+      <!-- AUDIT / GOVERNANÇA -->
+      <section class="view" id="vAudit">
+        <div class="vh">
+          <div><h1>🔍 Governança</h1><div class="vh-sub">Quem fez o quê e quando — log auditável de alterações</div></div>
+          <div class="vh-grow"></div>
+          <button class="btn" onclick="renderAudit()">↺ Atualizar</button>
+        </div>
+        <div class="filtbar">
+          <span class="filt-info">Ação:</span>
+          <select class="sel" id="auAction" onchange="renderAudit()">
+            <option value="">Todas as ações</option>
+            <option value="task_create">Tarefa criada</option>
+            <option value="task_update">Tarefa atualizada</option>
+            <option value="task_delete">Tarefa excluída</option>
+            <option value="task_status">Status de tarefa</option>
+            <option value="entrega_update">Entrega atualizada</option>
+            <option value="entrega_status">Status de entrega</option>
+            <option value="comment_add">Comentário</option>
+            <option value="attachment_add">Anexo</option>
+            <option value="review_save">Review salva</option>
+            <option value="user_tipo">Alteração de tipo de usuário</option>
+          </select>
+          <span style="font-size:11px;color:var(--t3)">Filtros globais (sprint, pessoa) também se aplicam</span>
+        </div>
+        <div id="auditList"></div>
+      </section>
+
+      <!-- USERS / ADMIN -->
+      <section class="view" id="vUsers">
+        <div class="vh">
+          <div><h1>⚙️ Gestão de Usuários</h1><div class="vh-sub">Painel administrativo — controle de perfis e acessos</div></div>
+          <div class="vh-grow"></div>
+          <span class="cbadge" id="uCount">0 usuários</span>
+        </div>
+        <div id="usersList"></div>
       </section>
 
     </main>
@@ -780,12 +850,14 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
       <div class="frow">
         <div class="field"><label>Iniciais</label><input id="pfInic" maxlength="3"></div>
         <div class="field"><label>Cor</label><input id="pfCor" type="color"></div>
-        <div class="field"><label>Área</label>
-          <select id="pfArea">
-            <option>NID</option><option>Dados</option><option>Inovação</option>
-            <option>SUITE</option><option>Gestão</option><option>COBEN</option>
-          </select>
-        </div>
+      </div>
+      <div class="field" style="margin-bottom:.85rem"><label>Tipo de usuário</label>
+        <select id="pfTipo">
+          <option value="integrante">Integrante do Núcleo de Dados</option>
+          <option value="gestor">Gestor</option>
+          <option value="coordenador">Coordenador</option>
+          <option value="visitante">Visitante</option>
+        </select>
       </div>
       <div class="field"><label>Cargo / Função</label><input id="pfCargo" placeholder="Ex.: Analista de Dados"></div>
     </div>
@@ -1106,6 +1178,7 @@ let CLD = {};        // checklist items
 let CMT = {};        // task_comments — chave: tarefa_id -> array
 let ATT = {};        // task_attachments — chave: tarefa_id -> array
 let RVD = {};        // reviews
+let AUD = [];        // audit_log entries
 let calDate = new Date();
 let calSel = null;
 let stageFilter = 'todos';
@@ -1167,14 +1240,14 @@ async function doLogin(){
 async function doSignup(){
   const nome = document.getElementById('suNome').value.trim();
   const email = document.getElementById('suEmail').value.trim();
-  const area = document.getElementById('suArea').value;
+  const tipo = document.getElementById('suTipo').value;
   const pass = document.getElementById('suPass').value;
   if(!nome || !email || !pass){ aerr('Preencha todos os campos'); return; }
   if(pass.length < 6){ aerr('Senha precisa ter pelo menos 6 caracteres'); return; }
   const btn = document.getElementById('btnSignup'); btn.disabled=true; btn.textContent='Criando...';
   const {data, error} = await db.auth.signUp({
     email, password: pass,
-    options: { data: { nome, area } }
+    options: { data: { nome, tipo, area: 'NID' } }
   });
   btn.disabled=false; btn.textContent='Criar conta';
   if(error){
@@ -1249,6 +1322,32 @@ function paintUserChip(){
   av.textContent = CP.iniciais; av.style.background = CP.cor;
   document.getElementById('upNm').textContent = CP.nome;
   document.getElementById('upEm').textContent = CP.email || CU.email;
+  // Mostra menu Usuários apenas para admin
+  const navU = document.getElementById('navUsers');
+  if(navU) navU.style.display = isAdmin() ? '' : 'none';
+}
+
+function isAdmin(){ return CP && CP.tipo === 'admin'; }
+
+/* ============================================================
+   AUDIT — Governança
+============================================================ */
+const AUD_LABELS = {
+  task_create:'Tarefa criada', task_update:'Tarefa atualizada', task_delete:'Tarefa excluída',
+  task_status:'Status de tarefa', entrega_update:'Entrega atualizada', entrega_status:'Status de entrega',
+  comment_add:'Comentário', attachment_add:'Anexo', review_save:'Review salva',
+  user_tipo:'Tipo de usuário', user_login:'Login'
+};
+async function logAudit({action, entityType, entityId, sprintId, summary, details}){
+  if(!CP) return;
+  try {
+    const {data, error} = await db.from('audit_log').insert({
+      profile_id: CP.id, action, entity_type: entityType,
+      entity_id: entityId ? String(entityId) : null,
+      sprint_id: sprintId || null, summary: summary || '', details: details || null
+    }).select().single();
+    if(!error && data) AUD.unshift(data);
+  } catch(e){ console.warn('audit log failed:', e); }
 }
 
 /* ============================================================
@@ -1287,12 +1386,14 @@ async function loadAll(){
       const k = c.tarefa_id || `e_${c.sprint_id}_${c.entrega_idx}`;
       (CLD[k]=CLD[k]||[]).push(c);
     });
-    // Comments + attachments + reviews em paralelo (toleram tabelas ausentes)
-    const [rv, rc, ra] = await Promise.all([
+    // Comments + attachments + reviews + audit em paralelo
+    const [rv, rc, ra, rau] = await Promise.all([
       db.from('sprint_reviews').select('*'),
       db.from('task_comments').select('*').order('created_at',{ascending:true}),
       db.from('task_attachments').select('*').order('created_at',{ascending:false}),
+      db.from('audit_log').select('*').order('created_at',{ascending:false}).limit(500),
     ]);
+    AUD = rau.data || [];
     RVD={}; (rv.data||[]).forEach(r=>RVD[r.sprint_id]=r);
     CMT={}; (rc.data||[]).forEach(c=>{
       const k = c.tarefa_id || `e_${c.sprint_id}_${c.entrega_idx}`;
@@ -1437,6 +1538,8 @@ function renderAll(){
   if(AV==='calendar')  renderCal();
   if(AV==='team')      renderTeam();
   if(AV==='reviews')   renderReview();
+  if(AV==='audit')     renderAudit();
+  if(AV==='users')     renderUsers();
 }
 
 function renderSnav(){
@@ -1549,11 +1652,17 @@ function renderDash(){
 }
 
 async function qStEntrega(sid, idx, status){
+  const prev = (EDB[sid+'-'+idx]||{}).status || 'pendente';
   ss('loading','Salvando...');
   const {error} = await db.from('sprint_entregas').upsert({sprint_id:sid,entrega_idx:idx,status}, {onConflict:'sprint_id,entrega_idx'});
   if(error){ toast('Erro: '+error.message,'err'); ss('err','Erro'); return; }
   EDB[sid+'-'+idx] = {...(EDB[sid+'-'+idx]||{}), sprint_id:sid, entrega_idx:idx, status};
   ss('ok','Salvo'); toast('Status atualizado');
+  const sp = SP.find(s=>s.id===sid);
+  const eDesc = (sp?.entregas[idx]?.desc || '').slice(0,80);
+  logAudit({action:'entrega_status', entityType:'entrega', entityId:`${sid}-${idx}`, sprintId:sid,
+    summary:`Status da entrega "${eDesc}"`,
+    details:{from:statL(prev), to:statL(status)}});
   renderSnav();
   if(AV==='dashboard') renderDash();
   if(AV==='calendar')  renderCal();
@@ -1672,24 +1781,30 @@ function renderCard(t, opts={}){
 
 async function qStTask(id, status){
   const t = TSK.find(x=>x.id===id); if(!t) return;
-  t.status = status;
+  const prev = t.status; t.status = status;
   ss('loading','Salvando...');
   const {error} = await db.from('subtarefas').update({status}).eq('id', id);
   if(error){ toast('Erro: '+error.message,'err'); ss('err','Erro'); return; }
   ss('ok','Salvo'); toast('Status atualizado');
+  logAudit({action:'task_status', entityType:'task', entityId:id, sprintId:t.sprint_id,
+    summary:`Status de "${(t.titulo||'').slice(0,60)}"`,
+    details:{from:statL(prev), to:statL(status)}});
   renderSnav();
   if(AV==='kanban')  renderKanban();
   if(AV==='backlog') renderBacklog();
 }
 
 async function confirmDelTask(id){
+  const t = TSK.find(x=>x.id===id);
   if(!confirm('Excluir esta tarefa? Esta ação não pode ser desfeita.')) return;
   ss('loading','Excluindo...');
   const {error} = await db.from('subtarefas').delete().eq('id', id);
   if(error){ toast('Erro: '+error.message,'err'); ss('err','Erro'); return; }
-  TSK = TSK.filter(t=>t.id!==id);
+  TSK = TSK.filter(x=>x.id!==id);
   delete TMB[id]; delete TTG[id]; delete CLD[id];
   ss('ok','Excluído'); toast('Tarefa removida');
+  logAudit({action:'task_delete', entityType:'task', entityId:id, sprintId:t?.sprint_id,
+    summary:`Excluiu tarefa "${(t?.titulo||'').slice(0,80)}"`});
   renderAll();
 }
 
@@ -1803,8 +1918,10 @@ function renderTeam(){
   // Escopo: respeita filtro global de sprint
   const sprintIds = gF.sprint==='all' ? SP.map(s=>s.id) : [AS];
   const tasksInScope = TSK.filter(t => sprintIds.includes(t.sprint_id));
+  // Equipe = só integrantes do Núcleo de Dados
+  const team = MB.filter(m => (m.tipo||'integrante')==='integrante');
 
-  el.innerHTML = MB.map(m=>{
+  el.innerHTML = team.map(m=>{
     // Subtarefas atribuídas a essa pessoa no escopo
     const myT = tasksInScope.filter(t => (TMB[t.id]||[]).some(x=>x.id===m.id));
     // Entregas planejadas atribuídas no escopo
@@ -1900,6 +2017,118 @@ async function saveReview(){
   const {error} = await db.from('sprint_reviews').upsert(payload, {onConflict:'sprint_id'});
   if(error){ toast('Erro ao salvar review','err'); ss('err','Erro'); return; }
   await loadAll(); ss('ok','Salvo'); toast('Review salva com sucesso');
+  logAudit({action:'review_save', entityType:'review', entityId:s.id, sprintId:s.id,
+    summary:`Review da Sprint ${s.id} (${s.m}) salva`});
+}
+
+/* ============================================================
+   GOVERNANÇA — Audit Log
+============================================================ */
+function renderAudit(){
+  const fA = document.getElementById('auAction')?.value || '';
+  let arr = AUD.slice();
+  // Filtros globais
+  if(gF.sprint!=='all') arr = arr.filter(a => a.sprint_id===AS || a.sprint_id==null);
+  if(gF.person) arr = arr.filter(a => a.profile_id===gF.person);
+  if(gF.search){
+    const q = gF.search.toLowerCase();
+    arr = arr.filter(a => (a.summary||'').toLowerCase().includes(q));
+  }
+  if(fA) arr = arr.filter(a => a.action===fA);
+
+  const el = document.getElementById('auditList');
+  if(!arr.length){
+    el.innerHTML = `<div class="empty"><div class="ic">🗂️</div>Sem registros de auditoria.<br><span style="font-size:11px">Ações no app aparecem aqui automaticamente.</span></div>`;
+    return;
+  }
+  el.innerHTML = `<div class="timeline">${arr.map(a=>{
+    const m = mBI(a.profile_id);
+    const dt = new Date(a.created_at);
+    const dtStr = dt.toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'});
+    const ago = timeAgo(dt);
+    const sprintLbl = a.sprint_id ? ` · S${a.sprint_id}` : '';
+    return `<div class="tl-row ${a.action}">
+      ${avH(m,'md')}
+      <div class="tl-body">
+        <div class="tl-head">
+          <span class="tl-action">${AUD_LABELS[a.action] || a.action}</span>
+          <span>${m?escapeHtml(m.nome):'?'}</span>
+          <span>${sprintLbl}</span>
+          <span class="tl-time" title="${dtStr}">${ago}</span>
+        </div>
+        <div class="tl-summary">${escapeHtml(a.summary || '—')}</div>
+        ${a.details ? `<div class="tl-details">${formatAuditDetails(a.details)}</div>` : ''}
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+}
+function timeAgo(date){
+  const s = Math.floor((Date.now()-date.getTime())/1000);
+  if(s<60) return 'agora';
+  if(s<3600) return Math.floor(s/60)+' min atrás';
+  if(s<86400) return Math.floor(s/3600)+' h atrás';
+  if(s<604800) return Math.floor(s/86400)+' d atrás';
+  return date.toLocaleDateString('pt-BR');
+}
+function formatAuditDetails(d){
+  if(!d) return '';
+  if(typeof d === 'string') return escapeHtml(d);
+  try {
+    if(d.from && d.to) return `<strong>${escapeHtml(d.from)}</strong> → <strong>${escapeHtml(d.to)}</strong>`;
+    return Object.entries(d).map(([k,v])=>`<strong>${escapeHtml(k)}:</strong> ${escapeHtml(String(v))}`).join(' · ');
+  } catch { return ''; }
+}
+
+/* ============================================================
+   USUÁRIOS — Admin only
+============================================================ */
+function renderUsers(){
+  if(!isAdmin()){
+    document.getElementById('usersList').innerHTML = `<div class="empty"><div class="ic">🔒</div>Acesso restrito.<br>Apenas administradores podem gerenciar usuários.</div>`;
+    document.getElementById('uCount').textContent = '—';
+    return;
+  }
+  document.getElementById('uCount').textContent = `${MB.length} usuários`;
+  const TIPOS = [
+    {k:'admin',       l:'Administrador'},
+    {k:'integrante',  l:'Integrante NID'},
+    {k:'gestor',      l:'Gestor'},
+    {k:'coordenador', l:'Coordenador'},
+    {k:'visitante',   l:'Visitante'},
+  ];
+  document.getElementById('usersList').innerHTML = MB.map(m=>{
+    const t = m.tipo || 'integrante';
+    return `<div class="userrow">
+      ${avH(m,'lg')}
+      <div class="info">
+        <div class="nm">${escapeHtml(m.nome)} <span class="tipo-pill tipo-${t}">${tipoLabel(t)}</span></div>
+        <div class="em">${escapeHtml(m.email || '—')} ${m.cargo?'· '+escapeHtml(m.cargo):''}</div>
+      </div>
+      <select class="ssel" onchange="changeUserTipo('${m.id}', this.value, '${escapeAttr(m.nome)}', '${t}')">
+        ${TIPOS.map(x=>`<option value="${x.k}" ${t===x.k?'selected':''}>${x.l}</option>`).join('')}
+      </select>
+    </div>`;
+  }).join('');
+}
+function tipoLabel(t){
+  return ({admin:'Admin', integrante:'Integrante NID', gestor:'Gestor', coordenador:'Coordenador', visitante:'Visitante'})[t] || t;
+}
+function escapeAttr(s){ return (s||'').replace(/'/g,"\\'").replace(/"/g,'&quot;'); }
+async function changeUserTipo(id, novo, nome, atual){
+  if(!isAdmin()){ toast('Apenas admin','err'); return; }
+  if(novo===atual) return;
+  if(!confirm(`Mudar tipo de ${nome} de "${tipoLabel(atual)}" para "${tipoLabel(novo)}"?`)) {
+    renderUsers(); return;
+  }
+  ss('loading','Atualizando...');
+  const {error} = await db.from('profiles').update({tipo: novo}).eq('id', id);
+  if(error){ toast('Erro: '+error.message,'err'); ss('err','Erro'); return; }
+  const m = MB.find(x=>x.id===id); if(m) m.tipo = novo;
+  ss('ok','Salvo'); toast(`${nome} → ${tipoLabel(novo)}`);
+  logAudit({action:'user_tipo', entityType:'user', entityId:id,
+    summary:`${nome}: ${tipoLabel(atual)} → ${tipoLabel(novo)}`,
+    details:{from:tipoLabel(atual), to:tipoLabel(novo)}});
+  renderUsers();
 }
 
 /* ============================================================
@@ -2068,6 +2297,8 @@ async function addComment(){
   (CMT[editing.id] = CMT[editing.id]||[]).push(data);
   document.getElementById('cmIn').value = '';
   ss('ok','Salvo'); renderComments();
+  logAudit({action:'comment_add', entityType:'task', entityId:editing.id, sprintId:editing.sprint_id,
+    summary:`Comentou em "${(editing.titulo||'').slice(0,60)}": ${txt.slice(0,80)}`});
 }
 async function delComment(id){
   if(!confirm('Excluir este comentário?')) return;
@@ -2156,6 +2387,9 @@ async function uploadAttachment(evt){
   (ATT[editing.id] = ATT[editing.id]||[]).unshift(data);
   evt.target.value='';
   ss('ok','Anexado'); toast('Documento anexado'); renderAttachments();
+  logAudit({action:'attachment_add', entityType:'task', entityId:editing.id, sprintId:editing.sprint_id,
+    summary:`Anexou "${file.name}" em "${(editing.titulo||'').slice(0,50)}"`,
+    details:{nome:file.name, tamanho:file.size}});
 }
 async function delAttachment(id, path){
   if(!confirm('Excluir este anexo?')) return;
@@ -2232,7 +2466,14 @@ async function saveTask(){
   }
 
   await loadAll(); ss('ok','Salvo');
-  toast(editing ? 'Tarefa atualizada' : 'Tarefa criada');
+  const wasEditing = !!editing;
+  logAudit({
+    action: wasEditing ? 'task_update' : 'task_create',
+    entityType:'task', entityId: tid, sprintId: payload.sprint_id,
+    summary: `${wasEditing?'Editou':'Criou'} tarefa "${titulo.slice(0,80)}"`,
+    details:{status: payload.status, prioridade: payload.prioridade}
+  });
+  toast(wasEditing ? 'Tarefa atualizada' : 'Tarefa criada');
   closeTask();
   initFilters();
   renderAll();
@@ -2242,9 +2483,12 @@ async function delTask(){
   if(!editing) return;
   if(!confirm('Excluir esta tarefa? Esta ação não pode ser desfeita.')) return;
   ss('loading','Excluindo...');
+  const delTitle = editing.titulo, delSid = editing.sprint_id, delId = editing.id;
   const {error} = await db.from('subtarefas').delete().eq('id', editing.id);
   if(error){ toast('Erro: '+error.message,'err'); ss('err','Erro'); return; }
   await loadAll(); ss('ok','Excluído');
+  logAudit({action:'task_delete', entityType:'task', entityId:delId, sprintId:delSid,
+    summary:`Excluiu tarefa "${(delTitle||'').slice(0,80)}"`});
   toast('Tarefa excluída');
   closeTask(); renderAll();
 }
@@ -2406,6 +2650,10 @@ async function addEntregaComment(){
   (CMT[key] = CMT[key]||[]).push(data);
   document.getElementById('emCmIn').value='';
   ss('ok','Salvo'); renderEntregaComments();
+  const sp = SP.find(s=>s.id===sid);
+  const eDesc = (sp?.entregas[idx]?.desc || '').slice(0,50);
+  logAudit({action:'comment_add', entityType:'entrega', entityId:`${sid}-${idx}`, sprintId:sid,
+    summary:`Comentou na entrega "${eDesc}": ${txt.slice(0,80)}`});
 }
 async function delEntregaComment(id){
   if(!confirm('Excluir este comentário?')) return;
@@ -2465,6 +2713,11 @@ async function uploadEntregaAttachment(evt){
   (ATT[key] = ATT[key]||[]).unshift(data);
   evt.target.value='';
   ss('ok','Anexado'); toast('Documento anexado'); renderEntregaAttachments();
+  const sp = SP.find(s=>s.id===sid);
+  const eDesc = (sp?.entregas[idx]?.desc || '').slice(0,50);
+  logAudit({action:'attachment_add', entityType:'entrega', entityId:`${sid}-${idx}`, sprintId:sid,
+    summary:`Anexou "${file.name}" em "${eDesc}"`,
+    details:{nome:file.name, tamanho:file.size}});
 }
 async function delEntregaAttachment(id, path){
   if(!confirm('Excluir este anexo?')) return;
@@ -2546,6 +2799,11 @@ async function saveEntrega(){
   CLD[key] = entPending.checklist.map((c,i)=>({...c, sprint_id:sid, entrega_idx:idx, ordem:i}));
 
   ss('ok','Salvo'); toast('Entrega atualizada');
+  const sp = SP.find(s=>s.id===sid);
+  const eDesc = (sp?.entregas[idx]?.desc || '').slice(0,80);
+  logAudit({action:'entrega_update', entityType:'entrega', entityId:`${sid}-${idx}`, sprintId:sid,
+    summary:`Atualizou entrega "${eDesc}"`,
+    details:{status:statL(payload.status), prioridade:payload.prioridade, progresso:payload.progresso}});
   closeEntrega(); renderAll();
 }
 
@@ -2558,7 +2816,11 @@ function openProfileEdit(){
   document.getElementById('pfNome').value  = CP.nome;
   document.getElementById('pfInic').value  = CP.iniciais;
   document.getElementById('pfCor').value   = CP.cor;
-  document.getElementById('pfArea').value  = CP.area || 'NID';
+  const pfTipo = document.getElementById('pfTipo');
+  // Não-admin não pode se promover a admin: desabilita
+  pfTipo.disabled = !isAdmin();
+  pfTipo.title = isAdmin() ? '' : 'Apenas administradores podem alterar o tipo. Solicite ao admin.';
+  pfTipo.value  = CP.tipo || 'integrante';
   document.getElementById('pfCargo').value = CP.cargo || '';
   document.getElementById('profileModal').classList.add('on');
 }
@@ -2568,7 +2830,7 @@ async function saveProfile(){
     nome:  document.getElementById('pfNome').value.trim(),
     iniciais: document.getElementById('pfInic').value.trim().toUpperCase().slice(0,3),
     cor:   document.getElementById('pfCor').value,
-    area:  document.getElementById('pfArea').value,
+    tipo:  document.getElementById('pfTipo').value,
     cargo: document.getElementById('pfCargo').value.trim(),
   };
   if(!payload.nome || !payload.iniciais){ toast('Nome e iniciais obrigatórios','err'); return; }

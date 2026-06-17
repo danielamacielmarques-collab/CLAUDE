@@ -33,12 +33,12 @@ visual FUNCEF, com login real (Supabase Auth) e modo claro/escuro.
 ### 1) Banco — Supabase
 1. Abra o projeto Supabase em `https://supabase.com/dashboard/project/oclmebkrgazsrujnaywg`.
 2. SQL Editor → cole e execute o conteúdo de `schema.sql`.
-3. (Anexos + comentários) SQL Editor → cole e execute `schema_addon.sql`.
-   Este script cria as tabelas `task_comments`, `task_attachments` e o bucket
-   de Storage `task-files`. É idempotente (pode rodar várias vezes).
-4. Em **Authentication → Providers → Email** garanta que esteja habilitado.
-   Para evitar a etapa de confirmação por e-mail durante o uso interno,
-   desabilite "Confirm email".
+3. (Comentários + anexos + checklist/tags em entregas) Execute `schema_addon.sql`.
+4. (Tipos de usuário + admin + auditoria) Execute `schema_addon_v7.sql`.
+   - Promove automaticamente `daniela.ribas@funcef.com.br` a admin.
+   - Cria tabela `audit_log`.
+   - Adiciona coluna `tipo` em `profiles`: admin, integrante, gestor, coordenador, visitante.
+5. Em **Authentication → Providers → Email** desabilite "Confirm email".
 
 ### 2) Rodar localmente
 Abra `index.html` direto no navegador, ou:
