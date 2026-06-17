@@ -646,12 +646,12 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
     </div>
     <div class="mtabs">
       <button class="mtab on" data-p="details"     onclick="swPane(this)">📝 Detalhes</button>
+      <button class="mtab"    data-p="attachments" onclick="swPane(this)">📎 Anexos <span class="tab-ct" id="atCt">0</span></button>
+      <button class="mtab"    data-p="comments"    onclick="swPane(this)">💬 Comentários <span class="tab-ct" id="cmCt">0</span></button>
+      <button class="mtab"    data-p="checklist"   onclick="swPane(this)">✅ Checklist</button>
       <button class="mtab"    data-p="members"     onclick="swPane(this)">👥 Equipe</button>
       <button class="mtab"    data-p="tags"        onclick="swPane(this)">🏷️ Tags</button>
-      <button class="mtab"    data-p="checklist"   onclick="swPane(this)">✅ Checklist</button>
       <button class="mtab"    data-p="schedule"    onclick="swPane(this)">📅 Cronograma</button>
-      <button class="mtab"    data-p="comments"    onclick="swPane(this)">💬 Comentários <span class="tab-ct" id="cmCt">0</span></button>
-      <button class="mtab"    data-p="attachments" onclick="swPane(this)">📎 Anexos <span class="tab-ct" id="atCt">0</span></button>
     </div>
     <div class="mbody">
       <!-- DETAILS -->
@@ -799,25 +799,54 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
 
 <!-- ============ MODAL ENTREGA ============ -->
 <div class="mbg" id="entregaModal">
-  <div class="modal" style="max-width:560px">
+  <div class="modal" style="max-width:760px">
     <div class="mhead"><h2 id="emTitle">Entrega</h2><button class="mclose" onclick="closeEntrega()">✕</button></div>
+    <div class="mtabs">
+      <button class="mtab on" data-p="em-details"    onclick="swPaneEm(this)">📝 Detalhes</button>
+      <button class="mtab"    data-p="em-attachments" onclick="swPaneEm(this)">📎 Anexos <span class="tab-ct" id="emAtCt">0</span></button>
+      <button class="mtab"    data-p="em-comments"    onclick="swPaneEm(this)">💬 Comentários <span class="tab-ct" id="emCmCt">0</span></button>
+    </div>
     <div class="mbody">
-      <div class="frow">
-        <div class="field"><label>Status</label>
-          <select id="emStatus">
-            <option value="pendente">Pendente</option>
-            <option value="em_andamento">Em andamento</option>
-            <option value="em_revisao">Em revisão</option>
-            <option value="concluido">Concluído</option>
-            <option value="bloqueado">Bloqueado</option>
-          </select>
+      <!-- Detalhes -->
+      <div class="mpane on" data-pane="em-details">
+        <div class="frow">
+          <div class="field"><label>Status</label>
+            <select id="emStatus">
+              <option value="pendente">Pendente</option>
+              <option value="em_andamento">Em andamento</option>
+              <option value="em_revisao">Em revisão</option>
+              <option value="concluido">Concluído</option>
+              <option value="bloqueado">Bloqueado</option>
+            </select>
+          </div>
+          <div class="field"><label>Data de entrega</label><input type="date" id="emData"></div>
         </div>
-        <div class="field"><label>Data de entrega</label><input type="date" id="emData"></div>
+        <div class="field" style="margin-bottom:.85rem"><label>Responsáveis</label>
+          <div class="mpicker" id="emMembers"></div>
+        </div>
+        <div class="field"><label>Observações</label><textarea id="emObs" placeholder="Anotações, riscos, decisões..."></textarea></div>
       </div>
-      <div class="field" style="margin-bottom:.85rem"><label>Responsáveis</label>
-        <div class="mpicker" id="emMembers"></div>
+      <!-- Anexos -->
+      <div class="mpane" data-pane="em-attachments">
+        <div class="field"><label>📎 Documentos desta entrega</label></div>
+        <div id="emAtDrop" class="dropzone" onclick="document.getElementById('emAtFile').click()">
+          <div style="font-size:24px">📂</div>
+          <div style="font-weight:700;margin-top:6px">Clique para anexar arquivo</div>
+          <div style="font-size:11px;color:var(--t3);margin-top:4px">PDF, Word, Excel, imagens — até 50MB</div>
+          <input type="file" id="emAtFile" style="display:none" onchange="uploadEntregaAttachment(event)">
+        </div>
+        <ul class="atlist" id="emAtList"></ul>
       </div>
-      <div class="field"><label>Observações</label><textarea id="emObs" placeholder="Anotações, riscos, decisões..."></textarea></div>
+      <!-- Comentários -->
+      <div class="mpane" data-pane="em-comments">
+        <div class="field"><label>💬 Comentários desta entrega</label></div>
+        <div id="emCmEmpty" style="display:none;text-align:center;padding:1.5rem;color:var(--t3);font-size:12px">Sem comentários ainda. Seja o primeiro!</div>
+        <ul class="cmlist" id="emCmList"></ul>
+        <div class="cm-add">
+          <textarea id="emCmIn" placeholder="Escreva um comentário... (Ctrl+Enter para enviar)" rows="2"></textarea>
+          <button class="btn primary sm" onclick="addEntregaComment()">💬 Comentar</button>
+        </div>
+      </div>
     </div>
     <div class="mfoot">
       <div style="flex:1"></div>
@@ -1198,8 +1227,14 @@ async function loadAll(){
       db.from('task_attachments').select('*').order('created_at',{ascending:false}),
     ]);
     RVD={}; (rv.data||[]).forEach(r=>RVD[r.sprint_id]=r);
-    CMT={}; (rc.data||[]).forEach(c=>{(CMT[c.tarefa_id]=CMT[c.tarefa_id]||[]).push(c)});
-    ATT={}; (ra.data||[]).forEach(a=>{(ATT[a.tarefa_id]=ATT[a.tarefa_id]||[]).push(a)});
+    CMT={}; (rc.data||[]).forEach(c=>{
+      const k = c.tarefa_id || `e_${c.sprint_id}_${c.entrega_idx}`;
+      (CMT[k]=CMT[k]||[]).push(c);
+    });
+    ATT={}; (ra.data||[]).forEach(a=>{
+      const k = a.tarefa_id || `e_${a.sprint_id}_${a.entrega_idx}`;
+      (ATT[k]=ATT[k]||[]).push(a);
+    });
     ss('ok','Sincronizado');
   } catch(e) {
     console.error(e);
@@ -1503,6 +1538,8 @@ function renderEntregaCard(c){
       <div class="ftr-stats">
         <span style="color:${ex.fg};font-weight:700">${e.tipo||'Entrega'}</span>
         ${cur.data_fim?`<span>📅 ${fmtD(cur.data_fim)}</span>`:''}
+        ${(CMT[`e_${sid}_${idx}`]||[]).length?`<span>💬 ${(CMT[`e_${sid}_${idx}`]||[]).length}</span>`:''}
+        ${(ATT[`e_${sid}_${idx}`]||[]).length?`<span>📎 ${(ATT[`e_${sid}_${idx}`]||[]).length}</span>`:''}
       </div>
       ${mems.length?avS(mems,3):''}
     </div>
@@ -2007,16 +2044,22 @@ function renderAttachments(){
     </li>`;
   }).join('') || '<li style="color:var(--t3);font-size:12px;padding:.5rem 0;text-align:center">Sem anexos ainda.</li>';
 }
+function explainStorageErr(msg){
+  if(/bucket not found|not_found|404/i.test(msg)) return 'Bucket "task-files" não existe ainda. Peça ao admin para rodar o schema_addon.sql no Supabase.';
+  if(/row.level security|policy/i.test(msg)) return 'Permissão negada no Storage. Faça login novamente ou rode o schema_addon.sql.';
+  return 'Falha no upload: ' + msg;
+}
+
 async function uploadAttachment(evt){
-  if(!editing){ toast('Salve a tarefa primeiro','err'); return; }
+  if(!editing){ toast('Salve a tarefa primeiro','err'); evt.target.value=''; return; }
   const file = evt.target.files?.[0];
   if(!file) return;
-  if(file.size > 50*1024*1024){ toast('Arquivo maior que 50MB','err'); return; }
+  if(file.size > 50*1024*1024){ toast('Arquivo maior que 50MB','err'); evt.target.value=''; return; }
   ss('loading','Enviando arquivo...');
   const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
-  const path = `${editing.id}/${Date.now()}_${safeName}`;
+  const path = `tasks/${editing.id}/${Date.now()}_${safeName}`;
   const up = await db.storage.from('task-files').upload(path, file, { upsert:false, contentType: file.type });
-  if(up.error){ toast('Falha no upload: '+up.error.message,'err'); ss('err','Erro'); evt.target.value=''; return; }
+  if(up.error){ toast(explainStorageErr(up.error.message),'err'); ss('err','Erro'); evt.target.value=''; return; }
   const { data:pub } = db.storage.from('task-files').getPublicUrl(path);
   const payload = {
     tarefa_id: editing.id, profile_id: CP?.id,
@@ -2143,9 +2186,133 @@ function openEntrega(sid, idx){
   entMembersSel = {};
   gEM(sid, idx).forEach(id => entMembersSel[id] = true);
   renderEntMembersPicker();
+  // Reset abas para Detalhes
+  document.querySelectorAll('#entregaModal .mtab').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('#entregaModal .mpane').forEach(p=>p.classList.remove('on'));
+  document.querySelector('#entregaModal .mtab[data-p="em-details"]').classList.add('on');
+  document.querySelector('#entregaModal .mpane[data-pane="em-details"]').classList.add('on');
+  renderEntregaComments();
+  renderEntregaAttachments();
   document.getElementById('entregaModal').classList.add('on');
 }
 function closeEntrega(){ document.getElementById('entregaModal').classList.remove('on'); editingEnt=null; }
+function swPaneEm(btn){
+  document.querySelectorAll('#entregaModal .mtab').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  const p = btn.dataset.p;
+  document.querySelectorAll('#entregaModal .mpane').forEach(x=>x.classList.remove('on'));
+  document.querySelector(`#entregaModal .mpane[data-pane="${p}"]`).classList.add('on');
+}
+function entKey(){ return editingEnt ? `e_${editingEnt.sid}_${editingEnt.idx}` : null; }
+
+function renderEntregaComments(){
+  if(!editingEnt) return;
+  const key = entKey();
+  const list = (CMT[key]||[]).slice().sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
+  document.getElementById('emCmCt').textContent = list.length;
+  document.getElementById('emCmCt').classList.toggle('zero', list.length===0);
+  document.getElementById('emCmEmpty').style.display = list.length===0 ? '' : 'none';
+  const ul = document.getElementById('emCmList');
+  ul.innerHTML = list.map(c=>{
+    const m = mBI(c.profile_id);
+    const dt = new Date(c.created_at).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+    const own = c.profile_id===CP?.id;
+    return `<li class="cmitem">
+      <div class="head">${avH(m,'sm')}<span class="nm">${m?escapeHtml(m.nome):'?'}</span><span class="dt">${dt}</span></div>
+      <div class="txt">${escapeHtml(c.texto)}</div>
+      ${own?`<button class="rmc" onclick="delEntregaComment('${c.id}')">✕</button>`:''}
+    </li>`;
+  }).join('');
+}
+async function addEntregaComment(){
+  if(!editingEnt) return;
+  const txt = document.getElementById('emCmIn').value.trim();
+  if(!txt) return;
+  const {sid, idx} = editingEnt;
+  ss('loading','Enviando...');
+  const {data, error} = await db.from('task_comments').insert({
+    sprint_id: sid, entrega_idx: idx, profile_id: CP?.id, texto: txt
+  }).select().single();
+  if(error){ toast('Erro: '+error.message,'err'); ss('err','Erro'); return; }
+  const key = entKey();
+  (CMT[key] = CMT[key]||[]).push(data);
+  document.getElementById('emCmIn').value='';
+  ss('ok','Salvo'); renderEntregaComments();
+}
+async function delEntregaComment(id){
+  if(!confirm('Excluir este comentário?')) return;
+  const {error} = await db.from('task_comments').delete().eq('id', id);
+  if(error){ toast('Erro: '+error.message,'err'); return; }
+  const key = entKey();
+  if(CMT[key]) CMT[key] = CMT[key].filter(c=>c.id!==id);
+  renderEntregaComments();
+}
+
+function renderEntregaAttachments(){
+  if(!editingEnt) return;
+  const key = entKey();
+  const list = ATT[key] || [];
+  document.getElementById('emAtCt').textContent = list.length;
+  document.getElementById('emAtCt').classList.toggle('zero', list.length===0);
+  const ul = document.getElementById('emAtList');
+  ul.innerHTML = list.map(a=>{
+    const m = mBI(a.profile_id);
+    const dt = new Date(a.created_at).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+    return `<li class="atitem">
+      <span class="ic">${fileIcon(a.mime, a.nome)}</span>
+      <div class="info">
+        <div class="nm" title="${escapeHtml(a.nome)}">${escapeHtml(a.nome)}</div>
+        <div class="meta">${fmtBytes(a.tamanho)} • por ${m?escapeHtml(m.nome):'?'} • ${dt}</div>
+      </div>
+      <div class="acts">
+        <a href="${a.url}" target="_blank" title="Baixar/Abrir">↓</a>
+        <button onclick="delEntregaAttachment('${a.id}','${a.storage_path}')" title="Excluir">✕</button>
+      </div>
+    </li>`;
+  }).join('') || '<li style="color:var(--t3);font-size:12px;padding:.5rem 0;text-align:center">Sem anexos ainda.</li>';
+}
+async function uploadEntregaAttachment(evt){
+  if(!editingEnt){ toast('Erro','err'); evt.target.value=''; return; }
+  const file = evt.target.files?.[0];
+  if(!file) return;
+  if(file.size > 50*1024*1024){ toast('Arquivo maior que 50MB','err'); evt.target.value=''; return; }
+  const {sid, idx} = editingEnt;
+  ss('loading','Enviando arquivo...');
+  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+  const path = `entregas/${sid}/${idx}/${Date.now()}_${safeName}`;
+  const up = await db.storage.from('task-files').upload(path, file, { upsert:false, contentType: file.type });
+  if(up.error){ toast(explainStorageErr(up.error.message),'err'); ss('err','Erro'); evt.target.value=''; return; }
+  const { data:pub } = db.storage.from('task-files').getPublicUrl(path);
+  const payload = {
+    sprint_id: sid, entrega_idx: idx, profile_id: CP?.id,
+    nome: file.name, storage_path: path, url: pub.publicUrl,
+    mime: file.type, tamanho: file.size
+  };
+  const {data, error} = await db.from('task_attachments').insert(payload).select().single();
+  if(error){
+    await db.storage.from('task-files').remove([path]);
+    toast('Erro: '+error.message,'err'); ss('err','Erro'); evt.target.value=''; return;
+  }
+  const key = entKey();
+  (ATT[key] = ATT[key]||[]).unshift(data);
+  evt.target.value='';
+  ss('ok','Anexado'); toast('Documento anexado'); renderEntregaAttachments();
+}
+async function delEntregaAttachment(id, path){
+  if(!confirm('Excluir este anexo?')) return;
+  ss('loading','Excluindo...');
+  await db.storage.from('task-files').remove([path]);
+  const {error} = await db.from('task_attachments').delete().eq('id', id);
+  if(error){ toast('Erro: '+error.message,'err'); ss('err','Erro'); return; }
+  const key = entKey();
+  if(ATT[key]) ATT[key] = ATT[key].filter(a=>a.id!==id);
+  ss('ok','Removido'); renderEntregaAttachments();
+}
+document.addEventListener('keydown', e=>{
+  if(e.target?.id==='emCmIn' && e.key==='Enter' && (e.ctrlKey||e.metaKey)){
+    e.preventDefault(); addEntregaComment();
+  }
+});
 function renderEntMembersPicker(){
   const el = document.getElementById('emMembers');
   if(!MB.length){ el.innerHTML='<div style="color:var(--t3);font-size:12px">Nenhum usuário cadastrado.</div>'; return; }
