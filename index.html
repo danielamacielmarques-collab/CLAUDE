@@ -1445,7 +1445,7 @@ function isAdmin(){ return CP && CP.tipo === 'admin'; }
 ============================================================ */
 const AUD_LABELS = {
   task_create:'Tarefa criada', task_update:'Tarefa atualizada', task_delete:'Tarefa excluída',
-  task_status:'Status de tarefa', entrega_update:'Entrega atualizada', entrega_status:'Status de entrega',
+  task_status:'Status de tarefa', task_move:'Tarefa movida', entrega_update:'Entrega atualizada', entrega_status:'Status de entrega',
   comment_add:'Comentário', attachment_add:'Anexo', review_save:'Review salva',
   user_tipo:'Tipo de usuário', user_login:'Login',
   event_create:'Evento criado', event_update:'Evento atualizado', event_delete:'Evento excluído',
@@ -2025,10 +2025,37 @@ function renderCard(t, opts={}){
       <select class="ssel" style="flex:1" onchange="qStTask('${t.id}',this.value)">
         ${STATUSES.map(o=>`<option value="${o.k}" ${t.status===o.k?'selected':''}>${o.l}</option>`).join('')}
       </select>
+      <select class="ssel" style="max-width:84px" title="Mover para outra sprint" onchange="moveTaskSprint('${t.id}', this.value, this)">
+        <option value="">↗️ S${t.sprint_id}</option>
+        ${SP.map(s=>`<option value="${s.id}" ${s.id===t.sprint_id?'disabled':''}>S${s.id} · ${s.m}</option>`).join('')}
+      </select>
       <button class="ib" title="Editar" onclick="openTask('${t.id}')">✏️</button>
       <button class="ib del" title="Excluir" onclick="confirmDelTask('${t.id}')">🗑️</button>
     </div>`:''}
   </div>`;
+}
+
+async function moveTaskSprint(id, newSidStr, sel){
+  if(!newSidStr) return;
+  const newSid = +newSidStr;
+  const t = TSK.find(x=>x.id===id); if(!t) return;
+  const prevSid = t.sprint_id;
+  if(prevSid===newSid){ if(sel) sel.value=''; return; }
+  const prevSp = SP.find(s=>s.id===prevSid);
+  const newSp = SP.find(s=>s.id===newSid);
+  if(!confirm(`Mover "${(t.titulo||'').slice(0,60)}"\n\nde S${prevSid} (${prevSp?.m})\npara S${newSid} (${newSp?.m})?`)){
+    if(sel) sel.value=''; return;
+  }
+  ss('loading','Movendo...');
+  const {error} = await db.from('subtarefas').update({sprint_id: newSid}).eq('id', id);
+  if(error){ toast('Erro: '+error.message,'err'); ss('err','Erro'); if(sel) sel.value=''; return; }
+  t.sprint_id = newSid;
+  ss('ok','Movida'); toast(`Movida para S${newSid} · ${newSp?.m}`);
+  logAudit({action:'task_move', entityType:'task', entityId:id, sprintId:newSid,
+    summary:`Moveu "${(t.titulo||'').slice(0,60)}" de S${prevSid} → S${newSid}`,
+    details:{from:`S${prevSid} ${prevSp?.m||''}`, to:`S${newSid} ${newSp?.m||''}`}});
+  renderSnav();
+  renderAll();
 }
 
 async function qStTask(id, status){
