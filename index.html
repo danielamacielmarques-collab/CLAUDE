@@ -1483,7 +1483,7 @@ const AUD_LABELS = {
   task_create:'Tarefa criada', task_update:'Tarefa atualizada', task_delete:'Tarefa excluída',
   task_status:'Status de tarefa', task_move:'Tarefa movida', entrega_update:'Entrega atualizada', entrega_status:'Status de entrega',
   comment_add:'Comentário', attachment_add:'Anexo', review_save:'Review salva',
-  user_tipo:'Tipo de usuário', user_login:'Login',
+  user_tipo:'Tipo de usuário', user_login:'Login', user_ativo:'Ativação de usuário', user_delete:'Usuário excluído',
   event_create:'Evento criado', event_update:'Evento atualizado', event_delete:'Evento excluído',
   import_pa:'Importação Plano de Ação', test:'Teste de gravação'
 };
@@ -1797,10 +1797,11 @@ function setEvType(btn){
 }
 function renderEvMembersPicker(){
   const el = document.getElementById('evMembers');
-  if(!MB.length){ el.innerHTML='<div style="color:var(--t3);font-size:12px">Nenhum usuário cadastrado.</div>'; return; }
-  el.innerHTML = MB.map(m=>{
+  const pool = MB.filter(m => m.ativo!==false || evMembersSel[m.id]);
+  if(!pool.length){ el.innerHTML='<div style="color:var(--t3);font-size:12px">Nenhum usuário cadastrado.</div>'; return; }
+  el.innerHTML = pool.map(m=>{
     const on = !!evMembersSel[m.id];
-    return `<div class="mp-chip ${on?'on':''}" onclick="togEvMem('${m.id}')">${avH(m,'sm')}<span>${m.nome}</span></div>`;
+    return `<div class="mp-chip ${on?'on':''}" onclick="togEvMem('${m.id}')">${avH(m,'sm')}<span>${m.nome}${m.ativo===false?' 🚫':''}</span></div>`;
   }).join('');
 }
 function togEvMem(id){
@@ -2485,7 +2486,7 @@ function renderTeam(){
   const sprintIds = gF.sprint==='all' ? SP.map(s=>s.id) : [AS];
   const tasksInScope = TSK.filter(t => sprintIds.includes(t.sprint_id));
   // Equipe = só integrantes do Núcleo de Dados
-  const team = MB.filter(m => (m.tipo||'integrante')==='integrante');
+  const team = MB.filter(m => (m.tipo||'integrante')==='integrante' && m.ativo!==false);
 
   el.innerHTML = team.map(m=>{
     // Subtarefas atribuídas a essa pessoa no escopo
@@ -2701,7 +2702,10 @@ function renderUsers(){
     document.getElementById('uCount').textContent = '—';
     return;
   }
-  document.getElementById('uCount').textContent = `${MB.length} usuários`;
+  const ativos = MB.filter(m=>m.ativo!==false).length;
+  const inativos = MB.length - ativos;
+  document.getElementById('uCount').textContent =
+    `${ativos} ativos${inativos?` · ${inativos} inativos`:''}`;
   const TIPOS = [
     {k:'admin',       l:'Administrador'},
     {k:'integrante',  l:'Integrante NID'},
@@ -2711,17 +2715,80 @@ function renderUsers(){
   ];
   document.getElementById('usersList').innerHTML = MB.map(m=>{
     const t = m.tipo || 'integrante';
-    return `<div class="userrow">
+    const inactive = m.ativo === false;
+    const self = m.id === CP?.id;
+    return `<div class="userrow" style="${inactive?'opacity:.55':''}">
       ${avH(m,'lg')}
       <div class="info">
-        <div class="nm">${escapeHtml(m.nome)} <span class="tipo-pill tipo-${t}">${tipoLabel(t)}</span></div>
+        <div class="nm">${escapeHtml(m.nome)}
+          <span class="tipo-pill tipo-${t}">${tipoLabel(t)}</span>
+          ${inactive?'<span class="tipo-pill tipo-visitante">🚫 Inativo</span>':''}
+          ${self?'<span class="tipo-pill tipo-admin">VOCÊ</span>':''}
+        </div>
         <div class="em">${escapeHtml(m.email || '—')} ${m.cargo?'· '+escapeHtml(m.cargo):''}</div>
       </div>
       <select class="ssel" onchange="changeUserTipo('${m.id}', this.value, '${escapeAttr(m.nome)}', '${t}')">
         ${TIPOS.map(x=>`<option value="${x.k}" ${t===x.k?'selected':''}>${x.l}</option>`).join('')}
       </select>
+      <button class="btn sm" onclick="toggleUserAtivo('${m.id}', ${!inactive}, '${escapeAttr(m.nome)}')"
+        ${self?'disabled title="Não pode desativar a si mesmo"':'title="'+(inactive?'Reativar':'Desativar')+' usuário"'}>
+        ${inactive?'✅ Reativar':'🚫 Desativar'}
+      </button>
+      <button class="btn sm danger" onclick="deleteUser('${m.id}', '${escapeAttr(m.nome)}', '${escapeAttr(m.email||'')}')"
+        ${self?'disabled title="Não pode excluir a si mesmo"':'title="Excluir permanentemente"'}>
+        🗑️ Excluir
+      </button>
     </div>`;
   }).join('');
+}
+
+async function toggleUserAtivo(id, novoAtivo, nome){
+  if(!isAdmin()){ toast('Apenas admin','err'); return; }
+  if(id===CP?.id){ toast('Não pode desativar a si mesmo','err'); return; }
+  const acao = novoAtivo ? 'Reativar' : 'Desativar';
+  if(!confirm(`${acao} ${nome}?\n\n${novoAtivo?'Voltará a aparecer nos pickers de equipe e poderá ser atribuído.':'Não aparecerá em novos pickers, mas o histórico fica preservado.'}`)) return;
+  ss('loading','Atualizando...');
+  const {error} = await db.from('profiles').update({ativo: novoAtivo}).eq('id', id);
+  if(error){ toast('Erro: '+error.message,'err'); ss('err','Erro'); return; }
+  const m = MB.find(x=>x.id===id); if(m) m.ativo = novoAtivo;
+  ss('ok','Atualizado'); toast(`${nome} ${novoAtivo?'reativado':'desativado'}`);
+  logAudit({action:'user_ativo', entityType:'user', entityId:id,
+    summary:`${acao}: ${nome}`,
+    details:{from: novoAtivo?'Inativo':'Ativo', to: novoAtivo?'Ativo':'Inativo'}});
+  renderUsers();
+}
+
+async function deleteUser(id, nome, email){
+  if(!isAdmin()){ toast('Apenas admin','err'); return; }
+  if(id===CP?.id){ toast('Não pode excluir a si mesmo','err'); return; }
+  // Dupla confirmação
+  if(!confirm(`⚠️ EXCLUIR DEFINITIVAMENTE ${nome} (${email})?\n\n` +
+    `• A conta no Auth será apagada (não poderá mais fazer login)\n` +
+    `• O perfil será removido\n` +
+    `• Atribuições em tarefas/entregas/eventos serão desfeitas\n` +
+    `• Comentários e anexos ficam, mas sem autor\n\n` +
+    `Para apenas tirar do uso sem perder, use "Desativar".\n` +
+    `Esta ação é IRREVERSÍVEL.`)) return;
+  const typed = prompt(`Para confirmar, digite EXCLUIR ${nome}:`);
+  if(typed !== `EXCLUIR ${nome}`){ toast('Confirmação inválida — exclusão cancelada','err'); return; }
+
+  ss('loading','Excluindo...');
+  const {error} = await db.rpc('delete_user_admin', { target_id: id });
+  if(error){
+    const isMissing = /delete_user_admin.*does not exist|function .*delete_user_admin/i.test(error.message);
+    toast(isMissing
+      ? '❌ Função delete_user_admin não existe. Rode schema_addon_v10.sql no Supabase.'
+      : '❌ '+error.message, 'err');
+    ss('err','Erro'); return;
+  }
+  // Remove localmente
+  MB = MB.filter(m=>m.id!==id);
+  ss('ok','Excluído'); toast(`${nome} excluído permanentemente`);
+  logAudit({action:'user_delete', entityType:'user', entityId:id,
+    summary:`Excluiu permanentemente: ${nome} (${email||'sem email'})`});
+  renderUsers();
+  initFilters();
+  renderAll();
 }
 function tipoLabel(t){
   return ({admin:'Admin', integrante:'Integrante NID', gestor:'Gestor', coordenador:'Coordenador', visitante:'Visitante'})[t] || t;
@@ -3023,12 +3090,14 @@ function closeTask(){ document.getElementById('taskModal').classList.remove('on'
 
 function renderMemberPicker(){
   const el = document.getElementById('memberPicker');
-  if(!MB.length){ el.innerHTML='<div style="color:var(--t3);font-size:12px">Nenhum usuário cadastrado ainda.</div>'; return; }
-  el.innerHTML = MB.map(m=>{
+  // Mostra ativos + já atribuídos (mesmo se inativos)
+  const pool = MB.filter(m => m.ativo!==false || pending.members[m.id]);
+  if(!pool.length){ el.innerHTML='<div style="color:var(--t3);font-size:12px">Nenhum usuário cadastrado ainda.</div>'; return; }
+  el.innerHTML = pool.map(m=>{
     const cur = pending.members[m.id];
     const on = !!cur;
     return `<div class="mp-chip ${on?'on':''}" onclick="togMem('${m.id}')">
-      ${avH(m,'sm')}<span>${m.nome}</span>
+      ${avH(m,'sm')}<span>${m.nome}${m.ativo===false?' 🚫':''}</span>
       ${on ? `<span class="papel" onclick="event.stopPropagation();cyclePapel('${m.id}')">${cur.papel}</span>` : ''}
     </div>`;
   }).join('');
@@ -3556,10 +3625,11 @@ document.addEventListener('keydown', e=>{
 });
 function renderEntMembersPicker(){
   const el = document.getElementById('emMembers');
-  if(!MB.length){ el.innerHTML='<div style="color:var(--t3);font-size:12px">Nenhum usuário cadastrado.</div>'; return; }
-  el.innerHTML = MB.map(m=>{
+  const pool = MB.filter(m => m.ativo!==false || entMembersSel[m.id]);
+  if(!pool.length){ el.innerHTML='<div style="color:var(--t3);font-size:12px">Nenhum usuário cadastrado.</div>'; return; }
+  el.innerHTML = pool.map(m=>{
     const on = !!entMembersSel[m.id];
-    return `<div class="mp-chip ${on?'on':''}" onclick="togEntMem('${m.id}')">${avH(m,'sm')}<span>${m.nome}</span></div>`;
+    return `<div class="mp-chip ${on?'on':''}" onclick="togEntMem('${m.id}')">${avH(m,'sm')}<span>${m.nome}${m.ativo===false?' 🚫':''}</span></div>`;
   }).join('');
 }
 function togEntMem(id){

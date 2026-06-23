@@ -44,7 +44,10 @@ visual FUNCEF, com login real (Supabase Auth) e modo claro/escuro.
 6. (Anexos e comentários em eventos) Execute `schema_addon_v9.sql`.
    - Adiciona coluna `evento_id` em `task_attachments` e `task_comments`.
    - Permite anexar atas, loop de temas, slides nas reuniões.
-7. Em **Authentication → Providers → Email** desabilite "Confirm email".
+7. (Exclusão de usuário pelo admin) Execute `schema_addon_v10.sql`.
+   - Cria função RPC `delete_user_admin` (security definer).
+   - Permite que admin exclua permanentemente usuários do auth.users.
+8. Em **Authentication → Providers → Email** desabilite "Confirm email".
 
 ### 2) Rodar localmente
 Abra `index.html` direto no navegador, ou:
