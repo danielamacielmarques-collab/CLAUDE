@@ -701,7 +701,8 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
         <div class="vh">
           <div><h1>🔍 Governança</h1><div class="vh-sub">Quem fez o quê e quando — log auditável de alterações</div></div>
           <div class="vh-grow"></div>
-          <button class="btn" onclick="renderAudit()">↺ Atualizar</button>
+          <button class="btn" onclick="testAudit()">🔬 Testar gravação</button>
+          <button class="btn" onclick="reloadAudit()">↺ Recarregar do banco</button>
         </div>
         <div class="filtbar">
           <span class="filt-info">Ação:</span>
@@ -1484,18 +1485,41 @@ const AUD_LABELS = {
   comment_add:'Comentário', attachment_add:'Anexo', review_save:'Review salva',
   user_tipo:'Tipo de usuário', user_login:'Login',
   event_create:'Evento criado', event_update:'Evento atualizado', event_delete:'Evento excluído',
-  import_pa:'Importação Plano de Ação'
+  import_pa:'Importação Plano de Ação', test:'Teste de gravação'
 };
 async function logAudit({action, entityType, entityId, sprintId, summary, details}){
-  if(!CP) return;
+  if(!CP){ console.warn('[Audit] sem perfil, pulando log'); return; }
+  const payload = {
+    profile_id: CP.id, action, entity_type: entityType,
+    entity_id: entityId != null ? String(entityId) : null,
+    sprint_id: sprintId || null,
+    summary: summary || '',
+    details: details || null
+  };
   try {
-    const {data, error} = await db.from('audit_log').insert({
-      profile_id: CP.id, action, entity_type: entityType,
-      entity_id: entityId ? String(entityId) : null,
-      sprint_id: sprintId || null, summary: summary || '', details: details || null
-    }).select().single();
-    if(!error && data) AUD.unshift(data);
-  } catch(e){ console.warn('audit log failed:', e); }
+    const {data, error} = await db.from('audit_log').insert(payload).select().single();
+    if(error){
+      console.error('[Audit log FALHOU]', error, 'Payload:', payload);
+      if(!window._auditWarned){
+        window._auditWarned = true;
+        const isMissing = /relation.*does not exist|does not exist|undefined.*table|42P01/i.test(error.message);
+        toast(isMissing
+          ? '⚠️ Tabela audit_log não existe — rode schema_addon_v7.sql no Supabase'
+          : '⚠️ Auditoria falhou: '+error.message, 'err');
+      }
+      return;
+    }
+    if(data){
+      AUD.unshift(data);
+      if(AV==='audit') renderAudit();
+    }
+  } catch(e){
+    console.error('[Audit log EXCEPTION]', e, 'Payload:', payload);
+    if(!window._auditWarned){
+      window._auditWarned = true;
+      toast('⚠️ Auditoria offline — verifique console (F12) e schema_addon_v7.sql', 'err');
+    }
+  }
 }
 
 /* ============================================================
@@ -2566,6 +2590,53 @@ async function saveReview(){
 /* ============================================================
    GOVERNANÇA — Audit Log
 ============================================================ */
+async function reloadAudit(){
+  ss('loading','Recarregando log...');
+  const {data, error} = await db.from('audit_log').select('*').order('created_at',{ascending:false}).limit(500);
+  if(error){
+    toast('Erro lendo audit_log: ' + error.message, 'err');
+    ss('err','Erro');
+    return;
+  }
+  AUD = data || [];
+  ss('ok',`${AUD.length} registros`);
+  renderAudit();
+}
+
+async function testAudit(){
+  if(!CP){ toast('Faça login primeiro','err'); return; }
+  ss('loading','Testando gravação...');
+  // Reset warning gate to allow re-warn
+  window._auditWarned = false;
+  const payload = {
+    profile_id: CP.id,
+    action: 'test',
+    entity_type: 'system',
+    entity_id: null,
+    sprint_id: null,
+    summary: `🔬 Teste de gravação por ${CP.nome} em ${new Date().toLocaleString('pt-BR')}`,
+    details: {origem:'botao Testar gravação'}
+  };
+  const {data, error} = await db.from('audit_log').insert(payload).select().single();
+  if(error){
+    console.error('[testAudit FALHOU]', error);
+    const isMissing = /relation.*does not exist|42P01/i.test(error.message);
+    if(isMissing){
+      toast('❌ Tabela audit_log não existe. Rode schema_addon_v7.sql no Supabase SQL Editor.','err');
+    } else if(/policy|permission|RLS/i.test(error.message)){
+      toast('❌ Permissão negada (RLS). Rode schema_addon_v7.sql para recriar as policies.','err');
+    } else {
+      toast('❌ Falhou: ' + error.message, 'err');
+    }
+    ss('err','Falhou');
+    return;
+  }
+  AUD.unshift(data);
+  ss('ok','Gravado');
+  toast('✅ Gravação OK! Auditoria está funcionando.','ok');
+  renderAudit();
+}
+
 function renderAudit(){
   const fA = document.getElementById('auAction')?.value || '';
   let arr = AUD.slice();
