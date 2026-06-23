@@ -47,7 +47,9 @@ visual FUNCEF, com login real (Supabase Auth) e modo claro/escuro.
 7. (Exclusão de usuário pelo admin) Execute `schema_addon_v10.sql`.
    - Cria função RPC `delete_user_admin` (security definer).
    - Permite que admin exclua permanentemente usuários do auth.users.
-8. Em **Authentication → Providers → Email** desabilite "Confirm email".
+8. (Weekly do Núcleo em quinta-feira 15h) Execute `schema_addon_v11.sql`.
+   - Atualiza o evento Weekly para 2026-06-04 (quinta) às 15h.
+9. Em **Authentication → Providers → Email** desabilite "Confirm email".
 
 ### 2) Rodar localmente
 Abra `index.html` direto no navegador, ou:

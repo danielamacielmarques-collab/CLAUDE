@@ -70,6 +70,6 @@ create policy event_members_write   on event_members   for all    using (auth.ro
 do $$ begin
   if not exists (select 1 from calendar_events where tipo='weekly') then
     insert into calendar_events (tipo, titulo, descricao, data, hora_inicio, hora_fim, local, duracao_min, recorrente, recorrencia, cor)
-    values ('weekly', 'Weekly do Núcleo de Dados', 'Reunião semanal de alinhamento do NID — bloqueios, andamento e próximos passos', '2026-06-03', '14:00', '15:00', 'Teams (link da equipe)', 60, true, 'semanal', '#FF7B39');
+    values ('weekly', 'Weekly do Núcleo de Dados', 'Reunião semanal de alinhamento do NID — bloqueios, andamento e próximos passos', '2026-06-04', '15:00', '16:00', 'Teams (link da equipe)', 60, true, 'semanal', '#FF7B39');
   end if;
 end $$;

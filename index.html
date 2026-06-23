@@ -567,7 +567,7 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
       <button class="nb" data-v="calendar" onclick="nav('calendar',this)"><span class="ic">📅</span>Calendário</button>
       <button class="nb" data-v="team"     onclick="nav('team',this)"><span class="ic">👥</span>Equipe</button>
       <button class="nb" data-v="reviews"  onclick="nav('reviews',this)"><span class="ic">📈</span>Reviews</button>
-      <button class="nb" data-v="audit"    onclick="nav('audit',this)"><span class="ic">🔍</span>Governança</button>
+      <button class="nb" data-v="audit"    onclick="nav('audit',this)" id="navAudit" style="display:none"><span class="ic">🔍</span>Governança <span style="background:var(--orange);color:#fff;font-size:9px;padding:1px 6px;border-radius:20px;margin-left:auto;font-weight:800">ADMIN</span></button>
       <button class="nb" data-v="users"    onclick="nav('users',this)" id="navUsers" style="display:none"><span class="ic">⚙️</span>Usuários <span style="background:var(--orange);color:#fff;font-size:9px;padding:1px 6px;border-radius:20px;margin-left:auto;font-weight:800">ADMIN</span></button>
       <button class="nb" data-v="import"  onclick="nav('import',this)" id="navImport" style="display:none"><span class="ic">📥</span>Importar PA <span style="background:var(--orange);color:#fff;font-size:9px;padding:1px 6px;border-radius:20px;margin-left:auto;font-weight:800">ADMIN</span></button>
 
@@ -1472,6 +1472,7 @@ function paintUserChip(){
   const navU = document.getElementById('navUsers');
   if(navU) navU.style.display = isAdmin() ? '' : 'none';
   const navI = document.getElementById('navImport'); if(navI) navI.style.display = isAdmin() ? '' : 'none';
+  const navA = document.getElementById('navAudit');  if(navA) navA.style.display = isAdmin() ? '' : 'none';
 }
 
 function isAdmin(){ return CP && CP.tipo === 'admin'; }
@@ -2639,6 +2640,11 @@ async function testAudit(){
 }
 
 function renderAudit(){
+  if(!isAdmin()){
+    document.getElementById('auditList').innerHTML =
+      `<div class="empty"><div class="ic">🔒</div>Acesso restrito.<br>Apenas administradores podem visualizar o log de Governança.</div>`;
+    return;
+  }
   const fA = document.getElementById('auAction')?.value || '';
   let arr = AUD.slice();
   // Filtros globais
