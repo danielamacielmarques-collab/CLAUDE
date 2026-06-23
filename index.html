@@ -1358,6 +1358,8 @@ let ATT = {};        // task_attachments — chave: tarefa_id -> array
 let RVD = {};        // reviews
 let AUD = [];        // audit_log entries
 let AUD_MISSING = false; // true quando a tabela audit_log nao existe no banco
+let CAC = {};        // copep_acompanhantes: copep_key -> [{id, profile_id, papel}]
+let CAC_MISSING = false;
 let EV  = [];        // calendar_events
 let EVM = {};        // event_members — chave: evento_id -> [profile_id]
 let calDate = new Date();
@@ -1623,6 +1625,19 @@ async function loadAll(){
         || (a.evento_id ? `ev_${a.evento_id}_${a.ocorrencia_data || ''}` : `e_${a.sprint_id}_${a.entrega_idx}`);
       (ATT[k]=ATT[k]||[]).push(a);
     });
+    // COPEP acompanhantes (best-effort: tabela pode nao existir ainda)
+    const rac = await db.from('copep_acompanhantes').select('*');
+    if(rac.error){
+      CAC_MISSING = /copep_acompanhantes|relation.*does not exist|schema cache|42P01/i.test(rac.error.message);
+      CAC = {};
+      if(CAC_MISSING) console.warn('[loadAll] copep_acompanhantes nao existe — rode schema_addon_v11.sql');
+    } else {
+      CAC_MISSING = false;
+      CAC = {};
+      (rac.data||[]).forEach(a=>{
+        (CAC[a.copep_key] = CAC[a.copep_key] || []).push(a);
+      });
+    }
     ss('ok','Sincronizado');
   } catch(e) {
     console.error(e);
@@ -3032,6 +3047,63 @@ async function applyImport(){
 /* ============================================================
    PLANO COPEP — acompanhamento
 ============================================================ */
+// Chave estavel para um item do plano COPEP (independe do indice no array)
+function copepKey(it){
+  const om = (it.om || '').replace(/\s+/g,' ').trim();
+  const sub = (it.subacao || '').replace(/\s+/g,' ').trim().slice(0,200);
+  return `${om}|${sub}`;
+}
+
+function copepDecode(safeK){
+  try {
+    const b64 = safeK.replace(/-/g,'+').replace(/_/g,'/');
+    return decodeURIComponent(escape(atob(b64)));
+  } catch(e){ return ''; }
+}
+async function copepAddResp(safeK, profileId){
+  if(!CP){ toast('Faça login','err'); return; }
+  if(CAC_MISSING){ toast('Tabela ausente — rode schema_addon_v11.sql','err'); return; }
+  const key = copepDecode(safeK);
+  if(!key){ toast('Chave inválida','err'); return; }
+  const existing = (CAC[key]||[]).find(a=>a.profile_id===profileId);
+  if(existing){ toast('Já atribuído','err'); return; }
+  ss('loading','Salvando...');
+  const {data, error} = await db.from('copep_acompanhantes')
+    .insert({copep_key:key, profile_id:profileId, papel:'acompanhante'})
+    .select().single();
+  if(error){ toast('Erro: '+error.message,'err'); ss('err','Erro'); return; }
+  (CAC[key] = CAC[key] || []).push(data);
+  ss('ok','Atribuído');
+  renderCopep();
+  const m = mBI(profileId);
+  logAudit({action:'user_tipo', entityType:'copep', entityId:key.slice(0,50),
+    summary:`Atribuiu ${m?.nome||'?'} como acompanhante COPEP: ${key.split('|')[1].slice(0,60)}`});
+}
+
+async function copepRmResp(safeK, rowId){
+  if(!confirm('Remover este responsável?')) return;
+  const key = copepDecode(safeK);
+  ss('loading','Removendo...');
+  const {error} = await db.from('copep_acompanhantes').delete().eq('id', rowId);
+  if(error){ toast('Erro: '+error.message,'err'); ss('err','Erro'); return; }
+  if(CAC[key]) CAC[key] = CAC[key].filter(a=>a.id!==rowId);
+  ss('ok','Removido');
+  renderCopep();
+}
+
+// Toggle inline picker
+function copepTogPicker(safeKey){
+  document.querySelectorAll('.copep-picker').forEach(p=>{
+    if(p.dataset.k !== safeKey) p.style.display='none';
+  });
+  const el = document.querySelector(`.copep-picker[data-k="${safeKey}"]`);
+  if(el) el.style.display = (el.style.display==='block') ? 'none' : 'block';
+}
+document.addEventListener('click', e=>{
+  if(e.target.closest('.copep-picker') || e.target.closest('[onclick*="copepTogPicker"]')) return;
+  document.querySelectorAll('.copep-picker').forEach(p=>p.style.display='none');
+});
+
 const COPEP_STATUS_COLOR = {
   'Concluído':   '#22D172',
   'Em andamento':'#2B6AFF',
@@ -3173,6 +3245,10 @@ function renderCopep(){
             <div style="display:flex;flex-direction:column;gap:6px">
             ${subs.map(it=>{
               const cor = COPEP_STATUS_COLOR[it.status] || '#888';
+              const ck = copepKey(it);
+              const safeK = btoa(unescape(encodeURIComponent(ck))).replace(/=+$/,'').replace(/\+/g,'-').replace(/\//g,'_');
+              const acmp = CAC[ck] || [];
+              const assigned = new Set(acmp.map(a=>a.profile_id));
               const linkBadges = it._links.length
                 ? it._links.slice(0,3).map(l=>{
                     if(l.kind==='task'){
@@ -3181,6 +3257,16 @@ function renderCopep(){
                     return `<span class="cbadge" style="background:var(--g-bg);color:#22D172;font-size:10px">💬 comentário</span>`;
                   }).join(' ')
                 : `<span style="font-size:10.5px;color:var(--t3);font-style:italic">sem vínculo no app</span>`;
+              const acmpStack = acmp.map(a=>{
+                const m = mBI(a.profile_id);
+                if(!m) return '';
+                return `<span class="copep-av" title="${escapeHtml(m.nome)} (clique para remover)" onclick="copepRmResp('${safeK}','${a.id}')" style="display:inline-flex;align-items:center;background:${m.cor};color:#fff;font-size:10px;font-weight:800;width:22px;height:22px;border-radius:50%;justify-content:center;cursor:pointer;border:1.5px solid var(--bg2)">${escapeHtml(m.iniciais)}</span>`;
+              }).join('');
+              const picker = (MB||[]).filter(m=>!assigned.has(m.id)).map(m=>
+                `<button type="button" onclick="copepAddResp('${safeK}','${m.id}'); copepTogPicker('${safeK}')" style="display:flex;align-items:center;gap:6px;padding:.35rem .6rem;background:transparent;border:none;cursor:pointer;width:100%;text-align:left;color:var(--text);font-size:12px">
+                  <span style="background:${m.cor};color:#fff;width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:800">${escapeHtml(m.iniciais)}</span>
+                  ${escapeHtml(m.nome)}
+                </button>`).join('') || '<div style="padding:.5rem;color:var(--t3);font-size:11px">Todos já atribuídos</div>';
               return `<div style="padding:.6rem;background:var(--bg2);border-left:3px solid ${cor};border-radius:var(--r);font-size:12px">
                 <div style="display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap">
                   <div style="flex:1;min-width:0">
@@ -3193,6 +3279,14 @@ function renderCopep(){
                       ${it.pct_executado ? ` · <span style="color:var(--accent)">${escapeHtml(String(it.pct_executado))}</span>` : ''}
                     </div>
                     ${it.obs && it.obs !== '#N/A' ? `<div style="margin-top:5px;font-size:10.5px;color:var(--t2);font-style:italic;line-height:1.4">💡 ${escapeHtml(it.obs)}</div>` : ''}
+                    <div style="margin-top:8px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;position:relative">
+                      <span style="font-size:10.5px;color:var(--t3);font-weight:600;text-transform:uppercase">Acompanha:</span>
+                      ${acmpStack || '<span style="font-size:10.5px;color:var(--t3);font-style:italic">ninguém</span>'}
+                      <button type="button" onclick="copepTogPicker('${safeK}')" title="Atribuir acompanhante" style="width:22px;height:22px;border-radius:50%;border:1.5px dashed var(--t3);background:transparent;color:var(--t3);cursor:pointer;font-size:14px;line-height:1;padding:0">+</button>
+                      <div class="copep-picker" data-k="${safeK}" style="display:none;position:absolute;top:28px;left:0;z-index:50;background:var(--bg);border:1px solid var(--border);border-radius:var(--r);box-shadow:0 4px 20px rgba(0,0,0,.4);max-height:220px;overflow:auto;min-width:220px">
+                        ${picker}
+                      </div>
+                    </div>
                   </div>
                   <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;min-width:120px">
                     <span class="cbadge" style="background:${cor}22;color:${cor};border:1px solid ${cor}55;font-weight:700">${escapeHtml(it.status)}</span>
