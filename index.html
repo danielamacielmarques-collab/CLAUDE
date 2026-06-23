@@ -762,6 +762,8 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
             <option value="nao">Sem vínculo</option>
           </select>
           <div style="flex:1"></div>
+          <button class="btn sm" onclick="copepExpAll()" title="Expandir todas as OMs e Ações">⊞ Expandir tudo</button>
+          <button class="btn sm" onclick="copepCollAll()" title="Recolher tudo">⊟ Recolher tudo</button>
           <input type="text" id="copepSearch" oninput="renderCopep()" placeholder="Buscar..." style="padding:.45rem .7rem;border:1px solid var(--border);background:var(--bg2);color:var(--text);border-radius:var(--r);font-size:12px;min-width:200px">
         </div>
         <div id="copepSummary" style="margin-bottom:14px"></div>
@@ -1360,6 +1362,7 @@ let AUD = [];        // audit_log entries
 let AUD_MISSING = false; // true quando a tabela audit_log nao existe no banco
 let CAC = {};        // copep_acompanhantes: copep_key -> [{id, profile_id, papel}]
 let CAC_MISSING = false;
+let COPEP_EXP = new Set(); // chaves de OMs/Acoes expandidas (ex: 'om:Oportunidade de Melhoria 1', 'ac:OM-1||1. Fluxo...')
 let EV  = [];        // calendar_events
 let EVM = {};        // event_members — chave: evento_id -> [profile_id]
 let calDate = new Date();
@@ -3091,6 +3094,24 @@ async function copepRmResp(safeK, rowId){
   renderCopep();
 }
 
+function copepTogExp(k){
+  if(COPEP_EXP.has(k)) COPEP_EXP.delete(k);
+  else COPEP_EXP.add(k);
+  renderCopep();
+}
+function copepExpAll(){
+  COPEP_EXP.clear();
+  PA_DATA.itens.forEach(it=>{
+    if(it.om) COPEP_EXP.add('om:'+it.om);
+    if(it.om && it.acao) COPEP_EXP.add('ac:'+it.om+'||'+it.acao);
+  });
+  renderCopep();
+}
+function copepCollAll(){
+  COPEP_EXP.clear();
+  renderCopep();
+}
+
 // Renderiza o widget "Acompanha:" para uma dada chave (subacao ou OM)
 function copepRespWidget(ck, label){
   const safeK = btoa(unescape(encodeURIComponent(ck))).replace(/=+$/,'').replace(/\+/g,'-').replace(/\//g,'_');
@@ -3250,12 +3271,16 @@ function renderCopep(){
     const byAcao = {};
     arr.forEach(it=>{ (byAcao[it.acao] = byAcao[it.acao] || []).push(it); });
 
-    return `<div style="margin-bottom:18px;border:1px solid var(--border);border-radius:var(--rlg);overflow:hidden;background:var(--bg)">
-      <div style="padding:.8rem 1rem;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-        <div style="flex:1;min-width:200px">
+    const omKey = arr[0].om || gk;
+    const omExpKey = 'om:'+omKey;
+    const omExpanded = COPEP_EXP.has(omExpKey);
+    const chev = omExpanded ? '▼' : '▶';
+    return `<div style="margin-bottom:14px;border:1px solid var(--border);border-radius:var(--rlg);overflow:hidden;background:var(--bg)">
+      <div style="padding:.8rem 1rem;background:var(--bg2);${omExpanded?'border-bottom:1px solid var(--border);':''}display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <span onclick="copepTogExp('${omExpKey}')" title="${omExpanded?'Recolher':'Expandir'}" style="cursor:pointer;color:var(--t2);font-size:11px;width:18px;text-align:center;user-select:none">${chev}</span>
+        <div style="flex:1;min-width:200px;cursor:pointer" onclick="copepTogExp('${omExpKey}')">
           <div style="font-size:13px;font-weight:800;color:var(--text)">${escapeHtml(gk)}</div>
-          <div style="font-size:11px;color:var(--t3);margin-top:2px">${arr.length} subação(ões) · ${conc} concluída(s)</div>
-          ${copepRespWidget('om:'+(arr[0].om||gk), 'Responsável da OM')}
+          <div style="font-size:11px;color:var(--t3);margin-top:2px">${arr.length} subação(ões) · ${conc} concluída(s) · ${Object.keys(byAcao).length} ação(ões)</div>
         </div>
         <div style="min-width:120px">
           <div style="height:8px;background:var(--bg4);border-radius:4px;overflow:hidden">
@@ -3264,11 +3289,22 @@ function renderCopep(){
           <div style="font-size:11px;color:var(--t3);margin-top:3px;text-align:right">${pctG}%</div>
         </div>
       </div>
+      ${omExpanded ? `<div style="padding:.6rem 1rem;background:var(--bg);border-bottom:1px solid var(--border)">
+        ${copepRespWidget(omExpKey, 'Responsável da OM')}
+      </div>
       <div>
         ${Object.entries(byAcao).map(([acao, subs])=>{
-          return `<div style="padding:.6rem 1rem;border-top:1px solid var(--border)">
-            <div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:6px">📁 ${escapeHtml(acao)}</div>
-            <div style="display:flex;flex-direction:column;gap:6px">
+          const acExpKey = 'ac:'+omKey+'||'+acao;
+          const acExpanded = COPEP_EXP.has(acExpKey);
+          const acChev = acExpanded ? '▼' : '▶';
+          const acConc = subs.filter(x=>x.status==='Concluído').length;
+          return `<div style="padding:.5rem 1rem;border-top:1px solid var(--border)">
+            <div onclick="copepTogExp('${acExpKey}')" style="cursor:pointer;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:var(--accent);margin-bottom:${acExpanded?'8px':'0'}">
+              <span style="color:var(--t2);font-size:10px;width:14px;user-select:none">${acChev}</span>
+              <span style="flex:1">📁 ${escapeHtml(acao)}</span>
+              <span style="font-size:10px;font-weight:600;color:var(--t3)">${acConc}/${subs.length}</span>
+            </div>
+            ${acExpanded ? `<div style="display:flex;flex-direction:column;gap:6px;padding-left:22px">
             ${subs.map(it=>{
               const cor = COPEP_STATUS_COLOR[it.status] || '#888';
               const ck = copepKey(it);
@@ -3301,10 +3337,10 @@ function renderCopep(){
                 </div>
               </div>`;
             }).join('')}
-            </div>
+            </div>` : ''}
           </div>`;
         }).join('')}
-      </div>
+      </div>` : ''}
     </div>`;
   }).join('');
 }
