@@ -1580,11 +1580,13 @@ async function loadAll(){
     EVM = {}; (revm.data||[]).forEach(em=>{ (EVM[em.evento_id]=EVM[em.evento_id]||[]).push(em.profile_id); });
     RVD={}; (rv.data||[]).forEach(r=>RVD[r.sprint_id]=r);
     CMT={}; (rc.data||[]).forEach(c=>{
-      const k = c.tarefa_id || (c.evento_id ? `ev_${c.evento_id}` : `e_${c.sprint_id}_${c.entrega_idx}`);
+      const k = c.tarefa_id
+        || (c.evento_id ? `ev_${c.evento_id}_${c.ocorrencia_data || ''}` : `e_${c.sprint_id}_${c.entrega_idx}`);
       (CMT[k]=CMT[k]||[]).push(c);
     });
     ATT={}; (ra.data||[]).forEach(a=>{
-      const k = a.tarefa_id || (a.evento_id ? `ev_${a.evento_id}` : `e_${a.sprint_id}_${a.entrega_idx}`);
+      const k = a.tarefa_id
+        || (a.evento_id ? `ev_${a.evento_id}_${a.ocorrencia_data || ''}` : `e_${a.sprint_id}_${a.entrega_idx}`);
       (ATT[k]=ATT[k]||[]).push(a);
     });
     ss('ok','Sincronizado');
@@ -1632,9 +1634,13 @@ const EV_TYPES = [
   {k:'outro',     l:'📌 Outro',     cor:'#2B6AFF'},
 ];
 let editingEv = null;
+let editingEvOcc = null; // data ISO da ocorrencia clicada (para recorrentes)
 let evMembersSel = {};
 function openEvent(id=null, isoDate=null){
   editingEv = id ? EV.find(e=>e.id===id) : null;
+  // Para eventos existentes, a ocorrencia clicada vem em isoDate (recorrencia)
+  // ou cai na data base do evento. Para novos eventos, ocorre na data escolhida.
+  editingEvOcc = editingEv ? (isoDate || editingEv.data) : (isoDate || null);
   document.getElementById('evTitle').textContent = editingEv ? 'Editar evento' : 'Novo evento';
   document.getElementById('evDelBtn').style.display = editingEv ? '' : 'none';
 
@@ -1674,7 +1680,7 @@ function openEvent(id=null, isoDate=null){
 
   document.getElementById('eventModal').classList.add('on');
 }
-function closeEvent(){ document.getElementById('eventModal').classList.remove('on'); editingEv=null; }
+function closeEvent(){ document.getElementById('eventModal').classList.remove('on'); editingEv=null; editingEvOcc=null; }
 function swPaneEv(btn){
   document.querySelectorAll('#eventModal .mtab').forEach(b=>b.classList.remove('on'));
   btn.classList.add('on');
@@ -1682,7 +1688,11 @@ function swPaneEv(btn){
   document.querySelectorAll('#eventModal .mpane').forEach(x=>x.classList.remove('on'));
   document.querySelector(`#eventModal .mpane[data-pane="${p}"]`).classList.add('on');
 }
-function evKey(){ return editingEv ? `ev_${editingEv.id}` : null; }
+function evKey(){
+  if(!editingEv) return null;
+  const occ = editingEvOcc || editingEv.data;
+  return `ev_${editingEv.id}_${occ}`;
+}
 
 function renderEventComments(){
   const list = editingEv ? (CMT[evKey()]||[]).slice().sort((a,b)=>new Date(a.created_at)-new Date(b.created_at)) : [];
@@ -1709,8 +1719,9 @@ async function addEventComment(){
   const txt = document.getElementById('evCmIn').value.trim();
   if(!txt) return;
   ss('loading','Enviando...');
+  const occ = editingEvOcc || editingEv.data;
   const {data, error} = await db.from('task_comments').insert({
-    evento_id: editingEv.id, profile_id: CP?.id, texto: txt
+    evento_id: editingEv.id, ocorrencia_data: occ, profile_id: CP?.id, texto: txt
   }).select().single();
   if(error){ toast('Erro: '+error.message,'err'); ss('err','Erro'); return; }
   const k = evKey();
@@ -1718,7 +1729,7 @@ async function addEventComment(){
   document.getElementById('evCmIn').value='';
   ss('ok','Salvo'); renderEventComments();
   logAudit({action:'comment_add', entityType:'event', entityId:editingEv.id,
-    summary:`Comentou no evento "${editingEv.titulo.slice(0,60)}": ${txt.slice(0,80)}`});
+    summary:`Comentou no evento "${editingEv.titulo.slice(0,60)}" (${occ}): ${txt.slice(0,80)}`});
 }
 async function delEventComment(id){
   if(!confirm('Excluir este comentário?')) return;
@@ -1769,8 +1780,9 @@ async function uploadEventAttachment(evt){
   const up = await db.storage.from('task-files').upload(path, file, { upsert:false, contentType: file.type });
   if(up.error){ toast(explainStorageErr(up.error.message),'err'); ss('err','Erro'); evt.target.value=''; return; }
   const { data:pub } = db.storage.from('task-files').getPublicUrl(path);
+  const occ = editingEvOcc || editingEv.data;
   const payload = {
-    evento_id: editingEv.id, profile_id: CP?.id,
+    evento_id: editingEv.id, ocorrencia_data: occ, profile_id: CP?.id,
     nome: file.name, storage_path: path, url: pub.publicUrl,
     mime: file.type, tamanho: file.size
   };
@@ -2422,9 +2434,9 @@ function renderCal(){
       const ic = ({reuniao:'🤝', tarefa:'📋', atividade:'🎯', weekly:'🔁', outro:'📌'})[ev.tipo] || '📌';
       const cor = ev.cor || '#2B6AFF';
       const hora = ev.hora_inicio ? ev.hora_inicio.slice(0,5)+' ' : '';
-      const attCt = (ATT[`ev_${ev.id}`]||[]).length;
+      const attCt = (ATT[`ev_${ev.id}_${iso}`]||[]).length;
       const badges = attCt ? ` 📎${attCt}` : '';
-      items.push({kind:'event', event:ev,
+      items.push({kind:'event', event:ev, occ:iso,
         label:`${ic} ${hora}${ev.titulo}${badges}`, color:cor, bg:cor+'25', sort:3});
     });
 
@@ -2469,7 +2481,7 @@ function renderCalItem(it){
   let onclick = '';
   if(it.kind==='task')    onclick = `onclick="event.stopPropagation();openTask('${it.task.id}')"`;
   if(it.kind==='entrega') onclick = `onclick="event.stopPropagation();openEntrega(${it.sid},${it.idx})"`;
-  if(it.kind==='event')   onclick = `onclick="event.stopPropagation();openEvent('${it.event.id}')"`;
+  if(it.kind==='event')   onclick = `onclick="event.stopPropagation();openEvent('${it.event.id}','${it.occ||it.event.data}')"`;
   if(it.kind==='review')  onclick = `onclick="event.stopPropagation();nav('reviews',document.querySelector('.nb[data-v=reviews]'))"`;
   return `<div class="cevt" ${onclick} style="background:${it.bg};color:${it.color}" title="${escapeHtml(it.label)}">${escapeHtml(it.label)}</div>`;
 }
