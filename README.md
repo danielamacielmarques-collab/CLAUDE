@@ -41,7 +41,10 @@ visual FUNCEF, com login real (Supabase Auth) e modo claro/escuro.
 5. (Calendário com eventos custom) Execute `schema_addon_v8.sql`.
    - Cria tabelas `calendar_events` e `event_members`.
    - Insere o "Weekly do Núcleo de Dados" como evento recorrente padrão.
-6. Em **Authentication → Providers → Email** desabilite "Confirm email".
+6. (Anexos e comentários em eventos) Execute `schema_addon_v9.sql`.
+   - Adiciona coluna `evento_id` em `task_attachments` e `task_comments`.
+   - Permite anexar atas, loop de temas, slides nas reuniões.
+7. Em **Authentication → Providers → Email** desabilite "Confirm email".
 
 ### 2) Rodar localmente
 Abra `index.html` direto no navegador, ou:

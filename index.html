@@ -1044,48 +1044,83 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
 
 <!-- ============ MODAL EVENTO CALENDÁRIO ============ -->
 <div class="mbg" id="eventModal">
-  <div class="modal" style="max-width:640px">
+  <div class="modal" style="max-width:720px">
     <div class="mhead"><h2 id="evTitle">Novo evento</h2><button class="mclose" onclick="closeEvent()">✕</button></div>
+    <div class="mtabs">
+      <button class="mtab on" data-p="ev-details"     onclick="swPaneEv(this)">📝 Detalhes</button>
+      <button class="mtab"    data-p="ev-attachments" onclick="swPaneEv(this)">📎 Anexos <span class="tab-ct" id="evAtCt">0</span></button>
+      <button class="mtab"    data-p="ev-comments"    onclick="swPaneEv(this)">💬 Comentários <span class="tab-ct" id="evCmCt">0</span></button>
+    </div>
     <div class="mbody">
-      <div class="field" style="margin-bottom:.85rem">
-        <label>Tipo</label>
-        <div class="evtype-bar" id="evTypeBar"></div>
-      </div>
-      <div class="field" style="margin-bottom:.85rem">
-        <label>Título <span class="req">*</span></label>
-        <input id="evTitleIn" placeholder="Ex.: Reunião de alinhamento com COBEN">
-      </div>
-      <div class="field" style="margin-bottom:.85rem">
-        <label>Descrição</label>
-        <textarea id="evDesc" placeholder="Pauta, link da reunião, detalhes..."></textarea>
-      </div>
-      <div class="frow">
-        <div class="field"><label>Data</label><input type="date" id="evData"></div>
-        <div class="field"><label>Hora início</label><input type="time" id="evHoraIni"></div>
-        <div class="field"><label>Hora fim</label><input type="time" id="evHoraFim"></div>
-      </div>
-      <div class="frow">
-        <div class="field"><label>Local / Link</label><input id="evLocal" placeholder="Sala 5 · Teams · link..."></div>
-        <div class="field"><label>Duração (min)</label><input type="number" id="evDur" min="0" placeholder="Auto se houver hora"></div>
-      </div>
-      <div class="frow">
-        <div class="field"><label>Recorrência</label>
-          <select id="evRec">
-            <option value="nenhuma">Não se repete</option>
-            <option value="semanal">Semanal (toda mesma data da semana)</option>
-            <option value="quinzenal">Quinzenal</option>
-            <option value="mensal">Mensal (mesmo dia do mês)</option>
-          </select>
+      <!-- Detalhes -->
+      <div class="mpane on" data-pane="ev-details">
+        <div class="field" style="margin-bottom:.85rem">
+          <label>Tipo</label>
+          <div class="evtype-bar" id="evTypeBar"></div>
         </div>
-        <div class="field"><label>Cor</label><input type="color" id="evCor" value="#2B6AFF"></div>
-        <div class="field"><label>Vincular sprint (opcional)</label>
-          <select id="evSprint">
-            <option value="">Nenhuma</option>
-          </select>
+        <div class="field" style="margin-bottom:.85rem">
+          <label>Título <span class="req">*</span></label>
+          <input id="evTitleIn" placeholder="Ex.: Reunião de alinhamento com COBEN">
+        </div>
+        <div class="field" style="margin-bottom:.85rem">
+          <label>Descrição</label>
+          <textarea id="evDesc" placeholder="Pauta, link da reunião, detalhes..."></textarea>
+        </div>
+        <div class="frow">
+          <div class="field"><label>Data</label><input type="date" id="evData"></div>
+          <div class="field"><label>Hora início</label><input type="time" id="evHoraIni"></div>
+          <div class="field"><label>Hora fim</label><input type="time" id="evHoraFim"></div>
+        </div>
+        <div class="frow">
+          <div class="field"><label>Local / Link</label><input id="evLocal" placeholder="Sala 5 · Teams · link..."></div>
+          <div class="field"><label>Duração (min)</label><input type="number" id="evDur" min="0" placeholder="Auto se houver hora"></div>
+        </div>
+        <div class="frow">
+          <div class="field"><label>Recorrência</label>
+            <select id="evRec">
+              <option value="nenhuma">Não se repete</option>
+              <option value="semanal">Semanal (toda mesma data da semana)</option>
+              <option value="quinzenal">Quinzenal</option>
+              <option value="mensal">Mensal (mesmo dia do mês)</option>
+            </select>
+          </div>
+          <div class="field"><label>Cor</label><input type="color" id="evCor" value="#2B6AFF"></div>
+          <div class="field"><label>Vincular sprint (opcional)</label>
+            <select id="evSprint">
+              <option value="">Nenhuma</option>
+            </select>
+          </div>
+        </div>
+        <div class="field"><label>Participantes</label>
+          <div class="mpicker" id="evMembers"></div>
         </div>
       </div>
-      <div class="field"><label>Participantes</label>
-        <div class="mpicker" id="evMembers"></div>
+      <!-- Anexos -->
+      <div class="mpane" data-pane="ev-attachments">
+        <div class="field"><label>📎 Documentos do evento (ata, loop dos temas, slides, etc.)</label></div>
+        <div id="evAtDrop" class="dropzone" onclick="document.getElementById('evAtFile').click()">
+          <div style="font-size:24px">📂</div>
+          <div style="font-weight:700;margin-top:6px">Clique para anexar arquivo</div>
+          <div style="font-size:11px;color:var(--t3);margin-top:4px">Ata, loop dos temas, slides, PDF, Word — até 50MB</div>
+          <input type="file" id="evAtFile" style="display:none" onchange="uploadEventAttachment(event)">
+        </div>
+        <ul class="atlist" id="evAtList"></ul>
+        <div id="evAtHint" style="display:none;background:var(--a-bg);border:1px dashed var(--amber);color:var(--amber);padding:1rem;border-radius:var(--rlg);text-align:center;font-size:12.5px;font-weight:600">
+          ⚠️ Preencha o título e clique em <strong>"💾 Salvar evento"</strong> abaixo. Depois reabra para anexar.
+        </div>
+      </div>
+      <!-- Comentários -->
+      <div class="mpane" data-pane="ev-comments">
+        <div class="field"><label>💬 Comentários do evento</label></div>
+        <div id="evCmEmpty" style="display:none;text-align:center;padding:1.5rem;color:var(--t3);font-size:12px">Sem comentários ainda.</div>
+        <ul class="cmlist" id="evCmList"></ul>
+        <div class="cm-add" id="evCmAddWrap">
+          <textarea id="evCmIn" placeholder="Notas, decisões, próximos passos... (Ctrl+Enter para enviar)" rows="2"></textarea>
+          <button class="btn primary sm" onclick="addEventComment()">💬 Comentar</button>
+        </div>
+        <div id="evCmHint" style="display:none;background:var(--a-bg);border:1px dashed var(--amber);color:var(--amber);padding:1rem;border-radius:var(--rlg);text-align:center;font-size:12.5px;font-weight:600">
+          ⚠️ Salve o evento primeiro para liberar comentários.
+        </div>
       </div>
     </div>
     <div class="mfoot">
@@ -1513,11 +1548,11 @@ async function loadAll(){
     EVM = {}; (revm.data||[]).forEach(em=>{ (EVM[em.evento_id]=EVM[em.evento_id]||[]).push(em.profile_id); });
     RVD={}; (rv.data||[]).forEach(r=>RVD[r.sprint_id]=r);
     CMT={}; (rc.data||[]).forEach(c=>{
-      const k = c.tarefa_id || `e_${c.sprint_id}_${c.entrega_idx}`;
+      const k = c.tarefa_id || (c.evento_id ? `ev_${c.evento_id}` : `e_${c.sprint_id}_${c.entrega_idx}`);
       (CMT[k]=CMT[k]||[]).push(c);
     });
     ATT={}; (ra.data||[]).forEach(a=>{
-      const k = a.tarefa_id || `e_${a.sprint_id}_${a.entrega_idx}`;
+      const k = a.tarefa_id || (a.evento_id ? `ev_${a.evento_id}` : `e_${a.sprint_id}_${a.entrega_idx}`);
       (ATT[k]=ATT[k]||[]).push(a);
     });
     ss('ok','Sincronizado');
@@ -1595,9 +1630,141 @@ function openEvent(id=null, isoDate=null){
   if(editingEv) (EVM[editingEv.id]||[]).forEach(pid => evMembersSel[pid] = true);
   renderEvMembersPicker();
 
+  // Anexos + comentários
+  renderEventAttachments();
+  renderEventComments();
+
+  // Reset aba para Detalhes
+  document.querySelectorAll('#eventModal .mtab').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('#eventModal .mpane').forEach(p=>p.classList.remove('on'));
+  document.querySelector('#eventModal .mtab[data-p="ev-details"]').classList.add('on');
+  document.querySelector('#eventModal .mpane[data-pane="ev-details"]').classList.add('on');
+
   document.getElementById('eventModal').classList.add('on');
 }
 function closeEvent(){ document.getElementById('eventModal').classList.remove('on'); editingEv=null; }
+function swPaneEv(btn){
+  document.querySelectorAll('#eventModal .mtab').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  const p = btn.dataset.p;
+  document.querySelectorAll('#eventModal .mpane').forEach(x=>x.classList.remove('on'));
+  document.querySelector(`#eventModal .mpane[data-pane="${p}"]`).classList.add('on');
+}
+function evKey(){ return editingEv ? `ev_${editingEv.id}` : null; }
+
+function renderEventComments(){
+  const list = editingEv ? (CMT[evKey()]||[]).slice().sort((a,b)=>new Date(a.created_at)-new Date(b.created_at)) : [];
+  document.getElementById('evCmCt').textContent = list.length;
+  document.getElementById('evCmCt').classList.toggle('zero', list.length===0);
+  document.getElementById('evCmEmpty').style.display = (editingEv && list.length===0) ? '' : 'none';
+  document.getElementById('evCmAddWrap').style.display = editingEv ? '' : 'none';
+  document.getElementById('evCmHint').style.display = editingEv ? 'none' : '';
+  const ul = document.getElementById('evCmList');
+  if(!editingEv){ ul.innerHTML=''; return; }
+  ul.innerHTML = list.map(c=>{
+    const m = mBI(c.profile_id);
+    const dt = new Date(c.created_at).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+    const own = c.profile_id===CP?.id;
+    return `<li class="cmitem">
+      <div class="head">${avH(m,'sm')}<span class="nm">${m?escapeHtml(m.nome):'?'}</span><span class="dt">${dt}</span></div>
+      <div class="txt">${escapeHtml(c.texto)}</div>
+      ${own?`<button class="rmc" onclick="delEventComment('${c.id}')">✕</button>`:''}
+    </li>`;
+  }).join('');
+}
+async function addEventComment(){
+  if(!editingEv){ toast('Salve o evento primeiro','err'); return; }
+  const txt = document.getElementById('evCmIn').value.trim();
+  if(!txt) return;
+  ss('loading','Enviando...');
+  const {data, error} = await db.from('task_comments').insert({
+    evento_id: editingEv.id, profile_id: CP?.id, texto: txt
+  }).select().single();
+  if(error){ toast('Erro: '+error.message,'err'); ss('err','Erro'); return; }
+  const k = evKey();
+  (CMT[k] = CMT[k]||[]).push(data);
+  document.getElementById('evCmIn').value='';
+  ss('ok','Salvo'); renderEventComments();
+  logAudit({action:'comment_add', entityType:'event', entityId:editingEv.id,
+    summary:`Comentou no evento "${editingEv.titulo.slice(0,60)}": ${txt.slice(0,80)}`});
+}
+async function delEventComment(id){
+  if(!confirm('Excluir este comentário?')) return;
+  const {error} = await db.from('task_comments').delete().eq('id', id);
+  if(error){ toast('Erro: '+error.message,'err'); return; }
+  const k = evKey();
+  if(CMT[k]) CMT[k] = CMT[k].filter(c=>c.id!==id);
+  renderEventComments();
+}
+document.addEventListener('keydown', e=>{
+  if(e.target?.id==='evCmIn' && e.key==='Enter' && (e.ctrlKey||e.metaKey)){
+    e.preventDefault(); addEventComment();
+  }
+});
+
+function renderEventAttachments(){
+  const list = editingEv ? (ATT[evKey()]||[]) : [];
+  document.getElementById('evAtCt').textContent = list.length;
+  document.getElementById('evAtCt').classList.toggle('zero', list.length===0);
+  document.getElementById('evAtDrop').style.display = editingEv ? '' : 'none';
+  document.getElementById('evAtHint').style.display = editingEv ? 'none' : '';
+  const ul = document.getElementById('evAtList');
+  if(!editingEv){ ul.innerHTML=''; return; }
+  ul.innerHTML = list.map(a=>{
+    const m = mBI(a.profile_id);
+    const dt = new Date(a.created_at).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+    return `<li class="atitem">
+      <span class="ic">${fileIcon(a.mime, a.nome)}</span>
+      <div class="info">
+        <div class="nm" title="${escapeHtml(a.nome)}">${escapeHtml(a.nome)}</div>
+        <div class="meta">${fmtBytes(a.tamanho)} • por ${m?escapeHtml(m.nome):'?'} • ${dt}</div>
+      </div>
+      <div class="acts">
+        <a href="${a.url}" target="_blank" title="Baixar/Abrir">↓</a>
+        <button onclick="delEventAttachment('${a.id}','${a.storage_path}')" title="Excluir">✕</button>
+      </div>
+    </li>`;
+  }).join('') || '<li style="color:var(--t3);font-size:12px;padding:.5rem 0;text-align:center">Sem anexos ainda.</li>';
+}
+async function uploadEventAttachment(evt){
+  if(!editingEv){ toast('Salve o evento primeiro','err'); evt.target.value=''; return; }
+  const file = evt.target.files?.[0];
+  if(!file) return;
+  if(file.size > 50*1024*1024){ toast('Arquivo maior que 50MB','err'); evt.target.value=''; return; }
+  ss('loading','Enviando arquivo...');
+  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+  const path = `eventos/${editingEv.id}/${Date.now()}_${safeName}`;
+  const up = await db.storage.from('task-files').upload(path, file, { upsert:false, contentType: file.type });
+  if(up.error){ toast(explainStorageErr(up.error.message),'err'); ss('err','Erro'); evt.target.value=''; return; }
+  const { data:pub } = db.storage.from('task-files').getPublicUrl(path);
+  const payload = {
+    evento_id: editingEv.id, profile_id: CP?.id,
+    nome: file.name, storage_path: path, url: pub.publicUrl,
+    mime: file.type, tamanho: file.size
+  };
+  const {data, error} = await db.from('task_attachments').insert(payload).select().single();
+  if(error){
+    await db.storage.from('task-files').remove([path]);
+    toast('Erro: '+error.message,'err'); ss('err','Erro'); evt.target.value=''; return;
+  }
+  const k = evKey();
+  (ATT[k] = ATT[k]||[]).unshift(data);
+  evt.target.value='';
+  ss('ok','Anexado'); toast('Documento anexado'); renderEventAttachments();
+  logAudit({action:'attachment_add', entityType:'event', entityId:editingEv.id,
+    summary:`Anexou "${file.name}" no evento "${editingEv.titulo.slice(0,50)}"`,
+    details:{nome:file.name, tamanho:file.size}});
+}
+async function delEventAttachment(id, path){
+  if(!confirm('Excluir este anexo?')) return;
+  ss('loading','Excluindo...');
+  await db.storage.from('task-files').remove([path]);
+  const {error} = await db.from('task_attachments').delete().eq('id', id);
+  if(error){ toast('Erro: '+error.message,'err'); ss('err','Erro'); return; }
+  const k = evKey();
+  if(ATT[k]) ATT[k] = ATT[k].filter(a=>a.id!==id);
+  ss('ok','Removido'); renderEventAttachments();
+}
 function setEvType(btn){
   document.querySelectorAll('#evTypeBar button').forEach(b=>b.classList.remove('on'));
   btn.classList.add('on');
@@ -2223,8 +2390,10 @@ function renderCal(){
       const ic = ({reuniao:'🤝', tarefa:'📋', atividade:'🎯', weekly:'🔁', outro:'📌'})[ev.tipo] || '📌';
       const cor = ev.cor || '#2B6AFF';
       const hora = ev.hora_inicio ? ev.hora_inicio.slice(0,5)+' ' : '';
+      const attCt = (ATT[`ev_${ev.id}`]||[]).length;
+      const badges = attCt ? ` 📎${attCt}` : '';
       items.push({kind:'event', event:ev,
-        label:`${ic} ${hora}${ev.titulo}`, color:cor, bg:cor+'25', sort:3});
+        label:`${ic} ${hora}${ev.titulo}${badges}`, color:cor, bg:cor+'25', sort:3});
     });
 
     // Entregas planejadas (data_fim)
