@@ -1323,6 +1323,7 @@ let CMT = {};        // task_comments — chave: tarefa_id -> array
 let ATT = {};        // task_attachments — chave: tarefa_id -> array
 let RVD = {};        // reviews
 let AUD = [];        // audit_log entries
+let AUD_MISSING = false; // true quando a tabela audit_log nao existe no banco
 let EV  = [];        // calendar_events
 let EVM = {};        // event_members — chave: evento_id -> [profile_id]
 let calDate = new Date();
@@ -1567,7 +1568,14 @@ async function loadAll(){
       db.from('calendar_events').select('*').order('data',{ascending:true}),
       db.from('event_members').select('*'),
     ]);
-    AUD = rau.data || [];
+    if(rau.error){
+      AUD_MISSING = /audit_log|relation.*does not exist|schema cache|42P01/i.test(rau.error.message);
+      AUD = [];
+      console.warn('[loadAll] audit_log indisponivel:', rau.error.message);
+    } else {
+      AUD_MISSING = false;
+      AUD = rau.data || [];
+    }
     EV  = rev.data || [];
     EVM = {}; (revm.data||[]).forEach(em=>{ (EVM[em.evento_id]=EVM[em.evento_id]||[]).push(em.profile_id); });
     RVD={}; (rv.data||[]).forEach(r=>RVD[r.sprint_id]=r);
@@ -2594,10 +2602,16 @@ async function reloadAudit(){
   ss('loading','Recarregando log...');
   const {data, error} = await db.from('audit_log').select('*').order('created_at',{ascending:false}).limit(500);
   if(error){
-    toast('Erro lendo audit_log: ' + error.message, 'err');
+    const isMissing = /audit_log|relation.*does not exist|schema cache|42P01/i.test(error.message);
+    AUD_MISSING = isMissing;
+    toast(isMissing
+      ? '⚠️ Tabela audit_log nao existe — rode schema_addon_v7.sql no Supabase'
+      : 'Erro lendo audit_log: ' + error.message, 'err');
     ss('err','Erro');
+    renderAudit();
     return;
   }
+  AUD_MISSING = false;
   AUD = data || [];
   ss('ok',`${AUD.length} registros`);
   renderAudit();
@@ -2650,6 +2664,23 @@ function renderAudit(){
   if(fA) arr = arr.filter(a => a.action===fA);
 
   const el = document.getElementById('auditList');
+  if(AUD_MISSING){
+    el.innerHTML = `<div class="empty" style="text-align:left;max-width:640px;margin:24px auto;padding:18px;border:1px solid var(--bg4);border-radius:10px">
+      <div class="ic" style="text-align:center">⚠️</div>
+      <div style="text-align:center;font-weight:600;margin-bottom:10px">Tabela <code>audit_log</code> nao existe no Supabase</div>
+      <div style="font-size:12px;line-height:1.6">
+        Para ativar a Governanca, rode o SQL <code>schema_addon_v7.sql</code> uma vez:
+        <ol style="margin:8px 0 8px 18px;padding:0">
+          <li>Abra seu projeto no <b>Supabase</b> &rarr; <b>SQL Editor</b> &rarr; <b>New query</b></li>
+          <li>Cole o conteudo de <code>schema_addon_v7.sql</code> (na raiz do repo)</li>
+          <li>Clique em <b>Run</b></li>
+          <li>Volte aqui e clique em <b>Recarregar do banco</b></li>
+        </ol>
+        Esse script cria a tabela <code>audit_log</code>, indices e politicas de RLS. E idempotente — pode rodar varias vezes sem problema.
+      </div>
+    </div>`;
+    return;
+  }
   if(!arr.length){
     el.innerHTML = `<div class="empty"><div class="ic">🗂️</div>Sem registros de auditoria.<br><span style="font-size:11px">Ações no app aparecem aqui automaticamente.</span></div>`;
     return;
