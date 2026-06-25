@@ -1100,6 +1100,7 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
       <!-- Anexos -->
       <div class="mpane" data-pane="ev-attachments">
         <div class="field"><label>📎 Documentos do evento (ata, loop dos temas, slides, etc.)</label></div>
+        <div id="evAtScope" style="display:none;background:var(--p-bg);color:var(--purple);border:1px solid rgba(167,139,250,.3);padding:.5rem .7rem;border-radius:var(--r);font-size:11.5px;font-weight:600;margin-bottom:.6rem"></div>
         <div id="evAtDrop" class="dropzone" onclick="document.getElementById('evAtFile').click()">
           <div style="font-size:24px">📂</div>
           <div style="font-weight:700;margin-top:6px">Clique para anexar arquivo</div>
@@ -1114,6 +1115,7 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
       <!-- Comentários -->
       <div class="mpane" data-pane="ev-comments">
         <div class="field"><label>💬 Comentários do evento</label></div>
+        <div id="evCmScope" style="display:none;background:var(--p-bg);color:var(--purple);border:1px solid rgba(167,139,250,.3);padding:.5rem .7rem;border-radius:var(--r);font-size:11.5px;font-weight:600;margin-bottom:.6rem"></div>
         <div id="evCmEmpty" style="display:none;text-align:center;padding:1.5rem;color:var(--t3);font-size:12px">Sem comentários ainda.</div>
         <ul class="cmlist" id="evCmList"></ul>
         <div class="cm-add" id="evCmAddWrap">
@@ -1605,11 +1607,17 @@ async function loadAll(){
     EVM = {}; (revm.data||[]).forEach(em=>{ (EVM[em.evento_id]=EVM[em.evento_id]||[]).push(em.profile_id); });
     RVD={}; (rv.data||[]).forEach(r=>RVD[r.sprint_id]=r);
     CMT={}; (rc.data||[]).forEach(c=>{
-      const k = c.tarefa_id || (c.evento_id ? `ev_${c.evento_id}` : `e_${c.sprint_id}_${c.entrega_idx}`);
+      let k;
+      if(c.tarefa_id) k = c.tarefa_id;
+      else if(c.evento_id) k = c.evento_data ? `ev_${c.evento_id}_${c.evento_data}` : `ev_${c.evento_id}`;
+      else k = `e_${c.sprint_id}_${c.entrega_idx}`;
       (CMT[k]=CMT[k]||[]).push(c);
     });
     ATT={}; (ra.data||[]).forEach(a=>{
-      const k = a.tarefa_id || (a.evento_id ? `ev_${a.evento_id}` : `e_${a.sprint_id}_${a.entrega_idx}`);
+      let k;
+      if(a.tarefa_id) k = a.tarefa_id;
+      else if(a.evento_id) k = a.evento_data ? `ev_${a.evento_id}_${a.evento_data}` : `ev_${a.evento_id}`;
+      else k = `e_${a.sprint_id}_${a.entrega_idx}`;
       (ATT[k]=ATT[k]||[]).push(a);
     });
     ss('ok','Sincronizado');
@@ -1657,11 +1665,23 @@ const EV_TYPES = [
   {k:'outro',     l:'📌 Outro',     cor:'#2B6AFF'},
 ];
 let editingEv = null;
+let editingEvOcc = null; // ISO date da ocorrência (só pra recorrentes)
 let evMembersSel = {};
 function openEvent(id=null, isoDate=null){
   editingEv = id ? EV.find(e=>e.id===id) : null;
-  document.getElementById('evTitle').textContent = editingEv ? 'Editar evento' : 'Novo evento';
-  document.getElementById('evDelBtn').style.display = editingEv ? '' : 'none';
+  // Se for recorrente e foi clicado em uma data específica, essa é a ocorrência
+  editingEvOcc = (editingEv && editingEv.recorrente && isoDate) ? isoDate : null;
+  if(editingEv){
+    if(editingEv.recorrente && editingEvOcc){
+      document.getElementById('evTitle').textContent =
+        `${editingEv.titulo} — ${new Date(editingEvOcc+'T00:00').toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'short'})}`;
+    } else {
+      document.getElementById('evTitle').textContent = 'Editar evento';
+    }
+  } else {
+    document.getElementById('evTitle').textContent = 'Novo evento';
+  }
+  document.getElementById('evDelBtn').style.display = editingEv && !editingEv.recorrente ? '' : 'none';
 
   const tipo = editingEv?.tipo || 'reuniao';
   document.getElementById('evTypeBar').innerHTML = EV_TYPES.map(t=>
@@ -1687,7 +1707,14 @@ function openEvent(id=null, isoDate=null){
   if(editingEv) (EVM[editingEv.id]||[]).forEach(pid => evMembersSel[pid] = true);
   renderEvMembersPicker();
 
-  // Anexos + comentários
+  // Anexos + comentários (scope info)
+  const scopeMsg = (editingEv && editingEv.recorrente && editingEvOcc)
+    ? `📌 Esta ocorrência apenas: ${new Date(editingEvOcc+'T00:00').toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'})}`
+    : '';
+  const scA = document.getElementById('evAtScope');
+  const scC = document.getElementById('evCmScope');
+  if(scA){ scA.textContent = scopeMsg; scA.style.display = scopeMsg ? '' : 'none'; }
+  if(scC){ scC.textContent = scopeMsg; scC.style.display = scopeMsg ? '' : 'none'; }
   renderEventAttachments();
   renderEventComments();
 
@@ -1707,7 +1734,11 @@ function swPaneEv(btn){
   document.querySelectorAll('#eventModal .mpane').forEach(x=>x.classList.remove('on'));
   document.querySelector(`#eventModal .mpane[data-pane="${p}"]`).classList.add('on');
 }
-function evKey(){ return editingEv ? `ev_${editingEv.id}` : null; }
+function evKey(){
+  if(!editingEv) return null;
+  if(editingEv.recorrente && editingEvOcc) return `ev_${editingEv.id}_${editingEvOcc}`;
+  return `ev_${editingEv.id}`;
+}
 
 function renderEventComments(){
   const list = editingEv ? (CMT[evKey()]||[]).slice().sort((a,b)=>new Date(a.created_at)-new Date(b.created_at)) : [];
@@ -1735,7 +1766,9 @@ async function addEventComment(){
   if(!txt) return;
   ss('loading','Enviando...');
   const {data, error} = await db.from('task_comments').insert({
-    evento_id: editingEv.id, profile_id: CP?.id, texto: txt
+    evento_id: editingEv.id,
+    evento_data: editingEv.recorrente ? editingEvOcc : null,
+    profile_id: CP?.id, texto: txt
   }).select().single();
   if(error){ toast('Erro: '+error.message,'err'); ss('err','Erro'); return; }
   const k = evKey();
@@ -1790,12 +1823,15 @@ async function uploadEventAttachment(evt){
   if(file.size > 50*1024*1024){ toast('Arquivo maior que 50MB','err'); evt.target.value=''; return; }
   ss('loading','Enviando arquivo...');
   const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
-  const path = `eventos/${editingEv.id}/${Date.now()}_${safeName}`;
+  const occFolder = (editingEv.recorrente && editingEvOcc) ? editingEvOcc : 'unique';
+  const path = `eventos/${editingEv.id}/${occFolder}/${Date.now()}_${safeName}`;
   const up = await db.storage.from('task-files').upload(path, file, { upsert:false, contentType: file.type });
   if(up.error){ toast(explainStorageErr(up.error.message),'err'); ss('err','Erro'); evt.target.value=''; return; }
   const { data:pub } = db.storage.from('task-files').getPublicUrl(path);
   const payload = {
-    evento_id: editingEv.id, profile_id: CP?.id,
+    evento_id: editingEv.id,
+    evento_data: editingEv.recorrente ? editingEvOcc : null,
+    profile_id: CP?.id,
     nome: file.name, storage_path: path, url: pub.publicUrl,
     mime: file.type, tamanho: file.size
   };
@@ -2448,9 +2484,13 @@ function renderCal(){
       const ic = ({reuniao:'🤝', tarefa:'📋', atividade:'🎯', weekly:'🔁', outro:'📌'})[ev.tipo] || '📌';
       const cor = ev.cor || '#2B6AFF';
       const hora = ev.hora_inicio ? ev.hora_inicio.slice(0,5)+' ' : '';
-      const attCt = (ATT[`ev_${ev.id}`]||[]).length;
-      const badges = attCt ? ` 📎${attCt}` : '';
-      items.push({kind:'event', event:ev,
+      const occKey = ev.recorrente ? `ev_${ev.id}_${iso}` : `ev_${ev.id}`;
+      const attCt = (ATT[occKey]||[]).length;
+      const cmCt  = (CMT[occKey]||[]).length;
+      let badges = '';
+      if(attCt) badges += ` 📎${attCt}`;
+      if(cmCt)  badges += ` 💬${cmCt}`;
+      items.push({kind:'event', event:ev, occDate: iso,
         label:`${ic} ${hora}${ev.titulo}${badges}`, color:cor, bg:cor+'25', sort:3});
     });
 
@@ -2495,7 +2535,7 @@ function renderCalItem(it){
   let onclick = '';
   if(it.kind==='task')    onclick = `onclick="event.stopPropagation();openTask('${it.task.id}')"`;
   if(it.kind==='entrega') onclick = `onclick="event.stopPropagation();openEntrega(${it.sid},${it.idx})"`;
-  if(it.kind==='event')   onclick = `onclick="event.stopPropagation();openEvent('${it.event.id}')"`;
+  if(it.kind==='event')   onclick = `onclick="event.stopPropagation();openEvent('${it.event.id}', '${it.occDate||''}')"`;
   if(it.kind==='review')  onclick = `onclick="event.stopPropagation();nav('reviews',document.querySelector('.nb[data-v=reviews]'))"`;
   return `<div class="cevt" ${onclick} style="background:${it.bg};color:${it.color}" title="${escapeHtml(it.label)}">${escapeHtml(it.label)}</div>`;
 }
