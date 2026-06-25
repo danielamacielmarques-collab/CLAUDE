@@ -521,6 +521,7 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
         </div>
         <button onclick="openProfileEdit()">⚙️ Editar perfil</button>
         <button onclick="toggleTheme()">🎨 Alternar tema</button>
+        <button onclick="reloadMyProfile()">↺ Recarregar meu perfil</button>
         <hr>
         <button onclick="doLogout()" style="color:var(--red)">🚪 Sair</button>
       </div>
@@ -1467,15 +1468,37 @@ function paintUserChip(){
   const av = document.getElementById('tnUserAv');
   av.textContent = CP.iniciais; av.style.background = CP.cor;
   document.getElementById('upNm').textContent = CP.nome;
-  document.getElementById('upEm').textContent = CP.email || CU.email;
-  // Mostra menu Usuários apenas para admin
-  const navU = document.getElementById('navUsers');
-  if(navU) navU.style.display = isAdmin() ? '' : 'none';
-  const navI = document.getElementById('navImport'); if(navI) navI.style.display = isAdmin() ? '' : 'none';
-  const navA = document.getElementById('navAudit');  if(navA) navA.style.display = isAdmin() ? '' : 'none';
+  const upE = document.getElementById('upEm');
+  const tipoLbl = ({admin:'Administrador', integrante:'Integrante NID', gestor:'Gestor', coordenador:'Coordenador', visitante:'Visitante'})[CP.tipo||'integrante'] || CP.tipo;
+  const tipoColor = CP.tipo==='admin' ? 'var(--orange)' : 'var(--t2)';
+  upE.innerHTML = `${escapeHtml(CP.email || CU.email)}<br>
+    <span style="color:${tipoColor};font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.05em">${escapeHtml(tipoLbl)}</span>`;
+  // Mostra menu Usuários/Governança/Importar PA apenas para admin
+  const adm = isAdmin();
+  ['navUsers','navImport','navAudit'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.style.display = adm ? '' : 'none';
+  });
 }
 
-function isAdmin(){ return CP && CP.tipo === 'admin'; }
+async function reloadMyProfile(){
+  if(!CU) return;
+  document.getElementById('userpop').classList.remove('on');
+  ss('loading','Sincronizando perfil...');
+  const {data, error} = await db.from('profiles').select('*').eq('id', CU.id).single();
+  if(error || !data){ toast('Erro: '+(error?.message||'sem dados'),'err'); ss('err','Erro'); return; }
+  const prevTipo = CP?.tipo;
+  CP = data;
+  paintUserChip();
+  ss('ok',`Tipo: ${CP.tipo}`);
+  if(prevTipo !== CP.tipo){
+    toast(`Tipo atualizado: ${prevTipo||'?'} → ${CP.tipo}`, 'ok');
+  } else {
+    toast(`Você é: ${CP.tipo}`, 'ok');
+  }
+}
+
+function isAdmin(){ return !!(CP && CP.tipo === 'admin'); }
 
 /* ============================================================
    AUDIT — Governança
@@ -1570,6 +1593,15 @@ async function loadAll(){
     ]);
     AUD = rau.data || [];
     EV  = rev.data || [];
+    // Sincroniza CP (perfil atual) com a versão fresca em MB
+    if(CP){
+      const meFresh = MB.find(m => m.id === CP.id);
+      if(meFresh){
+        const tipoChanged = meFresh.tipo !== CP.tipo;
+        Object.assign(CP, meFresh);
+        if(tipoChanged) paintUserChip();
+      }
+    }
     EVM = {}; (revm.data||[]).forEach(em=>{ (EVM[em.evento_id]=EVM[em.evento_id]||[]).push(em.profile_id); });
     RVD={}; (rv.data||[]).forEach(r=>RVD[r.sprint_id]=r);
     CMT={}; (rc.data||[]).forEach(c=>{
