@@ -438,6 +438,43 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
 .tipo-coordenador{background:var(--acc-bg);color:var(--accent)}
 .tipo-visitante{background:var(--bg4);color:var(--t2)}
 
+/* review v2 */
+.rv-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.75rem;margin-bottom:1.2rem}
+.rv-mc{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:.85rem;text-align:center}
+.rv-mc .rv-val{font-size:22px;font-weight:800;margin-bottom:2px}
+.rv-mc .rv-lbl{font-size:11px;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+.rv-section{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1rem;margin-bottom:1rem}
+.rv-section h3{font-size:13px;font-weight:700;margin:0 0 .6rem;display:flex;align-items:center;gap:6px}
+.rv-items{display:flex;flex-direction:column;gap:6px}
+.rv-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;background:var(--bg3);font-size:12.5px;border:1px solid var(--border)}
+.rv-item .rv-desc{flex:1;font-weight:500}
+.rv-item .rv-eixo{font-size:10px;font-weight:700;padding:2px 8px;border-radius:12px;flex-shrink:0}
+.rv-item select{font-size:11px;padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg1);color:var(--t1);font-family:inherit;cursor:pointer;min-width:140px}
+.rv-item .rv-dest{font-size:11px;padding:4px 6px;border-radius:6px;border:1px solid var(--border);background:var(--bg1);color:var(--t1);font-family:inherit;min-width:80px}
+.rv-item .rv-obs-input{font-size:11px;padding:4px 6px;border-radius:6px;border:1px solid var(--border);background:var(--bg1);color:var(--t1);font-family:inherit;flex:1;min-width:120px}
+.rv-hist{margin-top:1rem}
+.rv-hist-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:.85rem;margin-bottom:.65rem}
+.rv-hist-card .rv-hist-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:.45rem}
+.rv-hist-card .rv-hist-head .rv-date{font-weight:700;font-size:13px;color:var(--t1)}
+.rv-hist-card .rv-hist-head .rv-by{font-size:11px;color:var(--t3)}
+.rv-hist-card .rv-hist-metrics{display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:.45rem}
+.rv-hist-card .rv-hist-metrics span{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;background:var(--bg3);color:var(--t2)}
+.rv-hist-card .rv-hist-body{font-size:12px;color:var(--t2);line-height:1.5}
+.rv-hist-card .rv-hist-body p{margin:0 0 4px}
+.rv-hist-card .rv-hist-items{font-size:11.5px;color:var(--t2);margin-top:.4rem}
+.rv-hist-card .rv-hist-items .ri-row{display:flex;gap:6px;align-items:center;padding:3px 0;border-bottom:1px solid var(--border)}
+.rv-hist-card .rv-hist-items .ri-row:last-child{border-bottom:none}
+.rv-hist-card .rv-hist-items .ri-disp{font-weight:600;font-size:10.5px;padding:2px 8px;border-radius:10px}
+.ri-disp.concluido{background:var(--g-bg);color:var(--green)}
+.ri-disp.remanejado{background:var(--a-bg);color:var(--amber)}
+.ri-disp.fora{background:var(--r-bg);color:var(--red)}
+.ri-disp.pendente{background:var(--bg4);color:var(--t2)}
+.ri-disp.em_andamento{background:var(--a-bg);color:var(--amber)}
+.rv-tabs{display:flex;gap:4px;margin-bottom:1rem;border-bottom:2px solid var(--border);padding-bottom:0}
+.rv-tabs button{background:none;border:none;padding:8px 16px;font-size:12.5px;font-weight:600;color:var(--t3);cursor:pointer;font-family:inherit;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s}
+.rv-tabs button.on{color:var(--accent);border-bottom-color:var(--accent)}
+.rv-tabs button:hover{color:var(--t1)}
+
 /* utils */
 .row{display:flex;align-items:center;gap:8px}
 .gap-sm{gap:6px}
@@ -692,9 +729,19 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
         <div class="vh">
           <div><h1 id="rvTitle">Review da Sprint</h1><div class="vh-sub" id="rvSub">—</div></div>
           <div class="vh-grow"></div>
+          <select class="sel" id="rvSprintSel" onchange="rvSelSprint(+this.value)" style="min-width:160px"></select>
           <button class="btn primary" onclick="saveReview()">💾 Salvar review</button>
         </div>
-        <div id="reviewForm"></div>
+        <div class="rv-tabs" id="rvTabs">
+          <button class="on" onclick="rvTab('form',this)">Nova Review</button>
+          <button onclick="rvTab('hist',this)">Historico</button>
+        </div>
+        <div id="rvFormPanel">
+          <div id="rvDashSummary"></div>
+          <div id="reviewForm"></div>
+          <div id="rvItemsPanel"></div>
+        </div>
+        <div id="rvHistPanel" style="display:none"></div>
       </section>
 
       <!-- AUDIT / GOVERNANÇA -->
@@ -1324,7 +1371,8 @@ let TTG = {};        // task_tags
 let CLD = {};        // checklist items
 let CMT = {};        // task_comments — chave: tarefa_id -> array
 let ATT = {};        // task_attachments — chave: tarefa_id -> array
-let RVD = {};        // reviews
+let RVD = {};        // reviews — sprint_id -> array of review objects
+let RVI = {};        // review items — review_id -> array of items
 let AUD = [];        // audit_log entries
 let EV  = [];        // calendar_events
 let EVM = {};        // event_members — chave: evento_id -> [profile_id]
@@ -1585,13 +1633,14 @@ async function loadAll(){
       (CLD[k]=CLD[k]||[]).push(c);
     });
     // Comments + attachments + reviews + audit + eventos em paralelo
-    const [rv, rc, ra, rau, rev, revm] = await Promise.all([
-      db.from('sprint_reviews').select('*'),
+    const [rv, rc, ra, rau, rev, revm, rvi] = await Promise.all([
+      db.from('sprint_reviews').select('*').order('data_realizacao',{ascending:false}),
       db.from('task_comments').select('*').order('created_at',{ascending:true}),
       db.from('task_attachments').select('*').order('created_at',{ascending:false}),
       db.from('audit_log').select('*').order('created_at',{ascending:false}).limit(500),
       db.from('calendar_events').select('*').order('data',{ascending:true}),
       db.from('event_members').select('*'),
+      db.from('sprint_review_items').select('*').then(r=>r).catch(()=>({data:[]})),
     ]);
     AUD = rau.data || [];
     EV  = rev.data || [];
@@ -1605,7 +1654,8 @@ async function loadAll(){
       }
     }
     EVM = {}; (revm.data||[]).forEach(em=>{ (EVM[em.evento_id]=EVM[em.evento_id]||[]).push(em.profile_id); });
-    RVD={}; (rv.data||[]).forEach(r=>RVD[r.sprint_id]=r);
+    RVD={}; (rv.data||[]).forEach(r=>{(RVD[r.sprint_id]=RVD[r.sprint_id]||[]).push(r)});
+    RVI={}; (rvi.data||[]).forEach(i=>{(RVI[i.review_id]=RVI[i.review_id]||[]).push(i)});
     CMT={}; (rc.data||[]).forEach(c=>{
       let k;
       if(c.tarefa_id) k = c.tarefa_id;
@@ -2611,54 +2661,282 @@ function renderTeam(){
 }
 
 /* ============================================================
-   REVIEWS
+   REVIEWS — v2 com resumo, disposição e histórico
 ============================================================ */
-function renderReview(){
-  const s = cs();
-  document.getElementById('rvTitle').textContent = `Review da Sprint ${s.id}`;
-  document.getElementById('rvSub').textContent = `${s.m} • ${s.foco}`;
-  const r = RVD[s.id] || {};
-  const nps = (r.nps_equipe != null) ? r.nps_equipe : -1;
-  _NPS = nps;
-  document.getElementById('reviewForm').innerHTML = `
-    <div class="frow">
-      <div class="field"><label>% Entregue</label><input type="number" id="rvPct" min="0" max="100" value="${r.percentual_entregue||''}"></div>
-      <div class="field"><label>Velocidade (pontos)</label><input type="number" id="rvVel" min="0" value="${r.velocidade_pontos||''}"></div>
-      <div class="field"><label>Data da review</label><input type="date" id="rvData" value="${r.data_realizacao||''}"></div>
-    </div>
-    <div class="field" style="margin-bottom:.85rem"><label>✅ Entregas realizadas</label><textarea id="rvEnt" placeholder="O que foi entregue nesta sprint?">${r.entregas_realizadas||''}</textarea></div>
-    <div class="field" style="margin-bottom:.85rem"><label>⚠️ Riscos e bloqueadores</label><textarea id="rvRisc" placeholder="O que travou ou ameaçou a sprint?">${r.riscos_bloqueadores||''}</textarea></div>
-    <div class="field" style="margin-bottom:.85rem"><label>🎯 Próximas ações</label><textarea id="rvProx" placeholder="O que vai para a próxima sprint?">${r.proximas_acoes||''}</textarea></div>
-    <div class="field"><label>😊 Satisfação da equipe (NPS 0–10)</label>
-      <div class="nps" id="rvNpsWrap">
-        ${Array.from({length:11},(_,i)=>`<button class="${nps===i?'on':''}" data-nps="${i}" onclick="selNPS(${i})">${i}</button>`).join('')}
-      </div>
-    </div>
-  `;
-}
 let _NPS = -1;
+let _rvSprint = null;
+
+function rvTab(tab, btn){
+  document.querySelectorAll('#rvTabs button').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('rvFormPanel').style.display = tab==='form' ? '' : 'none';
+  document.getElementById('rvHistPanel').style.display = tab==='hist' ? '' : 'none';
+  if(tab==='hist') renderReviewHist();
+}
+
+function rvSelSprint(id){
+  _rvSprint = id;
+  renderReview();
+}
+
+function rvSprintMetrics(sid){
+  const s = SP.find(x=>x.id===sid);
+  if(!s) return {total:0,done:0,inProg:0,blocked:0,pct:0,pts:0,totalPts:0,eDone:0,tDone:0,eProg:0,tProg:0,eBloc:0,tBloc:0,ePend:0,tPend:0,eTotal:0,tTotal:0};
+  const ts = spT(sid);
+  const eTotal = s.entregas.length;
+  const tTotal = ts.length;
+  const eDone = s.entregas.filter((_,i)=>gES(sid,i)==='concluido').length;
+  const eProg = s.entregas.filter((_,i)=>gES(sid,i)==='em_andamento').length;
+  const eBloc = s.entregas.filter((_,i)=>gES(sid,i)==='bloqueado').length;
+  const eRev  = s.entregas.filter((_,i)=>gES(sid,i)==='em_revisao').length;
+  const ePend = eTotal - eDone - eProg - eBloc - eRev;
+  const tDone = ts.filter(t=>t.status==='concluido').length;
+  const tProg = ts.filter(t=>t.status==='em_andamento').length;
+  const tBloc = ts.filter(t=>t.status==='bloqueado').length;
+  const tPend = tTotal - tDone - tProg - tBloc;
+  const total = eTotal + tTotal;
+  const done = eDone + tDone;
+  const inProg = eProg + tProg;
+  const blocked = eBloc + tBloc;
+  const pct = total ? Math.round(100*done/total) : 0;
+  const pts = ts.filter(t=>t.status==='concluido').reduce((a,t)=>a+(t.story_points||0),0);
+  const totalPts = ts.reduce((a,t)=>a+(t.story_points||0),0);
+  return {total,done,inProg,blocked,pct,pts,totalPts,eDone,tDone,eProg,tProg,eBloc,tBloc,ePend,tPend,eTotal,tTotal};
+}
+
+function renderReview(){
+  const sid = _rvSprint || AS;
+  const s = SP.find(x=>x.id===sid);
+  if(!s) return;
+  _rvSprint = sid;
+
+  document.getElementById('rvTitle').textContent = `Review da Sprint ${s.id}`;
+  document.getElementById('rvSub').textContent = `${s.m} — ${s.foco}`;
+
+  const sel = document.getElementById('rvSprintSel');
+  sel.innerHTML = SP.map(sp=>`<option value="${sp.id}" ${sp.id===sid?'selected':''}>Sprint ${sp.id} — ${sp.m}</option>`).join('');
+
+  const m = rvSprintMetrics(sid);
+
+  document.getElementById('rvDashSummary').innerHTML = `
+    <div class="rv-section">
+      <h3>Resumo automatico da Sprint ${s.id}</h3>
+      <div class="rv-summary">
+        <div class="rv-mc"><div class="rv-val">${m.pct}%</div><div class="rv-lbl">Progresso</div></div>
+        <div class="rv-mc"><div class="rv-val" style="color:var(--green)">${m.done}</div><div class="rv-lbl">Concluidos</div></div>
+        <div class="rv-mc"><div class="rv-val" style="color:var(--amber)">${m.inProg}</div><div class="rv-lbl">Em andamento</div></div>
+        <div class="rv-mc"><div class="rv-val" style="color:var(--red)">${m.blocked}</div><div class="rv-lbl">Bloqueados</div></div>
+        <div class="rv-mc"><div class="rv-val">${m.total}</div><div class="rv-lbl">Total itens</div></div>
+        <div class="rv-mc"><div class="rv-val">${m.pts}/${m.totalPts}</div><div class="rv-lbl">Story Points</div></div>
+      </div>
+      <div style="display:flex;gap:1rem;flex-wrap:wrap;font-size:11.5px;color:var(--t2)">
+        <span>Entregas: ${m.eDone}/${m.eTotal} concluidas</span>
+        <span>Tarefas: ${m.tDone}/${m.tTotal} concluidas</span>
+        <span>Pendentes: ${m.ePend + m.tPend}</span>
+      </div>
+    </div>`;
+
+  _NPS = -1;
+  const today = new Date().toISOString().slice(0,10);
+  document.getElementById('reviewForm').innerHTML = `
+    <div class="rv-section">
+      <h3>Dados da Review</h3>
+      <div class="frow">
+        <div class="field"><label>% Entregue (auto: ${m.pct}%)</label><input type="number" id="rvPct" min="0" max="100" value="${m.pct}"></div>
+        <div class="field"><label>Velocidade (pontos entregues)</label><input type="number" id="rvVel" min="0" value="${m.pts}"></div>
+        <div class="field"><label>Data da review</label><input type="date" id="rvData" value="${today}"></div>
+      </div>
+      <div class="field" style="margin-bottom:.85rem"><label>Entregas realizadas</label><textarea id="rvEnt" rows="3" placeholder="O que foi entregue nesta sprint?">${rvAutoEntregas(sid)}</textarea></div>
+      <div class="field" style="margin-bottom:.85rem"><label>Riscos e bloqueadores</label><textarea id="rvRisc" rows="3" placeholder="O que travou ou ameaçou a sprint?"></textarea></div>
+      <div class="field" style="margin-bottom:.85rem"><label>Observacoes gerais</label><textarea id="rvObs" rows="3" placeholder="Notas, lições aprendidas, pontos de atenção..."></textarea></div>
+      <div class="field"><label>Satisfacao da equipe (NPS 0-10)</label>
+        <div class="nps" id="rvNpsWrap">
+          ${Array.from({length:11},(_,i)=>`<button data-nps="${i}" onclick="selNPS(${i})">${i}</button>`).join('')}
+        </div>
+      </div>
+    </div>`;
+
+  renderRvItems(sid);
+  rvTab('form', document.querySelector('#rvTabs button:first-child'));
+}
+
+function rvAutoEntregas(sid){
+  const s = SP.find(x=>x.id===sid);
+  if(!s) return '';
+  return s.entregas
+    .map((e,i)=>({e,i,st:gES(sid,i)}))
+    .filter(x=>x.st==='concluido')
+    .map(x=>`- ${x.e.desc}`)
+    .join('\n');
+}
+
+const DISPOSICOES = [
+  {k:'concluido',    l:'Concluido'},
+  {k:'em_andamento', l:'Em andamento'},
+  {k:'pendente',     l:'Pendente'},
+  {k:'remanejado',   l:'Remanejar p/ proxima sprint'},
+  {k:'fora',         l:'Fora — aguarda repriorizacao'},
+];
+
+function renderRvItems(sid){
+  const s = SP.find(x=>x.id===sid);
+  if(!s) return;
+  const nextSid = sid < 12 ? sid + 1 : null;
+  const nextS = nextSid ? SP.find(x=>x.id===nextSid) : null;
+
+  const rows = s.entregas.map((e,i)=>{
+    const st = gES(sid,i);
+    const ex = exFor(e);
+    const titulo = e.desc.replace(/^[A-Z][0-9]+[a-z]?\s*[—-]?\s*/, '');
+    const code = (e.desc.match(/^[A-Z][0-9]+[a-z]?/)||[''])[0] || e.eixo;
+    const defaultDisp = st === 'concluido' ? 'concluido' : (st === 'em_andamento' ? 'em_andamento' : 'pendente');
+    return `<div class="rv-item" data-idx="${i}">
+      <span class="rv-eixo" style="background:${ex.bg};color:${ex.fg}">${code}</span>
+      <div class="rv-desc">${escapeHtml(titulo)}</div>
+      <span class="badge ${st}" style="font-size:10px">${statL(st)}</span>
+      <select class="rv-disp" data-idx="${i}" onchange="rvDispChange(this)">
+        ${DISPOSICOES.map(d=>`<option value="${d.k}" ${d.k===defaultDisp?'selected':''}>${d.l}</option>`).join('')}
+      </select>
+      <input class="rv-obs-input" data-idx="${i}" placeholder="Obs..." style="display:none">
+    </div>`;
+  }).join('');
+
+  document.getElementById('rvItemsPanel').innerHTML = `
+    <div class="rv-section">
+      <h3>Disposicao das entregas (${s.entregas.length} itens)</h3>
+      <div style="font-size:11px;color:var(--t3);margin-bottom:.6rem">
+        Defina o destino de cada entrega: concluida, remanejada para S${nextSid||'?'} ou fora do escopo.
+      </div>
+      <div class="rv-items">${rows}</div>
+    </div>`;
+}
+
+function rvDispChange(sel){
+  const row = sel.closest('.rv-item');
+  const obsInput = row.querySelector('.rv-obs-input');
+  if(sel.value === 'remanejado' || sel.value === 'fora'){
+    obsInput.style.display = '';
+    obsInput.placeholder = sel.value === 'remanejado' ? 'Motivo do remanejamento...' : 'Motivo da exclusão...';
+  } else {
+    obsInput.style.display = 'none';
+  }
+}
+
 function selNPS(n){
   _NPS = n;
   document.querySelectorAll('#rvNpsWrap button').forEach(b=>b.classList.toggle('on', +b.dataset.nps===n));
 }
+
 async function saveReview(){
-  const s = cs();
+  const sid = _rvSprint || AS;
+  const s = SP.find(x=>x.id===sid);
+  if(!s){ toast('Sprint invalida','err'); return; }
+
+  const m = rvSprintMetrics(sid);
   const payload = {
-    sprint_id: s.id,
-    percentual_entregue: parseInt(document.getElementById('rvPct').value) || null,
-    velocidade_pontos: parseInt(document.getElementById('rvVel').value) || null,
+    sprint_id: sid,
+    percentual_entregue: parseInt(document.getElementById('rvPct').value) || m.pct,
+    velocidade_pontos: parseInt(document.getElementById('rvVel').value) || m.pts,
     nps_equipe: _NPS >= 0 ? _NPS : null,
-    data_realizacao: document.getElementById('rvData').value || null,
+    data_realizacao: document.getElementById('rvData').value || new Date().toISOString().slice(0,10),
     entregas_realizadas: document.getElementById('rvEnt').value,
     riscos_bloqueadores: document.getElementById('rvRisc').value,
-    proximas_acoes: document.getElementById('rvProx').value,
+    proximas_acoes: '',
+    observacoes: document.getElementById('rvObs').value,
+    resumo_dashboard: {pct:m.pct, done:m.done, total:m.total, inProg:m.inProg, blocked:m.blocked, pts:m.pts, totalPts:m.totalPts, eDone:m.eDone, eTotal:m.eTotal, tDone:m.tDone, tTotal:m.tTotal},
+    criado_por: CP?.id || null,
   };
-  ss('loading','Salvando...');
-  const {error} = await db.from('sprint_reviews').upsert(payload, {onConflict:'sprint_id'});
-  if(error){ toast('Erro ao salvar review','err'); ss('err','Erro'); return; }
-  await loadAll(); ss('ok','Salvo'); toast('Review salva com sucesso');
-  logAudit({action:'review_save', entityType:'review', entityId:s.id, sprintId:s.id,
-    summary:`Review da Sprint ${s.id} (${s.m}) salva`});
+
+  ss('loading','Salvando review...');
+  const {data:rvData, error} = await db.from('sprint_reviews').insert(payload).select().single();
+  if(error){ toast('Erro ao salvar review: '+error.message,'err'); ss('err','Erro'); return; }
+
+  const reviewId = rvData.id;
+  const items = [];
+  document.querySelectorAll('#rvItemsPanel .rv-item').forEach(row=>{
+    const idx = parseInt(row.dataset.idx);
+    const disp = row.querySelector('.rv-disp').value;
+    const obs = row.querySelector('.rv-obs-input').value;
+    const nextSid = sid < 12 ? sid + 1 : null;
+    items.push({
+      review_id: reviewId,
+      sprint_id: sid,
+      entrega_idx: idx,
+      disposicao: disp,
+      destino_sprint: disp === 'remanejado' ? nextSid : null,
+      observacao: obs || null,
+    });
+  });
+
+  if(items.length){
+    const {error:e2} = await db.from('sprint_review_items').insert(items);
+    if(e2){ toast('Erro nos itens: '+e2.message,'err'); }
+  }
+
+  await loadAll(); ss('ok','Salvo'); toast('Review salva com sucesso!');
+  logAudit({action:'review_save', entityType:'review', entityId:sid, sprintId:sid,
+    summary:`Review da Sprint ${sid} (${s.m}) salva com ${items.length} itens`});
+  renderReview();
+}
+
+function renderReviewHist(){
+  const sid = _rvSprint || AS;
+  const reviews = RVD[sid] || [];
+  const panel = document.getElementById('rvHistPanel');
+
+  if(!reviews.length){
+    panel.innerHTML = `<div class="empty"><div class="ic">📋</div>Nenhuma review salva para esta sprint.<br>Preencha o formulario e salve a primeira review.</div>`;
+    return;
+  }
+
+  panel.innerHTML = `<div class="rv-hist">${reviews.map(r=>{
+    const autor = r.criado_por ? mBI(r.criado_por) : null;
+    const items = RVI[r.id] || [];
+    const dash = r.resumo_dashboard || {};
+    const concl = items.filter(i=>i.disposicao==='concluido').length;
+    const remanj = items.filter(i=>i.disposicao==='remanejado').length;
+    const fora = items.filter(i=>i.disposicao==='fora').length;
+    const emAnd = items.filter(i=>i.disposicao==='em_andamento').length;
+    const pend = items.filter(i=>i.disposicao==='pendente').length;
+
+    const s = SP.find(x=>x.id===sid);
+    const itemRows = items.map(it=>{
+      const e = s?.entregas[it.entrega_idx];
+      const desc = e ? e.desc.replace(/^[A-Z][0-9]+[a-z]?\s*[—-]?\s*/,'') : `Entrega #${it.entrega_idx}`;
+      const code = e ? ((e.desc.match(/^[A-Z][0-9]+[a-z]?/)||[''])[0]) : '';
+      const dispL = (DISPOSICOES.find(d=>d.k===it.disposicao)||{}).l || it.disposicao;
+      return `<div class="ri-row">
+        <span style="font-weight:600;min-width:35px">${code}</span>
+        <span style="flex:1">${escapeHtml(desc)}</span>
+        <span class="ri-disp ${it.disposicao}">${dispL}</span>
+        ${it.destino_sprint ? `<span style="font-size:10px;color:var(--t3)">→ S${it.destino_sprint}</span>` : ''}
+        ${it.observacao ? `<span style="font-size:10px;color:var(--t3);font-style:italic">${escapeHtml(it.observacao)}</span>` : ''}
+      </div>`;
+    }).join('');
+
+    return `<div class="rv-hist-card">
+      <div class="rv-hist-head">
+        <span class="rv-date">${r.data_realizacao || '—'}</span>
+        <span class="rv-by">${autor ? escapeHtml(autor.nome) : 'Desconhecido'}</span>
+      </div>
+      <div class="rv-hist-metrics">
+        <span>${dash.pct||r.percentual_entregue||0}% concluido</span>
+        <span>${r.velocidade_pontos||0} pts</span>
+        ${r.nps_equipe!=null ? `<span>NPS ${r.nps_equipe}</span>` : ''}
+        ${concl ? `<span style="color:var(--green)">✅ ${concl} concluidos</span>` : ''}
+        ${remanj ? `<span style="color:var(--amber)">↪ ${remanj} remanejados</span>` : ''}
+        ${fora ? `<span style="color:var(--red)">✗ ${fora} fora</span>` : ''}
+        ${emAnd ? `<span style="color:var(--amber)">⚡ ${emAnd} em andamento</span>` : ''}
+        ${pend ? `<span>⏳ ${pend} pendentes</span>` : ''}
+      </div>
+      <div class="rv-hist-body">
+        ${r.entregas_realizadas ? `<p><strong>Entregas realizadas:</strong> ${escapeHtml(r.entregas_realizadas).replace(/\n/g,'<br>')}</p>` : ''}
+        ${r.riscos_bloqueadores ? `<p><strong>Riscos/bloqueadores:</strong> ${escapeHtml(r.riscos_bloqueadores).replace(/\n/g,'<br>')}</p>` : ''}
+        ${r.observacoes ? `<p><strong>Observacoes:</strong> ${escapeHtml(r.observacoes).replace(/\n/g,'<br>')}</p>` : ''}
+      </div>
+      ${items.length ? `<div class="rv-hist-items"><div style="font-weight:700;font-size:11px;margin-bottom:4px">Disposicao das entregas:</div>${itemRows}</div>` : ''}
+    </div>`;
+  }).join('')}</div>`;
 }
 
 /* ============================================================
