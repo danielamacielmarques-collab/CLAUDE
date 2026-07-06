@@ -517,6 +517,43 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
 .plan-header strong{font-size:13px;font-weight:800}
 .plan-header .plan-count{font-size:11px;background:var(--acc-bg);color:var(--accent);padding:2px 8px;border-radius:10px;font-weight:700}
 
+/* plano de ação */
+.pa-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:.7rem;margin-bottom:1.2rem}
+.pa-om{background:var(--bg2);border:1px solid var(--border);border-radius:12px;margin-bottom:1rem;overflow:hidden}
+.pa-om-head{display:flex;align-items:center;gap:10px;padding:.85rem 1rem;cursor:pointer;user-select:none}
+.pa-om-head:hover{background:var(--bg3)}
+.pa-om-head .pa-om-num{width:34px;height:34px;border-radius:9px;background:var(--acc-bg);color:var(--accent);font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.pa-om-head .pa-om-tit{flex:1;font-size:13px;font-weight:700;line-height:1.35}
+.pa-om-head .pa-om-meta{font-size:10.5px;color:var(--t3);font-weight:600;margin-top:2px}
+.pa-om-head .pa-caret{color:var(--t3);font-size:12px;transition:transform .15s}
+.pa-om.open .pa-caret{transform:rotate(90deg)}
+.pa-om-body{display:none;padding:0 .75rem .75rem}
+.pa-om.open .pa-om-body{display:block}
+.pa-sub{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:.7rem .85rem;margin-top:.55rem}
+.pa-sub-top{display:flex;align-items:flex-start;gap:8px}
+.pa-sub-code{font-size:11px;font-weight:800;color:var(--accent);flex-shrink:0;min-width:32px}
+.pa-sub-desc{flex:1;font-size:12.5px;font-weight:600;line-height:1.4}
+.pa-sub-meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px;font-size:10.5px;color:var(--t3)}
+.pa-sub-meta b{color:var(--t2);font-weight:700}
+.pa-sub-actions{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:.6rem;padding-top:.6rem;border-top:1px solid var(--border)}
+.pa-sub-actions select{font-size:11px;padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg1);color:var(--t1);font-family:inherit;cursor:pointer}
+.pa-vinc{font-size:11px;font-weight:600;padding:4px 10px;border-radius:8px;display:inline-flex;align-items:center;gap:5px}
+.pa-vinc.on{background:var(--g-bg);color:var(--green)}
+.pa-vinc.off{background:var(--bg4);color:var(--t3)}
+.pa-badge{font-size:10px;font-weight:700;padding:2px 9px;border-radius:12px}
+.pa-badge.nao{background:var(--bg4);color:var(--t2)}
+.pa-badge.and{background:var(--a-bg);color:var(--amber)}
+.pa-badge.ok{background:var(--g-bg);color:var(--green)}
+.pa-badge.atraso{background:var(--r-bg);color:var(--red)}
+.pa-btn{font-size:11px;font-weight:600;padding:4px 10px;border-radius:7px;border:1px solid var(--border);background:var(--bg1);color:var(--t1);cursor:pointer;font-family:inherit}
+.pa-btn:hover{border-color:var(--accent);color:var(--accent)}
+.pa-btn.primary{background:var(--accent);color:#fff;border-color:transparent}
+.pa-link-targets{max-height:280px;overflow-y:auto;border:1px solid var(--border);border-radius:10px;padding:.5rem}
+.pa-link-grouplbl{font-size:10px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin:2px 0 4px}
+.pa-link-opt{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:500}
+.pa-link-opt:hover{background:var(--bg3)}
+.pa-link-opt input{accent-color:var(--accent)}
+
 /* utils */
 .row{display:flex;align-items:center;gap:8px}
 .gap-sm{gap:6px}
@@ -647,6 +684,7 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
       <button class="nb" data-v="calendar" onclick="nav('calendar',this)"><span class="ic">📅</span>Calendário</button>
       <button class="nb" data-v="team"     onclick="nav('team',this)"><span class="ic">👥</span>Equipe</button>
       <button class="nb" data-v="reviews"  onclick="nav('reviews',this)"><span class="ic">📈</span>Reviews</button>
+      <button class="nb" data-v="planoacao" onclick="nav('planoacao',this)"><span class="ic">🎯</span>Plano de Ação</button>
       <button class="nb" data-v="audit"    onclick="nav('audit',this)" id="navAudit" style="display:none"><span class="ic">🔍</span>Governança <span style="background:var(--orange);color:#fff;font-size:9px;padding:1px 6px;border-radius:20px;margin-left:auto;font-weight:800">ADMIN</span></button>
       <button class="nb" data-v="users"    onclick="nav('users',this)" id="navUsers" style="display:none"><span class="ic">⚙️</span>Usuários <span style="background:var(--orange);color:#fff;font-size:9px;padding:1px 6px;border-radius:20px;margin-left:auto;font-weight:800">ADMIN</span></button>
       <button class="nb" data-v="import"  onclick="nav('import',this)" id="navImport" style="display:none"><span class="ic">📥</span>Importar PA <span style="background:var(--orange);color:#fff;font-size:9px;padding:1px 6px;border-radius:20px;margin-left:auto;font-weight:800">ADMIN</span></button>
@@ -794,6 +832,27 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
           <div id="rvItemsPanel"></div>
         </div>
         <div id="rvHistPanel" style="display:none"></div>
+      </section>
+
+      <!-- PLANO DE AÇÃO COBEN (Gestão de Benefício) -->
+      <section class="view" id="vPlanoacao">
+        <div class="vh">
+          <div><h1>🎯 Plano de Ação — Gestão de Benefício</h1><div class="vh-sub">Oportunidades de Melhoria da COBEN · vincule às sprints ou crie tarefas</div></div>
+          <div class="vh-grow"></div>
+          <select class="sel" id="paFilterStatus" onchange="renderPlanoAcao()">
+            <option value="">Todos os status</option>
+            <option value="Não iniciado">Não iniciado</option>
+            <option value="Em andamento">Em andamento</option>
+            <option value="Concluído">Concluído</option>
+          </select>
+          <select class="sel" id="paFilterVinc" onchange="renderPlanoAcao()">
+            <option value="">Vínculo: todos</option>
+            <option value="sim">Já vinculados</option>
+            <option value="nao">Sem vínculo</option>
+          </select>
+        </div>
+        <div class="pa-summary" id="paSummary"></div>
+        <div id="paList"></div>
       </section>
 
       <!-- AUDIT / GOVERNANÇA -->
@@ -1072,6 +1131,30 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
   </div>
 </div>
 
+<!-- ============ MODAL VINCULAR PLANO DE AÇÃO ============ -->
+<div class="mbg" id="paLinkModal">
+  <div class="modal" style="max-width:560px">
+    <div class="mhead"><h2>Vincular subação a uma tarefa/entrega</h2><button class="mclose" onclick="closePaLink()">✕</button></div>
+    <div class="mbody">
+      <div style="background:var(--bg3);border-radius:10px;padding:.7rem .85rem;margin-bottom:1rem">
+        <div id="paLinkTitle" style="font-size:12.5px;font-weight:700;line-height:1.4"></div>
+        <div id="paLinkInfo" style="font-size:11px;color:var(--t3);margin-top:4px"></div>
+      </div>
+      <div class="field" style="margin-bottom:.85rem"><label>Sprint de destino (sugerida pela data de entrega)</label>
+        <select class="sel" id="paLinkSprint" onchange="renderPaLinkTargets()" style="width:100%"></select>
+      </div>
+      <div class="field"><label>Escolha a entrega ou tarefa correspondente</label>
+        <div id="paLinkTargets" class="pa-link-targets"></div>
+      </div>
+    </div>
+    <div class="mfoot">
+      <div style="flex:1"></div>
+      <button class="btn" onclick="closePaLink()">Cancelar</button>
+      <button class="btn primary" onclick="confirmPaLink()">🔗 Vincular</button>
+    </div>
+  </div>
+</div>
+
 <!-- ============ MODAL ENTREGA ============ -->
 <div class="mbg" id="entregaModal">
   <div class="modal" style="max-width:820px">
@@ -1295,6 +1378,74 @@ const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
 const db = supabase.createClient(SUPA_URL, SUPA_KEY, { auth: { persistSession: true, autoRefreshToken: true }});
 
 /* ============================================================
+   PLANO DE AÇÃO COBEN — Gestão de Benefício (catálogo fixo, 62 subações)
+============================================================ */
+const PA_GB = [
+{om:1,omt:`Baixo nível de automação no recebimento e tratamento de requerimentos físicos`,acao:`1. Fluxo de Peculio por Morte`,sub:`1.1 Realizar um amplo diagnóstico do fluxo, interações existentes e requerimentos.`,resp:`COBEN COGEP`,fim:`2025-10-31`,st:`Concluído`,obs:``},
+{om:1,omt:`Baixo nível de automação no recebimento e tratamento de requerimentos físicos`,acao:`1. Fluxo de Peculio por Morte`,sub:`1.2 Validar o fluxo - redesenhando e aplicando as melhorias necessárias.`,resp:`COBEN COGEP`,fim:`2025-12-02`,st:`Concluído`,obs:``},
+{om:1,omt:`Baixo nível de automação no recebimento e tratamento de requerimentos físicos`,acao:`1. Fluxo de Peculio por Morte`,sub:`1.3 Entregar a aplicação para testes e treinamentos no fluxo desenhado.`,resp:`COBEN COGEP`,fim:`2025-12-05`,st:`Concluído`,obs:``},
+{om:1,omt:`Baixo nível de automação no recebimento e tratamento de requerimentos físicos`,acao:`1. Fluxo de Peculio por Morte`,sub:`1.4 Realizar ajustes, novos testes e validar a aplicação no fluxo`,resp:`COBEN COGEP`,fim:`2025-12-27`,st:`Em andamento`,obs:``},
+{om:1,omt:`Baixo nível de automação no recebimento e tratamento de requerimentos físicos`,acao:`1. Fluxo de Peculio por Morte`,sub:`1.5 Disponibilizar o fluxo em produção e validação pela COBEN.`,resp:`COBEN COGEP`,fim:`2025-01-10`,st:`Em andamento`,obs:``},
+{om:1,omt:`Baixo nível de automação no recebimento e tratamento de requerimentos físicos`,acao:`2. Fluxo de Aposentadoria por Invalidez, Antecipada e Programada`,sub:`2.1 Realizar um amplo diagnóstico do fluxo, interações existentes e requerimentos.`,resp:`COBEN COGEP`,fim:`2026-02-03`,st:`Não iniciado`,obs:`Tratativa com a COGEP para contratação de colsutória da Soft Expert para construção do fluxo de pecúlio no FUNCEF Suíte.`},
+{om:1,omt:`Baixo nível de automação no recebimento e tratamento de requerimentos físicos`,acao:`2. Fluxo de Aposentadoria por Invalidez, Antecipada e Programada`,sub:`2.2 Validar o fluxo - redesenhando e aplicando as melhorias necessárias.`,resp:`COBEN COGEP`,fim:`2026-02-20`,st:`Não iniciado`,obs:`Tratativa com a COGEP para contratação de colsutória da Soft Expert para construção do fluxo de pecúlio no FUNCEF Suíte.`},
+{om:1,omt:`Baixo nível de automação no recebimento e tratamento de requerimentos físicos`,acao:`2. Fluxo de Aposentadoria por Invalidez, Antecipada e Programada`,sub:`2.3 Entregar a aplicação para testes e treinamentos no fluxo desenhado.`,resp:`COBEN COGEP`,fim:`2026-03-16`,st:`Não iniciado`,obs:`Tratativa com a COGEP para contratação de colsutória da Soft Expert para construção do fluxo de pecúlio no FUNCEF Suíte.`},
+{om:1,omt:`Baixo nível de automação no recebimento e tratamento de requerimentos físicos`,acao:`2. Fluxo de Aposentadoria por Invalidez, Antecipada e Programada`,sub:`2.4 Realizar ajustes, novos testes e validar a aplicação no fluxo`,resp:`COBEN COGEP`,fim:`2026-03-26`,st:`Não iniciado`,obs:`Tratativa com a COGEP para contratação de colsutória da Soft Expert para construção do fluxo de pecúlio no FUNCEF Suíte.`},
+{om:1,omt:`Baixo nível de automação no recebimento e tratamento de requerimentos físicos`,acao:`2. Fluxo de Aposentadoria por Invalidez, Antecipada e Programada`,sub:`2.5 Disponibilizar o fluxo em produção e validação pela COBEN.`,resp:`COBEN COGEP`,fim:`2026-06-12`,st:`Não iniciado`,obs:`Tratativa com a COGEP para contratação de colsutória da Soft Expert para construção do fluxo de pecúlio no FUNCEF Suíte.`},
+{om:1,omt:`Baixo nível de automação no recebimento e tratamento de requerimentos físicos`,acao:`3. Revisar a rotina de indeferimentos de requerimentos de benefícios & Implementar checklist detalhando a documentação e procedimentos necessários para cada tipo de processo.`,sub:`3.1 Estabelecer uma análise sobre os pré-requisitos para elegibilidade aos benefícios previdenciários = alinhamento entre COBEN e COCAD.`,resp:`COBEN COCAD COGEP`,fim:`2026-03-02`,st:`Não iniciado`,obs:`#N/A`},
+{om:1,omt:`Baixo nível de automação no recebimento e tratamento de requerimentos físicos`,acao:`3. Revisar a rotina de indeferimentos de requerimentos de benefícios & Implementar checklist detalhando a documentação e procedimentos necessários para cada tipo de processo.`,sub:`3.2 Levantar os motivos de indeferimentos, estabelecer checklist de conformidade e análise do requerimentos de benefícios.`,resp:`COBEN COCAD COGEP`,fim:`2026-03-20`,st:`Não iniciado`,obs:`#N/A`},
+{om:1,omt:`Baixo nível de automação no recebimento e tratamento de requerimentos físicos`,acao:`3. Revisar a rotina de indeferimentos de requerimentos de benefícios & Implementar checklist detalhando a documentação e procedimentos necessários para cada tipo de processo.`,sub:`3.3 Estabeler as exigências, determinar prazos e padronizar mensagens e forma de comunicar ao participante.`,resp:`COBEN COCAD COGEP`,fim:`2026-03-27`,st:`Não iniciado`,obs:`#N/A`},
+{om:1,omt:`Baixo nível de automação no recebimento e tratamento de requerimentos físicos`,acao:`3. Revisar a rotina de indeferimentos de requerimentos de benefícios & Implementar checklist detalhando a documentação e procedimentos necessários para cada tipo de processo.`,sub:`3.4 Estabelecer os critéios de encaminhamentos à COBEN, treinar e qualificar as equipes para o processo de indeferimento. Estabelecer rotinas e padrões das respostas e nível de criticidade para o indeferimento.`,resp:`COBEN COCAD COGEP`,fim:`2026-04-10`,st:`Não iniciado`,obs:`#N/A`},
+{om:1,omt:`Baixo nível de automação no recebimento e tratamento de requerimentos físicos`,acao:`3. Revisar a rotina de indeferimentos de requerimentos de benefícios & Implementar checklist detalhando a documentação e procedimentos necessários para cada tipo de processo.`,sub:`3.5 Implementar um CHECKLIST, sobre o rol de documentos e procedimentos no Sistema de protocolos. Normatizar a rotina`,resp:`COBEN COCAD COGEP`,fim:`2026-12-18`,st:`Não iniciado`,obs:`#N/A`},
+{om:2,omt:`Falta de integração entre sistemas de protocolo, gestão documental e concessão`,acao:`1. Integração entre sistema de protocolo (CRM), FUNCEF-Suíte, Autoatendimento e Sistema Previdenciário`,sub:`1.1 Estabelecer um diagnóstico sobre o fluxo operacional, as ferramentas disponíveis, suas funcionalidades e as interações que permitam alinhar as áreas envolvidas no fluxo.`,resp:`CORAP COGEP CONAP COBEN`,fim:`2026-06-17`,st:`Não iniciado`,obs:``},
+{om:2,omt:`Falta de integração entre sistemas de protocolo, gestão documental e concessão`,acao:`1. Integração entre sistema de protocolo (CRM), FUNCEF-Suíte, Autoatendimento e Sistema Previdenciário`,sub:`1.2 Desenvolver a estratégia que permita integrar dados, formato, conteúdos e velocidade necessárias ao relacionamento com o Participante.`,resp:`CORAP COGEP CONAP COBEN`,fim:`2026-09-30`,st:`Não iniciado`,obs:``},
+{om:2,omt:`Falta de integração entre sistemas de protocolo, gestão documental e concessão`,acao:`1. Integração entre sistema de protocolo (CRM), FUNCEF-Suíte, Autoatendimento e Sistema Previdenciário`,sub:`1.3 Desenvolver funcionalidades de integração, API´s ou outra forma ou ferramenta.`,resp:`CORAP COGEP CONAP COBEN`,fim:`2027-02-02`,st:`Não iniciado`,obs:``},
+{om:2,omt:`Falta de integração entre sistemas de protocolo, gestão documental e concessão`,acao:`1. Integração entre sistema de protocolo (CRM), FUNCEF-Suíte, Autoatendimento e Sistema Previdenciário`,sub:`1.4 Disponibilizar as funcionalidades, testar e validar seus atributos e reduzir a quantidade de acessos e tempo perdido nas funcionalidades.`,resp:`CORAP COGEP CONAP COBEN`,fim:`2027-04-30`,st:`Não iniciado`,obs:``},
+{om:2,omt:`Falta de integração entre sistemas de protocolo, gestão documental e concessão`,acao:`1. Integração entre sistema de protocolo (CRM), FUNCEF-Suíte, Autoatendimento e Sistema Previdenciário`,sub:`1.5 Disponibilizar o fluxo em produção e validação pelas áreas usuárias - COBEN, CORAP, COCAD, COARI, COPAB, COGAT e COPREV.`,resp:`CORAP COGEP CONAP COBEN`,fim:`2027-12-31`,st:`Não iniciado`,obs:``},
+{om:2,omt:`Falta de integração entre sistemas de protocolo, gestão documental e concessão`,acao:`2. Criação de portal para gestão documental em um único repositório`,sub:`2.1 Estabelecer um repositório unificado, definir dados, layout, qualificar a criticidade e estabelecer os controles.`,resp:`COBEN COGEP`,fim:``,st:`Não iniciado`,obs:`Conversa prévia realizada com a COGEP.`},
+{om:2,omt:`Falta de integração entre sistemas de protocolo, gestão documental e concessão`,acao:`2. Criação de portal para gestão documental em um único repositório`,sub:`2.2 Desenvolver o padrão de conformidade, estabelecendo padrões de campos, nomes, tipo de acesso, rastreabilidade, pontos de evidenciação, permissões para inclusão, exclusão, alteração e rastreabilidade dos acessos.`,resp:`COBEN COGEP`,fim:``,st:`Não iniciado`,obs:`COGEP fará uma análise de impacto para verificar a viabilidade de implementação.`},
+{om:2,omt:`Falta de integração entre sistemas de protocolo, gestão documental e concessão`,acao:`2. Criação de portal para gestão documental em um único repositório`,sub:`2.3 Validar as informações, tratar as inconsistências, verificações das funcionalidades e regramento para as possibilidades de exclusão de documentos.`,resp:`COBEN COGEP`,fim:``,st:`Não iniciado`,obs:`COGEP fará uma análise de impacto para verificar a viabilidade de implementação.`},
+{om:2,omt:`Falta de integração entre sistemas de protocolo, gestão documental e concessão`,acao:`2. Criação de portal para gestão documental em um único repositório`,sub:`2.4 Disponibilizar o Portal, validar testes e migrar bases já existentes. Estabelecer padrões e normas para a gestão de documentos.`,resp:`COBEN COGEP`,fim:`2027-12-31`,st:`Não iniciado`,obs:`COGEP fará uma análise de impacto para verificar a viabilidade de implementação.`},
+{om:4,omt:`Ausência de painel de indicadores de desempenho do processo`,acao:`1. Criação de paineis de dados gerenciais`,sub:`1.1 Desenvolver um Painel de Concessão, pensando fases, áreas, pessoas e avaliação dos prazos estabelecidos.`,resp:`COBEN`,fim:`2026-02-25`,st:`Não iniciado`,obs:`Será iniciado em conformidade com o calendários de projetos do núcleo de dados, de acordo com priorização das sprints previstas.`},
+{om:4,omt:`Ausência de painel de indicadores de desempenho do processo`,acao:`1. Criação de paineis de dados gerenciais`,sub:`1.2 Estabelecer a base primária de controles, considerando responsáveis, prazos, controles, qualidade e assertividade do processo. Validar com os gestores.`,resp:`COBEN`,fim:`2026-03-25`,st:`Não iniciado`,obs:`Será iniciado em conformidade com o calendários de projetos do núcleo de dados, de acordo com priorização das sprints previstas.`},
+{om:4,omt:`Ausência de painel de indicadores de desempenho do processo`,acao:`1. Criação de paineis de dados gerenciais`,sub:`1.3 Estabelecer os indicadores de aferição, considerando 2 critérios: prazos dos normativos e Ambição da DIBEN (Incluir o benefício até a folha posterior a saída do empregado). Estabelecer um bookinf de indicadores - com metodologia, fontes determinadas, métricas de alcance e melhorias. Validar com as áreas.`,resp:`COBEN`,fim:`2026-04-25`,st:`Não iniciado`,obs:`Será iniciado em conformidade com o calendários de projetos do núcleo de dados, de acordo com priorização das sprints previstas.`},
+{om:4,omt:`Ausência de painel de indicadores de desempenho do processo`,acao:`1. Criação de paineis de dados gerenciais`,sub:`1.4 Disponibilizar o Painel de Concessão, analisar sua efetividade e aplicar os testes de validação.`,resp:`COBEN`,fim:`2026-05-25`,st:`Não iniciado`,obs:`Será iniciado em conformidade com o calendários de projetos do núcleo de dados, de acordo com priorização das sprints previstas.`},
+{om:6,omt:`Dependência de múltiplas validações manuais entre áreas`,acao:`1. Implantação do Sistema Previdenciário`,sub:`1.1 Determinar os fluxos, procedimentos e documentos necessários ao processo de concessão.`,resp:`COBEN`,fim:``,st:`Não iniciado`,obs:`Aguardando o ínicio do das blueprints do módulo de concessão.`},
+{om:6,omt:`Dependência de múltiplas validações manuais entre áreas`,acao:`1. Implantação do Sistema Previdenciário`,sub:`1.2 Especificar as funcionalidades, regras de negócios, pontos de controle e sistemas operacionalizados.`,resp:`COBEN`,fim:``,st:`Não iniciado`,obs:`Aguardando o ínicio do das blueprints do módulo de concessão.`},
+{om:6,omt:`Dependência de múltiplas validações manuais entre áreas`,acao:`1. Implantação do Sistema Previdenciário`,sub:`1.3 Desenvolver testes, ajustes e um CHECKLIST a ser aplicado ao processo de concessão.`,resp:`COBEN`,fim:``,st:`Não iniciado`,obs:`Aguardando o ínicio do das blueprints do módulo de concessão.`},
+{om:6,omt:`Dependência de múltiplas validações manuais entre áreas`,acao:`1. Implantação do Sistema Previdenciário`,sub:`1.4 Determinar padrões de substituição das atividades manualizadas e treinar as equipes para validar, controlar e integrar os dados tratados.`,resp:`COBEN`,fim:``,st:`Não iniciado`,obs:`Aguardando o ínicio do das blueprints do módulo de concessão.`},
+{om:6,omt:`Dependência de múltiplas validações manuais entre áreas`,acao:`1. Implantação do Sistema Previdenciário`,sub:`1.5 Estabelecer padrões de substituição das funcionalidades e controles sobre as etapas digitalizadas de controles.`,resp:`COBEN`,fim:`2027-09-30`,st:`Não iniciado`,obs:`Aguardando o ínicio do das blueprints do módulo de concessão.`},
+{om:6,omt:`Dependência de múltiplas validações manuais entre áreas`,acao:`2. Estabelecer uma funcionalidade para registro e tratamento de Erros no NOVO Sistema Previdenciário`,sub:`2.1 Avaliar os tipos de erros sistêmicos, padronizar as informações disponibilizadas entre as áreas e alinhar o entendimento sobre a descrição dos erros.`,resp:`COBEN`,fim:``,st:`Não iniciado`,obs:`Aguardando o ínicio do das blueprints do módulo de concessão.`},
+{om:6,omt:`Dependência de múltiplas validações manuais entre áreas`,acao:`2. Estabelecer uma funcionalidade para registro e tratamento de Erros no NOVO Sistema Previdenciário`,sub:`2.2 Estabelecer padrões de entendimento e um repositório para que os erros sistemáticos identificados sejam tratados, em suas causas raiz.`,resp:`COBEN`,fim:``,st:`Não iniciado`,obs:`Aguardando o ínicio do das blueprints do módulo de concessão.`},
+{om:6,omt:`Dependência de múltiplas validações manuais entre áreas`,acao:`2. Estabelecer uma funcionalidade para registro e tratamento de Erros no NOVO Sistema Previdenciário`,sub:`2.3 Implementar mensagens de erros sistemicos, acompanhar as ocorrências e bimestralmente tratar as causas raiz.`,resp:`COBEN`,fim:`2027-09-30`,st:`Não iniciado`,obs:`Aguardando o ínicio do das blueprints do módulo de concessão.`},
+{om:6,omt:`Dependência de múltiplas validações manuais entre áreas`,acao:`2. Estabelecer uma funcionalidade para registro e tratamento de Erros no NOVO Sistema Previdenciário`,sub:`2.4 Estabelecer um registro de incidentes que permita historiar as ocorrências no sistema.`,resp:`COBEN`,fim:`2027-11-01`,st:`Não iniciado`,obs:`Aguardando o ínicio do das blueprints do módulo de concessão.`},
+{om:6,omt:`Dependência de múltiplas validações manuais entre áreas`,acao:`2. Estabelecer uma funcionalidade para registro e tratamento de Erros no NOVO Sistema Previdenciário`,sub:`2.5 Formar um banco de erros e de tratamento das causas, permitindo construir melhorias no sistema.`,resp:`COBEN`,fim:`2027-12-31`,st:`Não iniciado`,obs:`Aguardando o ínicio do das blueprints do módulo de concessão.`},
+{om:7,omt:`Necessidade de padronização das tratativas com participantes em canais digitais.`,acao:`1. Estabelecer uma revisão sobre os canais, processos e comunicados relacionados a rotina de atendimento ao participante, inclusive envolvendo a COSOC.`,sub:`1.1. Reavaliar os canais, processos e comunicados aos Participantes. Mapear as ocorrências de divergências, nas tratativas com os participantes, nos últimos seis meses e propor uma melhoria em todos os comunicados sobre a concessão de benefícios.`,resp:`COBEN, COARI, COCAD, CODEP, COSOC e CORAP.`,fim:`2026-02-25`,st:`Não iniciado`,obs:`Reunião com a CORAP realizada para elvantamento de demandas e avaliação de comunicados que saem da COBEN.`},
+{om:7,omt:`Necessidade de padronização das tratativas com participantes em canais digitais.`,acao:`1. Estabelecer uma revisão sobre os canais, processos e comunicados relacionados a rotina de atendimento ao participante, inclusive envolvendo a COSOC.`,sub:`1.2. Verificar a comunicação, específica das áreas. As tipologias dos comunicados e padronizar com a COSOC em conjunto com a CORAP, que já mantém uma rotina de revisão e correção das matéria para publicaçãoa.`,resp:`COBEN, COARI, COCAD, CODEP, COSOC e CORAP.`,fim:`2026-03-25`,st:`Não iniciado`,obs:``},
+{om:7,omt:`Necessidade de padronização das tratativas com participantes em canais digitais.`,acao:`1. Estabelecer uma revisão sobre os canais, processos e comunicados relacionados a rotina de atendimento ao participante, inclusive envolvendo a COSOC.`,sub:`1.3. Estabelecer uma comunicação direta com o participante para os casos em que a inclusão ou exclusão de valores seja maior que 10% do seu benefício.`,resp:`COBEN, COARI, COCAD, CODEP, COSOC e CORAP.`,fim:`2026-03-30`,st:`Não iniciado`,obs:``},
+{om:7,omt:`Necessidade de padronização das tratativas com participantes em canais digitais.`,acao:`1. Estabelecer uma revisão sobre os canais, processos e comunicados relacionados a rotina de atendimento ao participante, inclusive envolvendo a COSOC.`,sub:`1.4. Padronizar a informação sobre comunicados da COSOC que envolvam benefícios ao participante.`,resp:`COBEN, COARI, COCAD, CODEP, COSOC e CORAP.`,fim:`2026-03-25`,st:`Não iniciado`,obs:``},
+{om:8,omt:`Falta de visão integrada do processo de concessão de benefícios.`,acao:`1. Workshop do processo de concessão de ponta a ponta.`,sub:`1.1 Alinhar o conhecimento das áreas COBEN, CORAP, CODEP, COARI, COCAD e COGAT.`,resp:`COBEN`,fim:`2026-01-30`,st:`Não iniciado`,obs:``},
+{om:8,omt:`Falta de visão integrada do processo de concessão de benefícios.`,acao:`1. Workshop do processo de concessão de ponta a ponta.`,sub:`1.2 Determinar os temas, as necessidades de formação e avaliar as capacidades internas de formação.`,resp:`COBEN`,fim:`2026-03-30`,st:`Não iniciado`,obs:``},
+{om:8,omt:`Falta de visão integrada do processo de concessão de benefícios.`,acao:`1. Workshop do processo de concessão de ponta a ponta.`,sub:`1.3 Desenovlver a metodologia, as fases de aplicação, as contratações necessárias (exppertise ou operacionais) e desenvolver a comunicação do calendários acordado entre as áreas.`,resp:`COBEN`,fim:`2026-05-29`,st:`Não iniciado`,obs:``},
+{om:8,omt:`Falta de visão integrada do processo de concessão de benefícios.`,acao:`1. Workshop do processo de concessão de ponta a ponta.`,sub:`1.4 workshop dos empregados envolvidos nas etapas do processo de concessão, ("mão na massa").`,resp:`COBEN`,fim:`2026-06-18`,st:`Não iniciado`,obs:``},
+{om:8,omt:`Falta de visão integrada do processo de concessão de benefícios.`,acao:`1. Workshop do processo de concessão de ponta a ponta.`,sub:`1.5 Avaliar e mensurar o resultado do Workshop, a ser aplicada aos participantes do Workshop.`,resp:`COBEN`,fim:`2026-06-30`,st:`Não iniciado`,obs:``},
+{om:8,omt:`Falta de visão integrada do processo de concessão de benefícios.`,acao:`2. Treinamentos continuos para atualização das informações`,sub:`2.1 Elaborar um plano de treinamento anual, baseado em uma trilha de conhecimento, discutido entre as áreas: COBEN, CORAP e COCAD.`,resp:`COBEN`,fim:`2026-03-20`,st:`Não iniciado`,obs:``},
+{om:8,omt:`Falta de visão integrada do processo de concessão de benefícios.`,acao:`2. Treinamentos continuos para atualização das informações`,sub:`2.2 Estabelecer as necessidades de treinamento interno, a contratar cursos in-company e a abertura de temas complementares.`,resp:`COBEN`,fim:`2026-04-30`,st:`Não iniciado`,obs:``},
+{om:8,omt:`Falta de visão integrada do processo de concessão de benefícios.`,acao:`2. Treinamentos continuos para atualização das informações`,sub:`2.3 Avaliar os processos formativos, a participação dos trinandos e a tomada de conhecimento ao final de cada etapa da jornada.`,resp:`COBEN`,fim:`2026-12-31`,st:`Não iniciado`,obs:``},
+{om:8,omt:`Falta de visão integrada do processo de concessão de benefícios.`,acao:`2. Treinamentos continuos para atualização das informações`,sub:`2.4 Estabelecer passagens de ciclos e criar modelo para crescimento dos empregados das áreas.`,resp:`COBEN`,fim:`2026-08-30`,st:`Não iniciado`,obs:``},
+{om:8,omt:`Falta de visão integrada do processo de concessão de benefícios.`,acao:`3. Fazer rodas de conversas para troca de ideias e experiências.`,sub:`3.1 Estabelecer Rodas bimestrais de conversas com os empregados das áreas, envolvendo as ocorrências vivenciadas, os aprendizados e como aplicar melhorias as processos.`,resp:`COBEN`,fim:`2026-01-15`,st:`Não iniciado`,obs:``},
+{om:8,omt:`Falta de visão integrada do processo de concessão de benefícios.`,acao:`3. Fazer rodas de conversas para troca de ideias e experiências.`,sub:`3.2 Estabelecer os temas centrais: Novo Sistema Previdenciário, Incorporação do REB no Novo Plano e Escuta ativa do Participante.`,resp:`COBEN`,fim:`2026-01-25`,st:`Não iniciado`,obs:``},
+{om:8,omt:`Falta de visão integrada do processo de concessão de benefícios.`,acao:`3. Fazer rodas de conversas para troca de ideias e experiências.`,sub:`3.3 Avaliar as necessidades de formulação, interação entre as áreas Cadastro, Relacionamento, Concessão e Folha de Pagamento.`,resp:`COBEN`,fim:`2026-01-15`,st:`Não iniciado`,obs:``},
+{om:8,omt:`Falta de visão integrada do processo de concessão de benefícios.`,acao:`3. Fazer rodas de conversas para troca de ideias e experiências.`,sub:`3.4 Avaliar as temáticas debatidas.`,resp:`COBEN`,fim:`2026-12-31`,st:`Não iniciado`,obs:``},
+{om:12,omt:`Criar/aprimorar simulador com opção clara de tributação para os pensionistas e assistidos.`,acao:`1. Otimização do simulador de cálculos de benefícios previdenciários e opção de regime de tributação para pensionistas.`,sub:`1.1 Estabelecer a revisão do processo de demonstração do custo previdenciário ao beneficiário (opção pelo regime de tributação) de pensão e aos assistidos. (A estrutura, as funcionalidades e a inclusão no autoatendimento para alteração do regime de tributação estão em fase de homologação, em outra demanda, com prazo de conclusão em 30/01/2026).`,resp:`COCAD CORAP COBEN CONAP`,fim:`2026-01-30`,st:`Não iniciado`,obs:`O projeto está sob a responsabilidade da COCAD/COARI. A funcionalidade está em homologação pela COCAD para liberação e validação da COBEN. Essa etapa é parte integrante do projeto do simulador para assistidos. Os novos pensionistas não estavam definidos no escopo inicial, e foram incluidos posteriormente. O prazo está em fase de repactuação.`},
+{om:12,omt:`Criar/aprimorar simulador com opção clara de tributação para os pensionistas e assistidos.`,acao:`1. Otimização do simulador de cálculos de benefícios previdenciários e opção de regime de tributação para pensionistas.`,sub:`1.2 Substituir o formulário existente, estabelecendo a digitalização do processo e adequação da etapa de opção para ocorrer online e, somente, após a concessão do benefício dentor do autoatendimento.`,resp:`COCAD CORAP COBEN CONAP`,fim:`2026-04-30`,st:`Não iniciado`,obs:`#N/A`},
+{om:12,omt:`Criar/aprimorar simulador com opção clara de tributação para os pensionistas e assistidos.`,acao:`1. Otimização do simulador de cálculos de benefícios previdenciários e opção de regime de tributação para pensionistas.`,sub:`1.3 Desenvolver as funcionalidades, estabelecer testes e evidenciações. Treinar os atendentes, analistas e concessores para os ajustes propostos. Validar os cálculos do benefício e prover uma comunicação assertiva para com os pensionistas, visando o seu acesso ao autoatendimento.`,resp:`COCAD CORAP COBEN CONAP`,fim:`2026-05-30`,st:`Não iniciado`,obs:`#N/A`},
+{om:12,omt:`Criar/aprimorar simulador com opção clara de tributação para os pensionistas e assistidos.`,acao:`1. Otimização do simulador de cálculos de benefícios previdenciários e opção de regime de tributação para pensionistas.`,sub:`1.4 Validar campos, modelagem de cálculos e aprovar a homologação.`,resp:`COCAD CORAP COBEN CONAP`,fim:`2026-06-30`,st:`Não iniciado`,obs:`Essa etapa faz parte da etapa anterior. Excluir Etapa.`},
+{om:12,omt:`Criar/aprimorar simulador com opção clara de tributação para os pensionistas e assistidos.`,acao:`1. Otimização do simulador de cálculos de benefícios previdenciários e opção de regime de tributação para pensionistas.`,sub:`1.5 Disponibilização em produção e comunicar as áreas técnicas envolvidas.`,resp:`COCAD CORAP COBEN CONAP`,fim:`2026-08-30`,st:`Não iniciado`,obs:`#N/A`},
+{om:15,omt:`Falta de integração entre os sistemas de protocolo, gestão documental e concessão (REG/REPLAN sem saldamento)`,acao:`1. Implementar melhoria que possibilite ao participante vinculado ao REG/REPLAN - não saldado, cadastrar a Carta de Concessão do INSS no autoatendimento, com a inclusão automática do parametro de elegibilidade (234).`,sub:`1.1 Avaliação de custo/benefício para implementação da melhoria pela COBEN. Massa atual 253 participantes`,resp:`COBEN`,fim:`2026-03-15`,st:`Não iniciado`,obs:`A CONAP está avaliando o impacto de impelmentação. Após análise será definido a continuidade do processo.`},
+{om:15,omt:`Falta de integração entre os sistemas de protocolo, gestão documental e concessão (REG/REPLAN sem saldamento)`,acao:`1. Implementar melhoria que possibilite ao participante vinculado ao REG/REPLAN - não saldado, cadastrar a Carta de Concessão do INSS no autoatendimento, com a inclusão automática do parametro de elegibilidade (234).`,sub:`1.2 Avaliar possibilidade de alterar a regra de habilitação do requerimento via Auto atendimento.`,resp:`COBEN`,fim:`2026-05-30`,st:`Não iniciado`,obs:`A CONAP está avaliando o impacto de impelmentação. Após análise será definido a continuidade do processo.`}
+];
+
+/* ============================================================
    SPRINT PLAN — Abril 2026 / Março 2027
 ============================================================ */
 const SP = [
@@ -1476,6 +1627,7 @@ let CMT = {};        // task_comments — chave: tarefa_id -> array
 let ATT = {};        // task_attachments — chave: tarefa_id -> array
 let RVD = {};        // reviews — sprint_id -> array of review objects
 let RVI = {};        // review items — review_id -> array of items
+let PAI = {};        // plano de ação — pa_idx -> item (status/vinculo/sprint)
 let AUD = [];        // audit_log entries
 let EV  = [];        // calendar_events
 let EVM = {};        // event_members — chave: evento_id -> [profile_id]
@@ -1736,7 +1888,7 @@ async function loadAll(){
       (CLD[k]=CLD[k]||[]).push(c);
     });
     // Comments + attachments + reviews + audit + eventos em paralelo
-    const [rv, rc, ra, rau, rev, revm, rvi] = await Promise.all([
+    const [rv, rc, ra, rau, rev, revm, rvi, rpa] = await Promise.all([
       db.from('sprint_reviews').select('*').order('data_realizacao',{ascending:false}),
       db.from('task_comments').select('*').order('created_at',{ascending:true}),
       db.from('task_attachments').select('*').order('created_at',{ascending:false}),
@@ -1744,9 +1896,11 @@ async function loadAll(){
       db.from('calendar_events').select('*').order('data',{ascending:true}),
       db.from('event_members').select('*'),
       db.from('sprint_review_items').select('*').then(r=>r).catch(()=>({data:[]})),
+      db.from('pa_items').select('*').then(r=>r).catch(()=>({data:[]})),
     ]);
     AUD = rau.data || [];
     EV  = rev.data || [];
+    PAI = {}; (rpa.data||[]).forEach(p=>{ PAI[p.pa_idx]=p; });
     // Sincroniza CP (perfil atual) com a versão fresca em MB
     if(CP){
       const meFresh = MB.find(m => m.id === CP.id);
@@ -2204,6 +2358,7 @@ function renderAll(){
   if(AV==='calendar')  renderCal();
   if(AV==='team')      renderTeam();
   if(AV==='reviews')   renderReview();
+  if(AV==='planoacao') renderPlanoAcao();
   if(AV==='audit')     renderAudit();
   if(AV==='users')     renderUsers();
   if(AV==='import')    renderImport();
@@ -3417,6 +3572,220 @@ async function deleteReviewHist(reviewId){
   logAudit({action:'review_delete', entityType:'review', entityId:reviewId, sprintId:_rvSprint||AS,
     summary:'Review excluida'});
   renderReviewHist();
+}
+
+/* ============================================================
+   PLANO DE AÇÃO COBEN — Gestão de Benefício
+============================================================ */
+const _paOpen = {};   // OM -> aberto?
+
+// Mapeia uma data (YYYY-MM-DD) para a sprint que a contém (clampa nas bordas)
+function sprintForDate(dateStr){
+  if(!dateStr) return AS;
+  if(dateStr < SP[0].m1) return SP[0].id;
+  if(dateStr > SP[SP.length-1].m2) return SP[SP.length-1].id;
+  const s = SP.find(sp => dateStr >= sp.m1 && dateStr <= sp.m2);
+  return s ? s.id : AS;
+}
+function paItem(idx){ return PAI[idx] || {}; }
+function paEffStatus(idx){ return paItem(idx).status || PA_GB[idx].st || 'Não iniciado'; }
+function paStatusClass(st){
+  if(/concl/i.test(st)) return 'ok';
+  if(/andamento/i.test(st)) return 'and';
+  if(/atras/i.test(st)) return 'atraso';
+  return 'nao';
+}
+
+function renderPlanoAcao(){
+  const fStatus = document.getElementById('paFilterStatus')?.value || '';
+  const fVinc   = document.getElementById('paFilterVinc')?.value || '';
+
+  // agrupa por OM preservando ordem
+  const oms = [];
+  const omMap = {};
+  PA_GB.forEach((it, idx)=>{
+    if(!omMap[it.om]){ omMap[it.om] = {om:it.om, titulo:it.omt, items:[]}; oms.push(omMap[it.om]); }
+    omMap[it.om].items.push({...it, idx});
+  });
+
+  // métricas globais
+  const total = PA_GB.length;
+  const nConcl = PA_GB.filter((_,i)=>/concl/i.test(paEffStatus(i))).length;
+  const nAnd   = PA_GB.filter((_,i)=>/andamento/i.test(paEffStatus(i))).length;
+  const nVinc  = PA_GB.filter((_,i)=>paItem(i).vinculo_tipo).length;
+  const pct    = Math.round(100*nConcl/total);
+  document.getElementById('paSummary').innerHTML = `
+    <div class="rv-mc"><div class="rv-val">${total}</div><div class="rv-lbl">Subações</div></div>
+    <div class="rv-mc"><div class="rv-val">${oms.length}</div><div class="rv-lbl">Oportunidades</div></div>
+    <div class="rv-mc"><div class="rv-val" style="color:var(--green)">${nConcl}</div><div class="rv-lbl">Concluídas</div></div>
+    <div class="rv-mc"><div class="rv-val" style="color:var(--amber)">${nAnd}</div><div class="rv-lbl">Em andamento</div></div>
+    <div class="rv-mc"><div class="rv-val" style="color:var(--accent)">${nVinc}</div><div class="rv-lbl">Vinculadas</div></div>
+    <div class="rv-mc"><div class="rv-val">${pct}%</div><div class="rv-lbl">Progresso</div></div>`;
+
+  const html = oms.map(group=>{
+    let items = group.items;
+    if(fStatus) items = items.filter(x=>paEffStatus(x.idx)===fStatus);
+    if(fVinc==='sim') items = items.filter(x=>paItem(x.idx).vinculo_tipo);
+    if(fVinc==='nao') items = items.filter(x=>!paItem(x.idx).vinculo_tipo);
+    if(!items.length) return '';
+
+    const done = group.items.filter(x=>/concl/i.test(paEffStatus(x.idx))).length;
+    const isOpen = _paOpen[group.om];
+
+    const subs = items.map(x=>{
+      const st = paEffStatus(x.idx);
+      const pi = paItem(x.idx);
+      const sugSid = sprintForDate(x.fim);
+      const sugS = SP.find(s=>s.id===sugSid);
+      let vinc;
+      if(pi.vinculo_tipo==='tarefa'){
+        const t = TSK.find(t=>t.id===pi.tarefa_id);
+        vinc = `<span class="pa-vinc on">🔗 Tarefa: ${escapeHtml((t?.titulo||'—').replace(/^\[.*?\]\s*/,'').slice(0,40))} · S${pi.sprint_id}</span>`;
+      } else if(pi.vinculo_tipo==='entrega'){
+        const [sid,ei] = (pi.entrega_ref||'').split('-').map(Number);
+        const e = SP.find(s=>s.id===sid)?.entregas[ei];
+        vinc = `<span class="pa-vinc on">🔗 Entrega: ${escapeHtml((e?.desc||'—').slice(0,40))} · S${sid}</span>`;
+      } else {
+        vinc = `<span class="pa-vinc off">Sem vínculo</span>`;
+      }
+      return `<div class="pa-sub">
+        <div class="pa-sub-top">
+          <span class="pa-sub-code">${escapeHtml((x.sub.match(/^[\d.]+/)||[''])[0]||'•')}</span>
+          <div style="flex:1">
+            <div class="pa-sub-desc">${escapeHtml(x.sub.replace(/^[\d.]+\s*/,''))}</div>
+            <div class="pa-sub-meta">
+              ${x.acao?`<span><b>Ação:</b> ${escapeHtml(x.acao)}</span>`:''}
+              ${x.resp?`<span><b>Resp.:</b> ${escapeHtml(x.resp)}</span>`:''}
+              ${x.fim?`<span><b>Entrega:</b> ${x.fim} → S${sugSid} (${sugS?.m||''})</span>`:''}
+            </div>
+            ${x.obs?`<div class="pa-sub-meta"><span style="font-style:italic">${escapeHtml(x.obs.slice(0,160))}</span></div>`:''}
+          </div>
+          <span class="pa-badge ${paStatusClass(st)}">${escapeHtml(st)}</span>
+        </div>
+        <div class="pa-sub-actions">
+          ${vinc}
+          <div style="flex:1"></div>
+          <select onchange="paSetStatus(${x.idx}, this.value)" title="Status">
+            ${['Não iniciado','Em andamento','Concluído','Atrasado'].map(s=>`<option ${st===s?'selected':''}>${s}</option>`).join('')}
+          </select>
+          ${pi.vinculo_tipo
+            ? `<button class="pa-btn" onclick="paUnlink(${x.idx})">Desvincular</button>`
+            : `<button class="pa-btn" onclick="openPaLink(${x.idx})">🔗 Vincular a tarefa</button>
+               <button class="pa-btn primary" onclick="paCreateTask(${x.idx})">+ Criar tarefa na S${sugSid}</button>`}
+        </div>
+      </div>`;
+    }).join('');
+
+    return `<div class="pa-om ${isOpen?'open':''}">
+      <div class="pa-om-head" onclick="togglePaOm(${group.om})">
+        <span class="pa-om-num">OM${group.om}</span>
+        <div class="pa-om-tit">${escapeHtml(group.titulo)}
+          <div class="pa-om-meta">${group.items.length} subações · ${done} concluída(s)</div>
+        </div>
+        <span class="pa-caret">▶</span>
+      </div>
+      <div class="pa-om-body">${subs}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('paList').innerHTML = html || `<div class="empty"><div class="ic">🎯</div>Nenhuma subação com esses filtros</div>`;
+}
+
+function togglePaOm(om){ _paOpen[om] = !_paOpen[om]; renderPlanoAcao(); }
+
+async function paUpsert(idx, patch){
+  const cur = PAI[idx] || {pa_idx: idx};
+  const payload = {...cur, ...patch, pa_idx: idx};
+  delete payload.id; delete payload.updated_at;
+  const {data, error} = await db.from('pa_items').upsert(payload, {onConflict:'pa_idx'}).select().single();
+  if(error){ toast('Erro: '+error.message,'err'); ss('err','Erro'); return null; }
+  PAI[idx] = data;
+  return data;
+}
+
+async function paSetStatus(idx, val){
+  ss('loading','Salvando...');
+  const r = await paUpsert(idx, {status: val});
+  if(!r) return;
+  ss('ok','Salvo'); toast('Status atualizado');
+  logAudit({action:'import_pa', entityType:'pa', entityId:String(idx), sprintId:PAI[idx]?.sprint_id||null,
+    summary:`PA OM${PA_GB[idx].om}: status "${val}"`});
+  renderPlanoAcao();
+}
+
+async function paCreateTask(idx){
+  const it = PA_GB[idx];
+  const sid = sprintForDate(it.fim);
+  const s = SP.find(x=>x.id===sid);
+  if(!confirm(`Criar tarefa na Sprint ${sid} (${s.m}) para:\n\n"${it.sub}"\n\nData de entrega: ${it.fim||'—'}?`)) return;
+  ss('loading','Criando tarefa...');
+  const desc = `Plano de Ação — Gestão de Benefício\nOM${it.om}: ${it.omt}\nAção: ${it.acao}\nResponsável: ${it.resp||'—'}\nPrazo de entrega: ${it.fim||'—'}${it.obs?'\n\nObs.: '+it.obs:''}`;
+  const payload = {
+    sprint_id: sid,
+    titulo: `[PA OM${it.om}] ${it.sub.replace(/^[\d.]+\s*/,'').slice(0,90)}`,
+    descricao: desc,
+    status: /concl/i.test(paEffStatus(idx)) ? 'concluido' : 'pendente',
+    prioridade: 'alta',
+    fase: 'execucao',
+    data_fim: it.fim || null,
+    criado_por: CP?.id || null,
+  };
+  const {data, error} = await db.from('subtarefas').insert(payload).select().single();
+  if(error){ toast('Erro ao criar tarefa: '+error.message,'err'); ss('err','Erro'); return; }
+  await paUpsert(idx, {vinculo_tipo:'tarefa', tarefa_id:data.id, sprint_id:sid, entrega_ref:null});
+  await loadAll(); ss('ok','Criada'); toast(`Tarefa criada na Sprint ${sid}`);
+  logAudit({action:'task_create', entityType:'task', entityId:data.id, sprintId:sid,
+    summary:`PA OM${it.om}: tarefa criada na S${sid}`});
+  renderPlanoAcao();
+}
+
+let _paLinkIdx = null;
+function openPaLink(idx){
+  _paLinkIdx = idx;
+  const it = PA_GB[idx];
+  const sugSid = sprintForDate(it.fim);
+  document.getElementById('paLinkTitle').textContent = it.sub.replace(/^[\d.]+\s*/,'').slice(0,90);
+  document.getElementById('paLinkInfo').textContent = `OM${it.om} · Entrega prevista: ${it.fim||'—'}`;
+  const sel = document.getElementById('paLinkSprint');
+  sel.innerHTML = SP.map(s=>`<option value="${s.id}" ${s.id===sugSid?'selected':''}>Sprint ${s.id} — ${s.m}</option>`).join('');
+  renderPaLinkTargets();
+  document.getElementById('paLinkModal').classList.add('on');
+}
+function closePaLink(){ document.getElementById('paLinkModal').classList.remove('on'); _paLinkIdx=null; }
+function renderPaLinkTargets(){
+  const sid = +document.getElementById('paLinkSprint').value;
+  const s = SP.find(x=>x.id===sid);
+  const ents = s.entregas.map((e,i)=>`<label class="pa-link-opt"><input type="radio" name="paTarget" value="e:${sid}-${i}"><span class="echip" style="background:var(--acc-bg);color:var(--accent)">${e.eixo}</span> ${escapeHtml(e.desc.slice(0,70))}</label>`).join('');
+  const tasks = spT(sid).map(t=>`<label class="pa-link-opt"><input type="radio" name="paTarget" value="t:${t.id}"><span class="echip" style="background:var(--a-bg);color:var(--amber)">T</span> ${escapeHtml((t.titulo||'').slice(0,70))}</label>`).join('');
+  document.getElementById('paLinkTargets').innerHTML =
+    `<div class="pa-link-grouplbl">📦 Entregas da sprint</div>${ents||'<div style="font-size:11px;color:var(--t3);padding:4px">Nenhuma</div>'}
+     <div class="pa-link-grouplbl" style="margin-top:10px">📋 Tarefas da sprint</div>${tasks||'<div style="font-size:11px;color:var(--t3);padding:4px">Nenhuma</div>'}`;
+}
+async function confirmPaLink(){
+  const idx = _paLinkIdx;
+  const sid = +document.getElementById('paLinkSprint').value;
+  const sel = document.querySelector('input[name="paTarget"]:checked');
+  if(!sel){ toast('Selecione uma entrega ou tarefa','err'); return; }
+  const [kind, ref] = sel.value.split(':');
+  ss('loading','Vinculando...');
+  const patch = kind==='e'
+    ? {vinculo_tipo:'entrega', entrega_ref:ref, tarefa_id:null, sprint_id:sid}
+    : {vinculo_tipo:'tarefa', tarefa_id:ref, entrega_ref:null, sprint_id:sid};
+  const r = await paUpsert(idx, patch);
+  if(!r) return;
+  closePaLink();
+  ss('ok','Vinculado'); toast('Subação vinculada');
+  logAudit({action:'import_pa', entityType:'pa', entityId:String(idx), sprintId:sid,
+    summary:`PA OM${PA_GB[idx].om}: vinculada a ${kind==='e'?'entrega':'tarefa'} na S${sid}`});
+  renderPlanoAcao();
+}
+async function paUnlink(idx){
+  if(!confirm('Remover o vínculo desta subação? (a tarefa criada, se houver, não é excluída)')) return;
+  ss('loading','Removendo vínculo...');
+  const r = await paUpsert(idx, {vinculo_tipo:null, tarefa_id:null, entrega_ref:null});
+  if(!r) return;
+  ss('ok','Removido'); toast('Vínculo removido');
+  renderPlanoAcao();
 }
 
 /* ============================================================

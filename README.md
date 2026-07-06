@@ -61,7 +61,10 @@ visual FUNCEF, com login real (Supabase Auth) e modo claro/escuro.
 12. (Perfis de equipe ricos: foto, bio, skills, projetos) Execute `schema_addon_v15.sql`.
    - Adiciona colunas em `profiles`: foto_url, bio, senioridade, habilidades (jsonb), projetos_liderados.
    - As fotos usam o bucket `task-files` (prefixo `avatars/`).
-13. Em **Authentication → Providers → Email** desabilite "Confirm email".
+13. (Plano de Ação COBEN — Gestão de Benefício) Execute `schema_addon_v16.sql`.
+   - Cria tabela `pa_items` (estado e vínculo das 62 subações com as sprints).
+   - O catálogo das 62 subações já vem embutido no `index.html` (PA_GB).
+14. Em **Authentication → Providers → Email** desabilite "Confirm email".
 
 ### 2) Rodar localmente
 Abra `index.html` direto no navegador, ou:
