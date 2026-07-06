@@ -251,6 +251,30 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
 .tmetric{background:var(--bg3);border-radius:var(--r);padding:.5rem;text-align:center}
 .tmetric .v{font-size:18px;font-weight:800;line-height:1}
 .tmetric .l{font-size:9.5px;font-weight:700;color:var(--t3);text-transform:uppercase;margin-top:3px;letter-spacing:.05em}
+/* rich team cards */
+.tcard{position:relative;transition:border-color .15s, box-shadow .15s}
+.tcard:hover{border-color:var(--border2);box-shadow:var(--shadow)}
+.tcard-head{position:relative}
+.tcard-head .meta{flex:1;min-width:0}
+.tcard-head .meta .nm{display:flex;align-items:center;gap:6px}
+.tcard-head .meta .senior{font-size:9px;font-weight:700;padding:1px 7px;border-radius:10px;background:var(--acc-bg);color:var(--accent);text-transform:uppercase;letter-spacing:.04em}
+.tcard-edit{position:absolute;top:0;right:0;background:var(--bg3);border:1px solid var(--border);color:var(--t2);width:26px;height:26px;border-radius:8px;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.tcard-edit:hover{background:var(--acc-bg);color:var(--accent);border-color:var(--accent)}
+.tcard-bio{font-size:11.5px;color:var(--t2);line-height:1.5;margin:.2rem 0 .7rem;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.tchips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:.7rem}
+.tchip{font-size:10px;font-weight:600;padding:3px 9px;border-radius:12px;background:var(--bg3);color:var(--t2);border:1px solid var(--border)}
+.tchip.skill{background:var(--acc-bg);color:var(--accent);border-color:transparent}
+.tcard-projs{font-size:10.5px;color:var(--t3);margin-bottom:.6rem}
+.tcard-projs .lb{font-weight:700;color:var(--t2);text-transform:uppercase;font-size:9px;letter-spacing:.05em;display:block;margin-bottom:3px}
+.tcard-projs .pj{display:inline-block;font-weight:600;color:var(--t1);background:var(--bg3);padding:2px 8px;border-radius:8px;margin:0 4px 4px 0}
+.tsec-title{font-size:12px;font-weight:800;color:var(--t2);text-transform:uppercase;letter-spacing:.05em;margin:0 0 .7rem;display:flex;align-items:center;gap:8px}
+/* skill editor chips */
+.skill-edit{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.skill-edit .sk{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:3px 6px 3px 10px;border-radius:12px;background:var(--acc-bg);color:var(--accent)}
+.skill-edit .sk button{background:none;border:none;color:var(--accent);cursor:pointer;font-size:13px;line-height:1;padding:0}
+.avatar-upload{display:flex;align-items:center;gap:14px;margin-bottom:1rem}
+.avatar-upload .av-preview{width:64px;height:64px;border-radius:50%;overflow:hidden;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;color:#fff;flex-shrink:0;border:3px solid var(--bg2);box-shadow:var(--shadow)}
+.avatar-upload .av-preview img{width:100%;height:100%;object-fit:cover}
 
 /* ============ MODAL ============ */
 .mbg{position:fixed;inset:0;background:rgba(7,10,18,.65);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:200;padding:1rem}
@@ -999,6 +1023,55 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
   </div>
 </div>
 
+<!-- ============ MODAL EDITAR MEMBRO (equipe) ============ -->
+<div class="mbg" id="memberModal">
+  <div class="modal" style="max-width:560px">
+    <div class="mhead"><h2>Perfil do integrante</h2><button class="mclose" onclick="closeMemberEdit()">✕</button></div>
+    <div class="mbody">
+      <div class="avatar-upload">
+        <div class="av-preview" id="meAvatar">?</div>
+        <div>
+          <label class="btn" style="cursor:pointer;display:inline-block">📷 Enviar foto
+            <input type="file" accept="image/*" onchange="uploadAvatar(event)" style="display:none">
+          </label>
+          <div style="font-size:10.5px;color:var(--t3);margin-top:4px">JPG/PNG até 5MB. A foto substitui as iniciais.</div>
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:.85rem"><label>Nome</label><input id="meNome" oninput="renderMeAvatar(mBI(_editMemberId))"></div>
+      <div class="frow">
+        <div class="field"><label>Iniciais</label><input id="meInic" maxlength="3" oninput="renderMeAvatar(mBI(_editMemberId))"></div>
+        <div class="field"><label>Cor</label><input id="meCor" type="color" oninput="renderMeAvatar(mBI(_editMemberId))"></div>
+        <div class="field"><label>Senioridade</label>
+          <select id="meSenior">
+            <option value="">—</option>
+            <option value="Estágio">Estágio</option>
+            <option value="Júnior">Júnior</option>
+            <option value="Pleno">Pleno</option>
+            <option value="Sênior">Sênior</option>
+            <option value="Especialista">Especialista</option>
+            <option value="Coordenação">Coordenação</option>
+          </select>
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:.85rem"><label>Cargo / Função</label><input id="meCargo" placeholder="Ex.: Analista de Dados"></div>
+      <div class="field" style="margin-bottom:.85rem"><label>Bio / Sobre</label><textarea id="meBio" rows="3" placeholder="Uma breve descrição sobre a pessoa, sua trajetória e foco de atuação..."></textarea></div>
+      <div class="field" style="margin-bottom:.85rem"><label>Habilidades / Skills</label>
+        <div class="row" style="gap:6px">
+          <input id="meSkillInput" placeholder="Ex.: Python, SQL, Databricks..." onkeydown="skillKey(event)" style="flex:1">
+          <button class="btn" onclick="addSkill()">+ Add</button>
+        </div>
+        <div class="skill-edit" id="meSkillList"></div>
+      </div>
+      <div class="field"><label>Projetos que lidera</label><input id="meProjs" placeholder="Ex.: D5 Simulador, B1 Higienização (separe por vírgula)"></div>
+    </div>
+    <div class="mfoot">
+      <div style="flex:1"></div>
+      <button class="btn" onclick="closeMemberEdit()">Cancelar</button>
+      <button class="btn primary" onclick="saveMember()">💾 Salvar perfil</button>
+    </div>
+  </div>
+</div>
+
 <!-- ============ MODAL ENTREGA ============ -->
 <div class="mbg" id="entregaModal">
   <div class="modal" style="max-width:820px">
@@ -1721,7 +1794,8 @@ const gCL  = tid => CLD[tid] || [];
 const spT  = sid => TSK.filter(t=>t.sprint_id===sid);
 function avH(m, sz='sm'){
   if(!m) return `<span class="av ${sz}" style="background:var(--bg4);color:var(--t2)">?</span>`;
-  return `<span class="av ${sz}" style="background:${m.cor}" title="${m.nome}">${m.iniciais}</span>`;
+  if(m.foto_url) return `<span class="av ${sz}" style="background:${m.cor};overflow:hidden" title="${escapeHtml(m.nome)}"><img src="${m.foto_url}" alt="${escapeHtml(m.iniciais)}" style="width:100%;height:100%;object-fit:cover"></span>`;
+  return `<span class="av ${sz}" style="background:${m.cor}" title="${escapeHtml(m.nome)}">${m.iniciais}</span>`;
 }
 function avS(ids, max=3){
   const list = ids.slice(0,max).map(id=>avH(mBI(id))).join('');
@@ -2831,14 +2905,24 @@ function renderTeam(){
     const bloc = tBloc + eBloc;
     const pts = myT.filter(t=>t.status==='concluido').reduce((a,t)=>a+(t.story_points||0),0);
     const pct = totalItems ? Math.round(100*done/totalItems) : 0;
+
+    const skills = Array.isArray(m.habilidades) ? m.habilidades : [];
+    const canEdit = isAdmin() || (CP && m.id===CP.id);
+    const senior = m.senioridade ? `<span class="senior">${escapeHtml(m.senioridade)}</span>` : '';
+    const projs = (m.projetos_liderados||'').split(',').map(p=>p.trim()).filter(Boolean);
+
     return `<div class="tcard">
+      ${canEdit ? `<button class="tcard-edit" onclick="openMemberEdit('${m.id}')" title="Editar perfil">✎</button>` : ''}
       <div class="tcard-head">
         ${avH(m,'xl')}
         <div class="meta">
-          <div class="nm">${escapeHtml(m.nome)}</div>
+          <div class="nm">${escapeHtml(m.nome)} ${senior}</div>
           <div class="role">${escapeHtml(m.cargo || m.area || '—')}</div>
         </div>
       </div>
+      ${m.bio ? `<div class="tcard-bio">${escapeHtml(m.bio)}</div>` : ''}
+      ${skills.length ? `<div class="tchips">${skills.map(s=>`<span class="tchip skill">${escapeHtml(s)}</span>`).join('')}</div>` : ''}
+      ${projs.length ? `<div class="tcard-projs"><span class="lb">Projetos que lidera</span>${projs.map(p=>`<span class="pj">${escapeHtml(p)}</span>`).join('')}</div>` : ''}
       <div class="tmetrics">
         <div class="tmetric"><div class="v">${totalItems}</div><div class="l">Total</div></div>
         <div class="tmetric"><div class="v" style="color:var(--green)">${done}</div><div class="l">Feitas</div></div>
@@ -2855,6 +2939,102 @@ function renderTeam(){
       <div class="pw"><div class="pf" style="width:${pct}%"></div></div>
     </div>`;
   }).join('') || `<div class="empty"><div class="ic">👥</div>Nenhum membro carregado. Crie sua conta para começar.</div>`;
+}
+
+/* ============================================================
+   EDIÇÃO DE PERFIL DE MEMBRO (foto, bio, skills, projetos)
+============================================================ */
+let _editMemberId = null;
+let _editSkills = [];
+
+function openMemberEdit(id){
+  const m = mBI(id);
+  if(!m) return;
+  if(!(isAdmin() || (CP && id===CP.id))){ toast('Sem permissão para editar este perfil','err'); return; }
+  _editMemberId = id;
+  _editSkills = Array.isArray(m.habilidades) ? m.habilidades.slice() : [];
+
+  document.getElementById('meNome').value  = m.nome || '';
+  document.getElementById('meInic').value  = m.iniciais || '';
+  document.getElementById('meCor').value   = m.cor || '#2B6AFF';
+  document.getElementById('meCargo').value = m.cargo || '';
+  document.getElementById('meSenior').value = m.senioridade || '';
+  document.getElementById('meBio').value   = m.bio || '';
+  document.getElementById('meProjs').value = m.projetos_liderados || '';
+  document.getElementById('meSkillInput').value = '';
+  renderMeAvatar(m);
+  renderMeSkills();
+  document.getElementById('memberModal').classList.add('on');
+}
+function closeMemberEdit(){ document.getElementById('memberModal').classList.remove('on'); _editMemberId=null; }
+
+function renderMeAvatar(m){
+  const el = document.getElementById('meAvatar');
+  const cor = document.getElementById('meCor').value || m.cor;
+  const foto = m._newFoto || m.foto_url;
+  el.style.background = cor;
+  el.innerHTML = foto ? `<img src="${foto}" alt="">` : escapeHtml((document.getElementById('meInic').value||m.iniciais||'?'));
+}
+function renderMeSkills(){
+  const el = document.getElementById('meSkillList');
+  el.innerHTML = _editSkills.map((s,i)=>`<span class="sk">${escapeHtml(s)}<button onclick="rmSkill(${i})" title="Remover">✕</button></span>`).join('')
+    || `<span style="font-size:11px;color:var(--t3)">Nenhuma habilidade adicionada</span>`;
+}
+function addSkill(){
+  const inp = document.getElementById('meSkillInput');
+  const v = inp.value.trim();
+  if(!v) return;
+  if(!_editSkills.includes(v)) _editSkills.push(v);
+  inp.value=''; inp.focus();
+  renderMeSkills();
+}
+function skillKey(e){ if(e.key==='Enter'){ e.preventDefault(); addSkill(); } }
+function rmSkill(i){ _editSkills.splice(i,1); renderMeSkills(); }
+
+async function uploadAvatar(evt){
+  const m = mBI(_editMemberId);
+  if(!m) return;
+  const file = evt.target.files?.[0];
+  if(!file) return;
+  if(!/^image\//.test(file.type)){ toast('Selecione uma imagem','err'); evt.target.value=''; return; }
+  if(file.size > 5*1024*1024){ toast('Imagem maior que 5MB','err'); evt.target.value=''; return; }
+  ss('loading','Enviando foto...');
+  const safe = file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+  const path = `avatars/${_editMemberId}/${Date.now()}_${safe}`;
+  const up = await db.storage.from('task-files').upload(path, file, { upsert:false, contentType:file.type });
+  if(up.error){ toast(explainStorageErr(up.error.message),'err'); ss('err','Erro'); evt.target.value=''; return; }
+  const { data:pub } = db.storage.from('task-files').getPublicUrl(path);
+  m._newFoto = pub.publicUrl;
+  m._newFotoPath = path;
+  evt.target.value='';
+  ss('ok','Foto pronta'); renderMeAvatar(m);
+}
+
+async function saveMember(){
+  const m = mBI(_editMemberId);
+  if(!m){ toast('Membro inválido','err'); return; }
+  const payload = {
+    nome: document.getElementById('meNome').value.trim(),
+    iniciais: document.getElementById('meInic').value.trim().toUpperCase().slice(0,3),
+    cor: document.getElementById('meCor').value,
+    cargo: document.getElementById('meCargo').value.trim(),
+    senioridade: document.getElementById('meSenior').value || null,
+    bio: document.getElementById('meBio').value.trim(),
+    projetos_liderados: document.getElementById('meProjs').value.trim(),
+    habilidades: _editSkills,
+  };
+  if(m._newFoto) payload.foto_url = m._newFoto;
+  if(!payload.nome || !payload.iniciais){ toast('Nome e iniciais obrigatórios','err'); return; }
+  const savedId = _editMemberId;
+  ss('loading','Salvando perfil...');
+  const {error} = await db.from('profiles').update(payload).eq('id', savedId);
+  if(error){ toast('Erro: '+error.message,'err'); ss('err','Erro'); return; }
+  logAudit({action:'profile_update', entityType:'profile', entityId:savedId, sprintId:null,
+    summary:`Perfil de ${payload.nome} atualizado`});
+  closeMemberEdit();
+  await loadAll(); ss('ok','Salvo'); toast('Perfil atualizado');
+  if(CP && savedId===CP.id){ Object.assign(CP, payload); paintUserChip(); }
+  renderAll();
 }
 
 /* ============================================================
@@ -4359,9 +4539,10 @@ async function saveEntrega(){
 function openProfileEdit(){
   if(!CP) return;
   document.getElementById('userpop').classList.remove('on');
-  document.getElementById('pfNome').value  = CP.nome;
-  document.getElementById('pfInic').value  = CP.iniciais;
-  document.getElementById('pfCor').value   = CP.cor;
+  // Editor rico unificado (foto, bio, skills, projetos)
+  openMemberEdit(CP.id);
+}
+function _legacyProfileEdit_unused(){
   const pfTipo = document.getElementById('pfTipo');
   // Não-admin não pode se promover a admin: desabilita
   pfTipo.disabled = !isAdmin();

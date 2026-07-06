@@ -58,7 +58,10 @@ visual FUNCEF, com login real (Supabase Auth) e modo claro/escuro.
 11. (Novos status: despriorizado e cancelado) Execute `schema_addon_v14.sql`.
    - Amplia os check constraints de `sprint_entregas` e `subtarefas`.
    - Permite marcar entregas/tarefas como despriorizadas ou canceladas.
-12. Em **Authentication → Providers → Email** desabilite "Confirm email".
+12. (Perfis de equipe ricos: foto, bio, skills, projetos) Execute `schema_addon_v15.sql`.
+   - Adiciona colunas em `profiles`: foto_url, bio, senioridade, habilidades (jsonb), projetos_liderados.
+   - As fotos usam o bucket `task-files` (prefixo `avatars/`).
+13. Em **Authentication → Providers → Email** desabilite "Confirm email".
 
 ### 2) Rodar localmente
 Abra `index.html` direto no navegador, ou:
