@@ -2709,6 +2709,8 @@ function renderReview(){
   const s = SP.find(x=>x.id===sid);
   if(!s) return;
   _rvSprint = sid;
+  _editingReviewId = null;
+  document.querySelector('#vReviews .btn.primary').textContent = 'Salvar review';
 
   document.getElementById('rvTitle').textContent = `Review da Sprint ${s.id}`;
   document.getElementById('rvSub').textContent = `${s.m} — ${s.foco}`;
@@ -2848,10 +2850,18 @@ async function saveReview(){
   };
 
   ss('loading','Salvando review...');
-  const {data:rvData, error} = await db.from('sprint_reviews').insert(payload).select().single();
-  if(error){ toast('Erro ao salvar review: '+error.message,'err'); ss('err','Erro'); return; }
+  let reviewId;
+  if(_editingReviewId){
+    const {error} = await db.from('sprint_reviews').update(payload).eq('id', _editingReviewId);
+    if(error){ toast('Erro ao atualizar review: '+error.message,'err'); ss('err','Erro'); return; }
+    reviewId = _editingReviewId;
+    await db.from('sprint_review_items').delete().eq('review_id', reviewId);
+  } else {
+    const {data:rvData, error} = await db.from('sprint_reviews').insert(payload).select().single();
+    if(error){ toast('Erro ao salvar review: '+error.message,'err'); ss('err','Erro'); return; }
+    reviewId = rvData.id;
+  }
 
-  const reviewId = rvData.id;
   const items = [];
   document.querySelectorAll('#rvItemsPanel .rv-item').forEach(row=>{
     const idx = parseInt(row.dataset.idx);
@@ -2868,14 +2878,39 @@ async function saveReview(){
     });
   });
 
+  const wasEditing = !!_editingReviewId;
+
   if(items.length){
     const {error:e2} = await db.from('sprint_review_items').insert(items);
     if(e2){ toast('Erro nos itens: '+e2.message,'err'); }
   }
 
-  await loadAll(); ss('ok','Salvo'); toast('Review salva com sucesso!');
-  logAudit({action:'review_save', entityType:'review', entityId:sid, sprintId:sid,
-    summary:`Review da Sprint ${sid} (${s.m}) salva com ${items.length} itens`});
+  const remanejados = items.filter(it=>it.disposicao==='remanejado' && it.destino_sprint);
+  if(remanejados.length && !wasEditing){
+    const newTasks = remanejados.map(it=>{
+      const e = s.entregas[it.entrega_idx];
+      return {
+        sprint_id: it.destino_sprint,
+        titulo: `[Remanejado S${sid}] ${e.desc}`,
+        descricao: `Remanejado da Sprint ${sid} (${s.m}).\n${it.observacao||''}`.trim(),
+        status: 'pendente',
+        prioridade: 'media',
+        fase: 'execucao',
+        criado_por: CP?.id || null,
+      };
+    });
+    const {error:e3} = await db.from('subtarefas').insert(newTasks);
+    if(e3){ toast('Erro ao criar tarefas remanejadas: '+e3.message,'err'); }
+    else { toast(`${remanejados.length} entrega(s) remanejada(s) para S${remanejados[0].destino_sprint}`); }
+  }
+
+  _editingReviewId = null;
+  document.querySelector('#vReviews .btn.primary').textContent = 'Salvar review';
+
+  await loadAll(); ss('ok','Salvo');
+  toast(wasEditing ? 'Review atualizada!' : 'Review salva com sucesso!');
+  logAudit({action: wasEditing ? 'review_update' : 'review_save', entityType:'review', entityId:sid, sprintId:sid,
+    summary:`Review da Sprint ${sid} (${s.m}) ${wasEditing?'atualizada':'salva'} com ${items.length} itens, ${remanejados.length} remanejados`});
   renderReview();
 }
 
@@ -2914,10 +2949,14 @@ function renderReviewHist(){
       </div>`;
     }).join('');
 
-    return `<div class="rv-hist-card">
+    return `<div class="rv-hist-card" data-review-id="${r.id}">
       <div class="rv-hist-head">
         <span class="rv-date">${r.data_realizacao || '—'}</span>
-        <span class="rv-by">${autor ? escapeHtml(autor.nome) : 'Desconhecido'}</span>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span class="rv-by">${autor ? escapeHtml(autor.nome) : 'Desconhecido'}</span>
+          <button class="btn" style="font-size:11px;padding:3px 10px" onclick="editReviewHist('${r.id}')">Editar</button>
+          <button class="btn" style="font-size:11px;padding:3px 10px;color:var(--red)" onclick="deleteReviewHist('${r.id}')">Excluir</button>
+        </div>
       </div>
       <div class="rv-hist-metrics">
         <span>${dash.pct||r.percentual_entregue||0}% concluido</span>
@@ -2929,7 +2968,7 @@ function renderReviewHist(){
         ${emAnd ? `<span style="color:var(--amber)">⚡ ${emAnd} em andamento</span>` : ''}
         ${pend ? `<span>⏳ ${pend} pendentes</span>` : ''}
       </div>
-      <div class="rv-hist-body">
+      <div class="rv-hist-body" id="rvHistBody_${r.id}">
         ${r.entregas_realizadas ? `<p><strong>Entregas realizadas:</strong> ${escapeHtml(r.entregas_realizadas).replace(/\n/g,'<br>')}</p>` : ''}
         ${r.riscos_bloqueadores ? `<p><strong>Riscos/bloqueadores:</strong> ${escapeHtml(r.riscos_bloqueadores).replace(/\n/g,'<br>')}</p>` : ''}
         ${r.observacoes ? `<p><strong>Observacoes:</strong> ${escapeHtml(r.observacoes).replace(/\n/g,'<br>')}</p>` : ''}
@@ -2937,6 +2976,60 @@ function renderReviewHist(){
       ${items.length ? `<div class="rv-hist-items"><div style="font-weight:700;font-size:11px;margin-bottom:4px">Disposicao das entregas:</div>${itemRows}</div>` : ''}
     </div>`;
   }).join('')}</div>`;
+}
+
+let _editingReviewId = null;
+
+function editReviewHist(reviewId){
+  const sid = _rvSprint || AS;
+  const reviews = RVD[sid] || [];
+  const r = reviews.find(rv=>rv.id===reviewId);
+  if(!r) return;
+  _editingReviewId = reviewId;
+
+  const items = RVI[reviewId] || [];
+  const s = SP.find(x=>x.id===sid);
+
+  rvTab('form', document.querySelector('#rvTabs button:first-child'));
+
+  document.getElementById('rvPct').value = r.percentual_entregue || '';
+  document.getElementById('rvVel').value = r.velocidade_pontos || '';
+  document.getElementById('rvData').value = r.data_realizacao || '';
+  document.getElementById('rvEnt').value = r.entregas_realizadas || '';
+  document.getElementById('rvRisc').value = r.riscos_bloqueadores || '';
+  document.getElementById('rvObs').value = r.observacoes || '';
+
+  if(r.nps_equipe != null){
+    selNPS(r.nps_equipe);
+  }
+
+  if(items.length && s){
+    items.forEach(it=>{
+      const row = document.querySelector(`#rvItemsPanel .rv-item[data-idx="${it.entrega_idx}"]`);
+      if(row){
+        const sel = row.querySelector('.rv-disp');
+        sel.value = it.disposicao;
+        const obsInput = row.querySelector('.rv-obs-input');
+        if(it.observacao) obsInput.value = it.observacao;
+        rvDispChange(sel);
+      }
+    });
+  }
+
+  document.querySelector('#vReviews .btn.primary').textContent = 'Atualizar review';
+  toast('Editando review de ' + (r.data_realizacao || '—'));
+}
+
+async function deleteReviewHist(reviewId){
+  if(!confirm('Excluir esta review permanentemente?')) return;
+  ss('loading','Excluindo...');
+  await db.from('sprint_review_items').delete().eq('review_id', reviewId);
+  const {error} = await db.from('sprint_reviews').delete().eq('id', reviewId);
+  if(error){ toast('Erro ao excluir: '+error.message,'err'); ss('err','Erro'); return; }
+  await loadAll(); ss('ok','Excluido'); toast('Review excluida');
+  logAudit({action:'review_delete', entityType:'review', entityId:reviewId, sprintId:_rvSprint||AS,
+    summary:'Review excluida'});
+  renderReviewHist();
 }
 
 /* ============================================================
