@@ -554,6 +554,32 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
 .pa-link-opt:hover{background:var(--bg3)}
 .pa-link-opt input{accent-color:var(--accent)}
 
+/* sobre o núcleo */
+.sobre-hero{background:linear-gradient(135deg,var(--acc-bg),transparent);border:1px solid var(--border);border-left:4px solid var(--accent);border-radius:14px;padding:1.1rem 1.3rem}
+.sobre-hero .sh-label{font-size:10px;font-weight:800;color:var(--accent);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+.sobre-hero .sh-text{font-size:14px;font-weight:600;line-height:1.6}
+.dz-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:.7rem}
+.dz-card{display:flex;gap:10px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:.75rem .85rem}
+.dz-card .dz-num{width:24px;height:24px;border-radius:7px;background:var(--acc-bg);color:var(--accent);font-weight:800;font-size:11.5px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.dz-card .dz-t{font-size:12px;font-weight:700}
+.dz-card .dz-d{font-size:11px;color:var(--t2);margin-top:2px;line-height:1.45}
+.ex-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:.7rem}
+.ex-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:.8rem .95rem}
+.ex-card .ex-head{display:flex;align-items:center;gap:8px;font-size:12.5px;margin-bottom:5px}
+.ex-card .ex-desc{font-size:11.5px;color:var(--t2);line-height:1.5}
+.ex-card .ex-meta{font-size:10.5px;color:var(--t3);font-weight:600;margin-top:6px}
+.pj-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;margin-bottom:.5rem;overflow:hidden}
+.pj-head{display:flex;align-items:center;gap:10px;padding:.7rem .9rem;cursor:pointer;user-select:none}
+.pj-head:hover{background:var(--bg3)}
+.pj-tit{flex:1;font-size:12.5px;font-weight:700}
+.pj-meta{font-size:10.5px;color:var(--t3);font-weight:600;margin-top:2px}
+.pj-card.open .pa-caret{transform:rotate(90deg)}
+.pj-body{display:none;padding:0 .95rem .85rem;font-size:12px;color:var(--t2);line-height:1.55}
+.pj-card.open .pj-body{display:block}
+.pj-body .pj-obj{margin-bottom:.5rem}
+.pj-body .pj-ents ul{margin:4px 0 0 1.1rem}
+.pj-body b{color:var(--t1)}
+
 /* utils */
 .row{display:flex;align-items:center;gap:8px}
 .gap-sm{gap:6px}
@@ -679,6 +705,7 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
     <aside class="sidebar">
       <div class="sb-sect">Visões</div>
       <button class="nb on" data-v="dashboard" onclick="nav('dashboard',this)"><span class="ic">📊</span>Dashboard</button>
+      <button class="nb" data-v="sobre" onclick="nav('sobre',this)"><span class="ic">🏛️</span>Sobre o Núcleo</button>
       <button class="nb" data-v="kanban"   onclick="nav('kanban',this)"><span class="ic">🗂️</span>Kanban</button>
       <button class="nb" data-v="backlog"  onclick="nav('backlog',this)"><span class="ic">📋</span>Backlog</button>
       <button class="nb" data-v="calendar" onclick="nav('calendar',this)"><span class="ic">📅</span>Calendário</button>
@@ -832,6 +859,14 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
           <div id="rvItemsPanel"></div>
         </div>
         <div id="rvHistPanel" style="display:none"></div>
+      </section>
+
+      <!-- SOBRE O NÚCLEO -->
+      <section class="view" id="vSobre">
+        <div class="vh">
+          <div><h1>🏛️ Núcleo de Inovação e Dados — COBEN</h1><div class="vh-sub">Proposta de Atuação · 8 eixos · 22 projetos · 12 sprints</div></div>
+        </div>
+        <div id="sobreBody"></div>
       </section>
 
       <!-- PLANO DE AÇÃO COBEN (Gestão de Benefício) -->
@@ -1176,6 +1211,12 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
           <div id="emPlanDesc" style="font-size:13px;font-weight:700;color:var(--text)"></div>
           <div id="emPlanMeta" style="font-size:11px;color:var(--t2);margin-top:3px"></div>
         </div>
+        <div id="emProjInfo" style="display:none;background:var(--bg3);border-left:3px solid var(--orange);border-radius:var(--rlg);padding:.7rem .9rem;margin-bottom:.85rem">
+          <div style="font-size:10px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">🎯 Projeto de origem</div>
+          <div id="emProjNome" style="font-size:12.5px;font-weight:700;color:var(--text)"></div>
+          <div id="emProjEixo" style="font-size:11px;color:var(--orange);font-weight:600;margin-top:2px"></div>
+          <div id="emProjObj" style="font-size:11.5px;color:var(--t2);margin-top:5px;line-height:1.5"></div>
+        </div>
         <div class="field" style="margin-bottom:.85rem">
           <label>Descrição adicional (notas, contexto, decisões)</label>
           <textarea id="emDesc" placeholder="Adicione contexto, escopo detalhado..."></textarea>
@@ -1239,7 +1280,10 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
       </div>
       <!-- Checklist -->
       <div class="mpane" data-pane="em-checklist">
-        <div class="field"><label>Checklist (<span id="emCkCt">0</span> itens)</label></div>
+        <div class="field" style="display:flex;align-items:center;gap:8px">
+          <label style="flex:1">Checklist (<span id="emCkCt">0</span> itens)</label>
+          <button class="btn sm" onclick="suggestEmChecklist()" title="Gera itens conforme o tipo de trabalho desta entrega">✨ Sugerir checklist</button>
+        </div>
         <ul class="cklist" id="emCkList"></ul>
         <div class="ck-add">
           <input class="inp" style="flex:1" id="emCkIn" placeholder="Adicionar item e Enter..." onkeydown="if(event.key==='Enter')addEmCkItem()">
@@ -1376,6 +1420,59 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
 const SUPA_URL = 'https://oclmebkrgazsrujnaywg.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9jbG1lYmtyZ2F6c3J1am5heXdnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExOTc5NDgsImV4cCI6MjA5Njc3Mzk0OH0.TcxaOvLl_lnI3dViT3xvSweL7ho3tzDVr1Spuc0TtVE';
 const db = supabase.createClient(SUPA_URL, SUPA_KEY, { auth: { persistSession: true, autoRefreshToken: true }});
+
+/* ============================================================
+   CATÁLOGO DO NÚCLEO — Eixos e Projetos (Proposta de Atuação 2026)
+============================================================ */
+const OBJETIVO_GERAL = "Reorganizar, estruturar e automatizar progressivamente a concessão de benefícios, reduzindo riscos, retrabalho e inconsistências — posicionando a COBEN como gestora da inteligência da concessão e promovendo uma operação sustentável para a equipe.";
+const DIRETRIZES = [
+  {t:"Risco em primeiro lugar", d:"Redução de risco financeiro, jurídico e operacional é o critério primário de priorização."},
+  {t:"Dados antes de automação", d:"Bases precisam estar organizadas e validadas antes que automações sejam construídas sobre elas."},
+  {t:"Automação como apoio", d:"A automação amplia a capacidade do analista, não o substitui. O julgamento humano permanece obrigatório nas decisões críticas."},
+  {t:"Entregas incrementais", d:"Cada sprint produz artefatos concretos, documentados e auditáveis."},
+  {t:"Integração como regra", d:"Projetos que impactam outras áreas exigem decisão interáreas formalizada."},
+  {t:"Sustentação obrigatória", d:"Manutenção, testes e correções são escopo permanente, não atividades residuais."},
+  {t:"Saúde da equipe como princípio", d:"O uso crônico de horas extras é sinal de falha estrutural. Automação e ferramentas certas devem reduzir sobrecarga."},
+];
+const EIXOS = {
+  A:{nome:"Governança, Integração e Cultura de Inovação", desc:"Fortalecer a cultura de inovação e colaboração entre as áreas, promovendo integração, compartilhamento de práticas e evolução contínua dos processos."},
+  B:{nome:"Dados Estruturantes e Bases Oficiais", desc:"Organização, higienização e padronização das bases de dados da concessão, estabelecendo o repositório oficial da COBEN como fonte única de verdade."},
+  C:{nome:"FUNCEF SUITE — Fluxos e Dossiê Automático", desc:"Revisão e padronização dos fluxos de concessão no SUITE (pensão, pecúlio e invalidez) e implementação do MVP do Dossiê Automático."},
+  D:{nome:"Automação de Processos e Simulação", desc:"Regras de concessão auditáveis, automação de rotinas críticas, simuladores e comunicações automáticas — reduzindo carga manual e risco de erro."},
+  E:{nome:"Painéis Gerenciais e Transparência", desc:"Painéis que aumentam a visibilidade da gestão sobre concessão, glosas, dívidas e indicadores — promovendo gestão por dados e atuação preventiva."},
+  F:{nome:"Eficiência Operacional e Saúde da Equipe", desc:"Redução da carga operacional: unificação de ferramentas de cálculo, análise de horas extras e tecnologias que otimizem tarefas."},
+  G:{nome:"Novo Sistema Previdenciário NEXUS", desc:"Participação transversal da COBEN no desenvolvimento do NEXUS, garantindo que regras e fluxos de benefícios sejam incorporados desde o design."},
+  H:{nome:"Sustentação, Manutenção e Testes", desc:"Eixo permanente de estabilidade operacional: ciclos contínuos de testes, correções e homologação das rotinas e sistemas da COBEN."},
+};
+const PROJ = {
+  A1:{nome:"Governança da Inovação — GEBEN Conecta", obj:"Promover um espaço estruturado de diálogo e integração entre as áreas da COBEN, incentivando troca de experiências e construção de soluções de inovação e transformação digital.", ent:["Calendário de encontros divulgado com antecedência","Pautas orientadas a temas, cases e trocas práticas","Registro dos pontos discutidos e aprendizados","Levantamento de oportunidades e necessidades","Consolidação periódica de insights para o Núcleo"]},
+  A2:{nome:"Reuniões com Núcleos — Levantamento de Necessidades", obj:"Realizar reuniões estruturadas com cada núcleo da COBEN para levantar necessidades em dados, painéis, automações e processos, garantindo backlog orientado por dor operacional real.", ent:["Agenda formal de reuniões com todos os núcleos por semestre","Roteiro padronizado de escuta por categoria de demanda","Registro estruturado com urgência e impacto","Priorização compartilhada com os núcleos","Atualização do backlog do Núcleo"]},
+  A3:{nome:"Atuação da COBEN na Entrada Digital de Benefícios de Risco", obj:"Ampliar e formalizar a participação da COBEN no requerimento digital de benefícios de risco, garantindo validações, checklists e critérios de elegibilidade no fluxo digital antes da concessão.", ent:["Mapeamento AS IS do fluxo digital atual","Proposta TO BE com validações e alertas automáticos","Checklist oficial de documentação por tipo de benefício","Critérios de elegibilidade documentados e versionados","Alinhamento formal com TI"]},
+  B1:{nome:"Higienização e Consolidação de Dados de Concessão", obj:"Mapear, auditar, higienizar e consolidar as bases críticas da concessão, corrigindo inconsistências cadastrais e atuariais e documentando o saneamento.", ent:["Inventário completo das bases com criticidade","Diagnóstico de inconsistências","Plano de saneamento priorizado","Extração e organização de dados legados","Validação por amostragem com os núcleos","Relatório de qualidade antes/depois"]},
+  B2:{nome:"Repositório Oficial COBEN no Databricks", obj:"Consolidar o repositório oficial de dados da COBEN no Databricks, em parceria com a CONAP, com consultas padronizadas, documentadas e rastreáveis como fonte primária.", ent:["Mapeamento das consultas existentes","Padrão de nomenclatura e versionamento","Dicionário de dados oficial","Repositório consolidado com trilha de auditoria","Rotinas de atualização automática","Co-governança formalizada com a CONAP"]},
+  B3:{nome:"Repositório de Fatores Atuariais", obj:"Construir, com a COPREV, um repositório estruturado de fatores atuariais permitindo simulações realistas — pré-requisito direto do Simulador REG/REPLAN (D5).", ent:["Alinhamento técnico com COPREV","Levantamento e validação dos fatores históricos e vigentes","Estrutura do repositório com critérios de atualização","Primeira carga validada","Documentação metodológica por tipo de benefício"]},
+  C1:{nome:"Redesenho de Fluxos de Benefícios no SUITE", obj:"Revisar, mapear e padronizar os fluxos de concessão de pensão, pecúlio e invalidez no SUITE, documentando AS IS e propondo TO BE com matriz de decisões validada.", ent:["Mapeamento AS IS completo dos fluxos","Identificação de gargalos e inconsistências","Proposta TO BE validada e aprovada","Matriz de decisões por tipo de benefício","Documentação oficial versionada"]},
+  C2:{nome:"MVP do Dossiê Automático", obj:"Implementar a primeira versão funcional do Dossiê Automático de concessão, com preenchimento parcial automatizado, rastreabilidade completa e checklist de validação integrado.", ent:["Modelo oficial de dossiê aprovado","Checklist de documentação por tipo de benefício","Integração com o repositório oficial","Rastreabilidade: data, responsável, fonte e versão","Manual de uso para analistas","Ciclo de testes com casos reais"]},
+  D1:{nome:"Base de Validação de Regras de Concessão", obj:"Estruturar catálogo versionado de regras de concessão com validações periódicas automatizadas no Databricks, identificando divergências antes que impactem beneficiários.", ent:["Documentação das regras atuais por tipo","Mapeamento de regras históricas com vigências","Catálogo versionado no Databricks","Suite de testes automatizados","Sistema de alertas para divergências","Relatório mensal de conformidade"]},
+  D2:{nome:"Rotina Saúde Caixa — Automação", obj:"Criar base estruturada e pipeline automatizado para as simulações enviadas ao Saúde Caixa, eliminando o processo manual de montagem e envio.", ent:["Mapeamento do modelo de dados exigido","Consolidação das fontes de dados","Base estruturada com atualização automática","Pipeline de geração e validação","Testes com dados reais","Documentação técnica e manual de monitoramento"]},
+  D3:{nome:"Rotina Calendário Legal — Automação", obj:"Organizar e automatizar a geração e compartilhamento das bases de benefícios que alimentam painéis e áreas atuariais conforme o calendário legal.", ent:["Levantamento dos dados exigidos e fontes","Modelagem da base enxuta padronizada","Fluxo automático de compartilhamento interáreas","Carga inicial validada pelas áreas","Automação do ciclo completo","Monitoramento com alertas"]},
+  D4:{nome:"Painel e Automação de Reajuste Anual", obj:"Criar base histórica de reajustes integrada à tabela global de índices e painel gerencial do reajuste anual, eliminando controle manual por planilhas.", ent:["Documentação das regras de reajuste","Integração com tabela global de índices","Base histórica com versionamento","Painel com histórico, projeções e alertas","Validação com os núcleos","Manual de uso"]},
+  D5:{nome:"Simulador REG/REPLAN não saldado — CORAP", obj:"Disponibilizar simulador do benefício REG/REPLAN não saldado para a CORAP no atendimento a participantes, com expansão futura para pensão e benefícios de risco.", ent:["Regras de cálculo validadas com a área técnica","Integração com fatores atuariais (B3)","Simulador com interface simplificada","Validação extensiva com casos reais","Disponibilização com manual de uso","Roadmap de expansão"]},
+  D6:{nome:"Envio Automático de Carta de Concessão", obj:"Criar base padronizada, modelo oficial e pipeline de geração automática da carta de concessão no autoatendimento, eliminando elaboração manual.", ent:["Modelo oficial de carta por tipo de benefício","Base de alimentação com campos mapeados","Pipeline entre dados de cálculo e template","Geração automática com validação","Disponibilização no autoatendimento","Rastreabilidade completa"]},
+  E1:{nome:"Painel Gerencial de Benefícios", obj:"Desenvolver painel integrado com dados do SUITE, em alinhamento com a CONAP, com visibilidade sobre volume, status, prazo e composição das concessões em tempo real.", ent:["Mapeamento dos indicadores prioritários","Acesso técnico ao SUITE via CONAP","Alinhamento de arquitetura e periodicidade","Desenvolvimento e publicação do painel","Treinamento de gestores e analistas","Ciclo de melhoria contínua"]},
+  E2:{nome:"Painel de Glosas INSS", obj:"Criar painel de acompanhamento e análise das devoluções e glosas do INSS, com consulta individualizada e relatórios para o Núcleo INSS.", ent:["Mapeamento do processo de glosas","Definição dos indicadores","Modelagem da base integrada às fontes","Painel com filtros e consulta individual","Relatórios periódicos","Treinamento dos usuários"]},
+  E3:{nome:"Painel de Dívidas Previdenciárias", obj:"Desenvolver painel das dívidas previdenciárias dos participantes com visibilidade sobre volume, status, evolução e regularização.", ent:["Levantamento das fontes de dados","Mapeamento dos indicadores","Modelagem e fluxo de atualização","Painel com consulta por participante","Validação com o núcleo responsável","Publicação com treinamento"]},
+  E4:{nome:"Painel de Indicadores Operacionais da COBEN", obj:"Criar painel unificado de indicadores operacionais: volume de concessões, prazos, produtividade e status dos projetos do Núcleo de Inovação.", ent:["Definição colaborativa dos indicadores","Integração com repositório oficial e painéis","Painel consolidado executivo e operacional","Status dos projetos do Núcleo integrado","Publicação e treinamento da gerência"]},
+  F1:{nome:"Unificação das Planilhas de Cálculo em BI", obj:"Mapear, consolidar e substituir as planilhas de cálculo de concessão por um sistema de BI unificado, eliminando controles paralelos e divergências.", ent:["Inventário de todas as planilhas em uso","Mapeamento de fórmulas e regras","Modelo único de BI validado","BI consolidado com rastreabilidade","Validação extensiva dos cálculos","Publicação e desativação gradual das planilhas"]},
+  F2:{nome:"Análise do Uso de Horas Extras", obj:"Diagnóstico estruturado do uso de horas extras: causas-raiz, padrões por área e propostas de redistribuição de carga, automação e reorganização.", ent:["Histórico de HE por área e período","Padrões sazonais e picos recorrentes","Análise de causas-raiz","Proposta de redistribuição de carga","Automações e ferramentas para reduzir sobrecarga","Relatório e plano de ação à gerência"]},
+  F3:{nome:"Sugestão de Sistemas e Ferramentas", obj:"Levantar, avaliar e recomendar sistemas e ferramentas (RPA, BI, IA generativa, gestão de fluxo) que otimizem tarefas recorrentes da COBEN.", ent:["Mapeamento das tarefas com potencial tecnológico","Pesquisa de ferramentas disponíveis","Avaliação do ecossistema FUNCEF/COBEN","Análise de viabilidade e custo-benefício","Relatório de recomendações priorizado","Apresentação com roadmap de implantação"]},
+  G1:{nome:"Atuação Transversal da COBEN no NEXUS", obj:"Garantir participação ativa da COBEN no desenvolvimento do NEXUS, com requisitos formalizados, fluxos validados e pareceres técnicos que evitem retrabalho futuro.", ent:["Representação formal no grupo de trabalho","Requisitos de concessão formalizados","Revisão e validação dos fluxos propostos","Pareceres técnicos documentados","Registro de decisões com rastreabilidade"]},
+  H1:{nome:"Sustentação Operacional Contínua", obj:"Manter estabilidade e conformidade dos sistemas, rotinas e regras da COBEN por ciclos regulares de testes, monitoramento, correção e homologação.", ent:["Ciclos mensais de testes com evidências","Monitoramento da qualidade dos dados","Correção de falhas priorizada por criticidade","Homologação antes de atualização em produção","Registro de incidentes e causas-raiz","Relatório mensal à gerência"]},
+};
+function projForDesc(desc){
+  const m = (desc||"").match(/^([A-H][0-9]+)/);
+  return m && PROJ[m[1]] ? {code:m[1], ...PROJ[m[1]]} : null;
+}
 
 /* ============================================================
    PLANO DE AÇÃO COBEN — Gestão de Benefício (catálogo fixo, 62 subações)
@@ -2358,6 +2455,7 @@ function renderAll(){
   if(AV==='calendar')  renderCal();
   if(AV==='team')      renderTeam();
   if(AV==='reviews')   renderReview();
+  if(AV==='sobre')     renderSobre();
   if(AV==='planoacao') renderPlanoAcao();
   if(AV==='audit')     renderAudit();
   if(AV==='users')     renderUsers();
@@ -3575,6 +3673,77 @@ async function deleteReviewHist(reviewId){
 }
 
 /* ============================================================
+   SOBRE O NÚCLEO — objetivo, diretrizes, eixos e projetos
+============================================================ */
+const _projOpen = {};
+
+function projSprintMap(code){
+  // Em quais sprints o projeto aparece e quantas entregas tem
+  const hits = [];
+  SP.forEach(s=>{
+    s.entregas.forEach((e,i)=>{
+      if((e.desc||'').startsWith(code)) hits.push({sid:s.id, idx:i, status:gES(s.id,i)});
+    });
+  });
+  return hits;
+}
+
+function renderSobre(){
+  const el = document.getElementById('sobreBody');
+
+  const diretrizes = DIRETRIZES.map((d,i)=>`
+    <div class="dz-card"><span class="dz-num">${i+1}</span>
+      <div><div class="dz-t">${escapeHtml(d.t)}</div><div class="dz-d">${escapeHtml(d.d)}</div></div>
+    </div>`).join('');
+
+  const eixos = Object.entries(EIXOS).map(([k,x])=>{
+    const projs = Object.keys(PROJ).filter(c=>c[0]===k);
+    const ex = EX[k];
+    return `<div class="ex-card" style="border-left:4px solid ${ex.fg}">
+      <div class="ex-head"><span class="echip" style="background:${ex.bg};color:${ex.fg}">${k}</span>
+        <strong>${escapeHtml(x.nome)}</strong></div>
+      <div class="ex-desc">${escapeHtml(x.desc)}</div>
+      <div class="ex-meta">${projs.length} projeto(s): ${projs.join(' · ')}</div>
+    </div>`;
+  }).join('');
+
+  const projetos = Object.entries(PROJ).map(([code,p])=>{
+    const ex = EX[code[0]];
+    const hits = projSprintMap(code);
+    const done = hits.filter(h=>h.status==='concluido').length;
+    const sids = [...new Set(hits.map(h=>h.sid))].sort((a,b)=>a-b);
+    const open = _projOpen[code];
+    return `<div class="pj-card ${open?'open':''}">
+      <div class="pj-head" onclick="_projOpen['${code}']=!_projOpen['${code}'];renderSobre()">
+        <span class="echip" style="background:${ex.bg};color:${ex.fg}">${code}</span>
+        <div class="pj-tit">${escapeHtml(p.nome)}
+          <div class="pj-meta">${hits.length? `${hits.length} entrega(s) · ${done} concluída(s) · Sprints ${sids.map(s=>'S'+s).join(', ')}` : 'Sem entregas mapeadas nas sprints'}</div>
+        </div>
+        <span class="pa-caret">▶</span>
+      </div>
+      <div class="pj-body">
+        <div class="pj-obj"><b>Objetivo:</b> ${escapeHtml(p.obj)}</div>
+        <div class="pj-ents"><b>Entregas do projeto:</b>
+          <ul>${p.ent.map(e=>`<li>${escapeHtml(e)}</li>`).join('')}</ul>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  el.innerHTML = `
+    <div class="sobre-hero">
+      <div class="sh-label">Objetivo geral</div>
+      <div class="sh-text">${escapeHtml(OBJETIVO_GERAL)}</div>
+    </div>
+    <h3 class="tsec-title" style="margin-top:1.4rem">Diretrizes de atuação</h3>
+    <div class="dz-grid">${diretrizes}</div>
+    <h3 class="tsec-title" style="margin-top:1.4rem">Eixos de atuação</h3>
+    <div class="ex-grid">${eixos}</div>
+    <h3 class="tsec-title" style="margin-top:1.4rem">Projetos (${Object.keys(PROJ).length})</h3>
+    <div>${projetos}</div>`;
+}
+
+/* ============================================================
    PLANO DE AÇÃO COBEN — Gestão de Benefício
 ============================================================ */
 const _paOpen = {};   // OM -> aberto?
@@ -4605,7 +4774,20 @@ function openEntrega(sid, idx){
 
   // Plan info block (read-only)
   document.getElementById('emPlanDesc').textContent = e.desc;
-  document.getElementById('emPlanMeta').textContent = `Sprint ${sid} · ${s.m} · Eixo ${e.eixo||'—'} · ${e.tipo||'Entrega'}${e.resp?' · Resp: '+e.resp:''}`;
+  const eixoNome = EIXOS[e.eixo]?.nome || '';
+  document.getElementById('emPlanMeta').textContent = `Sprint ${sid} · ${s.m} · Eixo ${e.eixo||'—'}${eixoNome?' — '+eixoNome:''} · ${e.tipo||'Entrega'}${e.resp?' · Resp: '+e.resp:''}`;
+
+  // Projeto de origem (catálogo da Proposta de Atuação)
+  const proj = projForDesc(e.desc);
+  const pInfo = document.getElementById('emProjInfo');
+  if(proj){
+    document.getElementById('emProjNome').textContent = `${proj.code} — ${proj.nome}`;
+    document.getElementById('emProjEixo').textContent = `Eixo ${proj.code[0]} · ${EIXOS[proj.code[0]]?.nome||''}`;
+    document.getElementById('emProjObj').textContent = proj.obj;
+    pInfo.style.display = '';
+  } else {
+    pInfo.style.display = 'none';
+  }
 
   // Editable fields
   document.getElementById('emDesc').value   = cur.descricao || '';
@@ -4688,6 +4870,47 @@ function addEmCkItem(){
   entPending.checklist.push({texto:v, concluido:false, ordem:entPending.checklist.length});
   document.getElementById('emCkIn').value='';
   renderEmCkList();
+}
+
+/* Checklist sugerido — detecta o tipo de trabalho pela descrição da entrega */
+const CK_TEMPLATES = [
+  {re:/painel|dashboard|indicador/i, items:["Definir indicadores e visões com os usuários","Mapear fontes de dados e acessos necessários","Modelar a base de dados do painel","Construir o painel (layout + filtros)","Validar números com o núcleo responsável","Publicar e treinar os usuários finais"]},
+  {re:/simulador/i, items:["Validar regras de cálculo com a área técnica","Mapear parâmetros e integração com fatores (B3)","Construir interface de simulação","Testar com casos reais e casos-limite","Disponibilizar com manual de uso","Coletar feedback pós-uso e ajustar"]},
+  {re:/automa|pipeline|rotina/i, items:["Mapear o processo manual atual (AS IS)","Identificar fontes de dados e dependências","Desenvolver a automação/pipeline","Testar com dados reais em homologação","Validar resultado com o núcleo responsável","Documentar e ativar monitoramento com alertas"]},
+  {re:/AS IS|TO BE|mapeamento|fluxo|redesenho/i, items:["Levantar o fluxo atual com os envolvidos","Documentar AS IS (etapas, sistemas, decisões)","Identificar gargalos e pontos críticos","Desenhar proposta TO BE","Validar com os núcleos e a gerência","Publicar documentação oficial versionada"]},
+  {re:/saneamento|higieniza|inconsist|inventário de bases|qualidade de dados/i, items:["Inventariar bases e classificar criticidade","Diagnosticar inconsistências por tipo","Definir regras de correção documentadas","Executar saneamento priorizado","Validar por amostragem com os núcleos","Emitir relatório de qualidade antes/depois"]},
+  {re:/repositório|databricks|dicionário/i, items:["Mapear consultas/dados existentes","Definir padrão de nomenclatura e versionamento","Estruturar o repositório com acesso controlado","Realizar primeira carga validada","Documentar (dicionário de dados)","Ativar rotina de atualização e monitoramento"]},
+  {re:/reuni|escuta|GEBEN Conecta|agenda/i, items:["Definir pauta e participantes","Agendar e divulgar com antecedência","Preparar roteiro/materiais","Realizar o encontro","Registrar ata e encaminhamentos","Atualizar o backlog com o que foi levantado"]},
+  {re:/catálogo de regras|regras de concessão|validação de regras/i, items:["Levantar regras atuais por tipo de benefício","Mapear regras históricas e vigências","Estruturar catálogo versionado","Criar testes automatizados de validação","Ativar alertas de divergência","Emitir relatório de conformidade"]},
+  {re:/carta|comunicação|autoatendimento/i, items:["Definir modelo oficial aprovado pela gerência","Mapear campos e fontes de dados","Construir pipeline de geração","Validar geração com casos reais","Disponibilizar no canal do participante","Garantir rastreabilidade completa"]},
+  {re:/dossiê/i, items:["Aprovar modelo oficial de dossiê","Definir checklist de documentação por benefício","Integrar com o repositório oficial","Garantir rastreabilidade (data, fonte, versão)","Testar com casos reais","Entregar manual de uso aos analistas"]},
+  {re:/horas extras|sobrecarga/i, items:["Levantar histórico por área e período","Identificar padrões e picos recorrentes","Analisar causas-raiz","Elaborar propostas de redistribuição/automação","Consolidar relatório de diagnóstico","Apresentar plano de ação à gerência"]},
+  {re:/NEXUS|requisito|parecer/i, items:["Levantar requisitos com os núcleos","Formalizar documentação de requisitos","Revisar fluxos/design propostos","Emitir parecer técnico documentado","Registrar decisões com rastreabilidade"]},
+  {re:/teste|sustentação|homologa/i, items:["Executar ciclo de testes das rotinas","Registrar incidentes e causas-raiz","Priorizar correções por criticidade","Homologar antes de subir a produção","Emitir relatório mensal de status"]},
+];
+const CK_DEFAULT = ["Alinhar escopo e critério de aceite","Levantar insumos e dependências","Executar a entrega","Validar com o núcleo responsável","Documentar evidência da entrega","Comunicar conclusão na weekly"];
+
+function suggestChecklistFor(desc, tipo){
+  if(/evento/i.test(tipo||'')) return CK_TEMPLATES.find(t=>t.re.test('reunião')).items;
+  if(/sustenta/i.test(tipo||'')) return CK_TEMPLATES.find(t=>t.re.test('sustentação')).items;
+  const hit = CK_TEMPLATES.find(t=>t.re.test(desc||''));
+  return hit ? hit.items : CK_DEFAULT;
+}
+function suggestEmChecklist(){
+  if(!editingEnt) return;
+  const s = SP.find(x=>x.id===editingEnt.sid);
+  const e = s.entregas[editingEnt.idx];
+  const items = suggestChecklistFor(e.desc, e.tipo);
+  const existing = new Set(entPending.checklist.map(c=>c.texto.toLowerCase()));
+  let added = 0;
+  items.forEach(txt=>{
+    if(!existing.has(txt.toLowerCase())){
+      entPending.checklist.push({texto:txt, concluido:false, ordem:entPending.checklist.length});
+      added++;
+    }
+  });
+  renderEmCkList();
+  toast(added ? `${added} item(ns) sugerido(s) — salve a entrega para gravar` : 'Itens já estavam no checklist');
 }
 function updateEmSchedPreview(){
   const s = document.getElementById('emStart').value;
