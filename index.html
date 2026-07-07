@@ -3132,8 +3132,8 @@ function renderTeam(){
   // Escopo: respeita filtro global de sprint
   const sprintIds = gF.sprint==='all' ? SP.map(s=>s.id) : [AS];
   const tasksInScope = TSK.filter(t => sprintIds.includes(t.sprint_id));
-  // Equipe = só integrantes do Núcleo de Dados
-  const team = MB.filter(m => (m.tipo||'integrante')==='integrante' && m.ativo!==false);
+  // Equipe = integrantes + admins + gestores + coordenadores (exclui visitante)
+  const team = MB.filter(m => (m.tipo||'integrante')!=='visitante' && m.ativo!==false);
 
   el.innerHTML = team.map(m=>{
     // Subtarefas atribuídas a essa pessoa no escopo
