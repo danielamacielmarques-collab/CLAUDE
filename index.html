@@ -1705,7 +1705,11 @@ const POINTS = [1,2,3,5,8,13,21];
 /* ============================================================
    STATE
 ============================================================ */
-let AS = 1;
+let AS = (()=>{
+  const today = new Date().toISOString().slice(0,10);
+  const cur = SP.find(s=>today>=s.m1 && today<=s.m2);
+  return cur ? cur.id : SP[0].id;
+})();
 let AV = 'dashboard';
 // Global filters (apply across all views)
 let gF = { sprint:'current', person:'', status:'', search:'' };
@@ -2472,9 +2476,15 @@ function renderSnav(){
     const total = activeCount + ts.length;
     const done = eDone + ts.filter(t=>t.status==='concluido').length;
     const pct = total ? Math.round(100*done/total) : 0;
-    return `<button class="nb ${s.id===AS?'on':''}" onclick="selSprint(${s.id})">
+    const today = new Date().toISOString().slice(0,10);
+    const isCurrent = today>=s.m1 && today<=s.m2;
+    const isPast = today>s.m2;
+    const sLabel = pct===100 ? '✅' : isPast ? '⏱️' : isCurrent ? '🔵' : '⏳';
+    const sTitle = pct===100 ? 'Concluída' : isPast ? 'Encerrada' : isCurrent ? 'Sprint atual' : 'Futura';
+    return `<button class="nb ${s.id===AS?'on':''}" onclick="selSprint(${s.id})" title="${sTitle}">
       <span class="sdot" style="background:${RC[s.risco]}"></span>
       <span>S${s.id} • ${s.m}</span>
+      <span style="font-size:11px" title="${sTitle}">${sLabel}</span>
       <span class="pct">${pct}%</span>
     </button>`;
   }).join('');
