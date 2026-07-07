@@ -4143,8 +4143,8 @@ async function deleteUser(id, nome, email){
     `• Comentários e anexos ficam, mas sem autor\n\n` +
     `Para apenas tirar do uso sem perder, use "Desativar".\n` +
     `Esta ação é IRREVERSÍVEL.`)) return;
-  const typed = prompt(`Para confirmar, digite EXCLUIR ${nome}:`);
-  if(typed !== `EXCLUIR ${nome}`){ toast('Confirmação inválida — exclusão cancelada','err'); return; }
+  const typed = prompt(`Para confirmar a exclusão de ${nome}, digite EXCLUIR:`);
+  if(!typed || typed.trim().toUpperCase() !== 'EXCLUIR'){ toast('Confirmação inválida — exclusão cancelada','err'); return; }
 
   ss('loading','Excluindo...');
   const {error} = await db.rpc('delete_user_admin', { target_id: id });
