@@ -737,7 +737,12 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
           <button class="btn" onclick="openTask()">+ Nova tarefa</button>
         </div>
         <div class="metrics" id="metrics"></div>
-        <div class="filtbar" style="margin-top:.5rem;flex-wrap:wrap;gap:.4rem">
+        <div class="dh-tabs" id="dhTabs">
+          <button class="on" onclick="dhTab('plan',this)">📋 Planejamento <span class="tab-badge" id="dhPlanCount">0</span></button>
+          <button onclick="dhTab('desp',this)">🚫 Despriorizadas <span class="tab-badge" id="dhDespCount">0</span></button>
+          <button onclick="dhTab('canc',this)">❌ Canceladas <span class="tab-badge" id="dhCancCount">0</span></button>
+        </div>
+        <div class="filtbar" style="flex-wrap:wrap;gap:.4rem">
           <span class="filt-info">Tipo:</span>
           <select class="sel" id="dfTipo" onchange="renderDash()">
             <option value="">Todos</option>
@@ -756,16 +761,6 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
             <option value="F">F · Eficiência</option>
             <option value="G">G · NEXUS</option>
             <option value="H">H · Sustentação</option>
-          </select>
-          <span class="filt-info" style="margin-left:.5rem">Status:</span>
-          <select class="sel" id="dfStatus" onchange="renderDash()">
-            <option value="">Todos</option>
-            <option value="pendente">Pendente</option>
-            <option value="em_andamento">Em andamento</option>
-            <option value="concluido">Concluído</option>
-            <option value="bloqueado">Bloqueado</option>
-            <option value="despriorizado">Despriorizado</option>
-            <option value="cancelado">Cancelado</option>
           </select>
         </div>
         <div id="dashPlanList"></div>
@@ -2488,6 +2483,14 @@ function renderSnav(){
 /* ============================================================
    DASHBOARD
 ============================================================ */
+let _dhTab = 'plan';
+function dhTab(tab, btn){
+  _dhTab = tab;
+  document.querySelectorAll('#dhTabs button').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  renderDash();
+}
+
 function renderDash(){
   const isAll = gF.sprint==='all';
   if(isAll){
@@ -2504,143 +2507,148 @@ function renderDash(){
   const tsAll = (gF.sprint==='all' ? TSK : spT(AS))
     .filter(t => !gF.person || gTM(t.id).find(m=>m.id===gF.person));
   const sprintIdsAll = gF.sprint==='all' ? SP.map(s=>s.id) : [AS];
-  let entsAll = [];
+  const isRemanejo = t => /^\[Remanejado/.test(t.titulo);
+
+  // Collect all entregas with full data
+  let allEntItems = [];
   sprintIdsAll.forEach(sid=>{
-    const s = SP.find(x=>x.id===sid);
-    s.entregas.forEach((e,i)=>{
+    const sp = SP.find(x=>x.id===sid);
+    sp.entregas.forEach((e,i)=>{
       const mems = gEM(sid,i);
       if(gF.person && !mems.includes(gF.person)) return;
-      entsAll.push({status: gES(sid,i)});
+      allEntItems.push({kind:'entrega', e, sid, i, st:gES(sid,i)});
     });
   });
 
-  const activeEnts = entsAll.filter(e=>e.status!=='despriorizado' && e.status!=='cancelado');
-  const activeTasks = tsAll.filter(t=>t.status!=='despriorizado' && t.status!=='cancelado');
-  const cnt = (st)=> activeEnts.filter(e=>e.status===st).length + activeTasks.filter(t=>t.status===st).length;
-  const eDone = activeEnts.filter(e=>e.status==='concluido').length;
-  const tDone = activeTasks.filter(t=>t.status==='concluido').length;
-  const eProg = activeEnts.filter(e=>e.status==='em_andamento').length;
-  const tProg = activeTasks.filter(t=>t.status==='em_andamento').length;
-  const done = cnt('concluido');
-  const inProg = cnt('em_andamento');
-  const blocked = cnt('bloqueado');
-  const desp = entsAll.filter(e=>e.status==='despriorizado').length + tsAll.filter(t=>t.status==='despriorizado').length;
-  const canc = entsAll.filter(e=>e.status==='cancelado').length + tsAll.filter(t=>t.status==='cancelado').length;
-  const total = activeEnts.length + activeTasks.length;
+  // Collect all tasks
+  const allTaskItems = tsAll.map(t=>({
+    kind: isRemanejo(t) ? 'remanejada' : 'tarefa', t, st: t.status
+  }));
+
+  // Separate active vs desp vs canc
+  const allItems = [...allEntItems, ...allTaskItems];
+  const activeItems = allItems.filter(x=>x.st!=='despriorizado' && x.st!=='cancelado');
+  const despItems = allItems.filter(x=>x.st==='despriorizado');
+  const cancItems = allItems.filter(x=>x.st==='cancelado');
+
+  // Metrics — only active
+  const done = activeItems.filter(x=>x.st==='concluido').length;
+  const inProg = activeItems.filter(x=>x.st==='em_andamento').length;
+  const blocked = activeItems.filter(x=>x.st==='bloqueado').length;
+  const total = activeItems.length;
   const pct = total ? Math.round(100*done/total) : 0;
-  const pts = activeTasks.filter(t=>t.status==='concluido').reduce((a,t)=>a+(t.story_points||0),0);
-  const totalPts = activeTasks.reduce((a,t)=>a+(t.story_points||0),0);
-  const isRemanejo = t => /^\[Remanejado/.test(t.titulo);
-  const remanejados = ts.filter(isRemanejo);
-  const tarefasNormais = ts.filter(t=>!isRemanejo(t));
+  const activeEnts = allEntItems.filter(x=>x.st!=='despriorizado' && x.st!=='cancelado');
+  const activeTasks = allTaskItems.filter(x=>x.st!=='despriorizado' && x.st!=='cancelado');
+  const activeRem = activeTasks.filter(x=>x.kind==='remanejada');
+  const activeNorm = activeTasks.filter(x=>x.kind==='tarefa');
+  const pts = activeTasks.filter(x=>x.st==='concluido' && x.t).reduce((a,x)=>a+(x.t.story_points||0),0);
+  const totalPts = activeTasks.filter(x=>x.t).reduce((a,x)=>a+(x.t.story_points||0),0);
+
+  // Tab badge counts
+  document.getElementById('dhPlanCount').textContent = activeItems.length;
+  document.getElementById('dhDespCount').textContent = despItems.length;
+  document.getElementById('dhCancCount').textContent = cancItems.length;
 
   document.getElementById('metrics').innerHTML = `
     <div class="mc"><div class="lbl">Progresso</div><div class="val">${pct}%</div>
-      <div class="sub">${done} de ${total} concluidos</div>
+      <div class="sub">${done} de ${total} ativos concluidos</div>
       <div class="pw"><div class="pf" style="width:${pct}%"></div></div></div>
-    <div class="mc"><div class="lbl">Entregas</div><div class="val">${entsAll.length}</div>
+    <div class="mc"><div class="lbl">Entregas</div><div class="val">${activeEnts.length}</div>
       <div class="sub">previstas na sprint</div></div>
-    <div class="mc"><div class="lbl">Tarefas</div><div class="val">${tarefasNormais.length}</div>
+    <div class="mc"><div class="lbl">Tarefas</div><div class="val">${activeNorm.length}</div>
       <div class="sub">backlog operacional</div></div>
-    <div class="mc"><div class="lbl">Remanejadas</div><div class="val" style="color:var(--amber)">${remanejados.length}</div>
+    <div class="mc"><div class="lbl">Remanejadas</div><div class="val" style="color:var(--amber)">${activeRem.length}</div>
       <div class="sub">herdadas de sprints anteriores</div></div>
+    <div class="mc"><div class="lbl">Em andamento</div><div class="val" style="color:var(--amber)">${inProg}</div>
+      <div class="sub">no escopo ativo</div></div>
     <div class="mc"><div class="lbl">Bloqueadas</div><div class="val" style="color:var(--red)">${blocked}</div>
       <div class="sub">no escopo ativo</div></div>
     <div class="mc"><div class="lbl">Story Points</div><div class="val">${pts}/${totalPts||0}</div>
       <div class="sub">pontos entregues</div></div>
-    ${desp||canc ? `<div class="mc"><div class="lbl">Fora do escopo</div><div class="val" style="color:var(--t3)">${desp+canc}</div>
-      <div class="sub">${desp} despriorizados · ${canc} cancelados</div></div>` : ''}
   `;
 
   // === FILTERS ===
   const fTipo = document.getElementById('dfTipo')?.value || '';
   const fEixo = document.getElementById('dfEixo')?.value || '';
-  const fStatus = document.getElementById('dfStatus')?.value || '';
 
-  // Build unified items list
-  let items = [];
+  // Choose items based on active tab
+  let tabItems;
+  if(_dhTab==='desp') tabItems = despItems;
+  else if(_dhTab==='canc') tabItems = cancItems;
+  else tabItems = activeItems;
 
-  // Entregas
-  const filteredEnts = ents.slice();
-  let entsFilt = fEixo ? filteredEnts.filter(c=>(c._data.eixo||'')===fEixo) : filteredEnts;
-  if(fStatus) entsFilt = entsFilt.filter(c=>c.status===fStatus);
-  if(!fTipo || fTipo==='entregas'){
-    entsFilt.forEach(({_data:e, sprint_id:sid, entrega_idx:i, status:st})=>{
-      items.push({kind:'entrega', e, sid, i, st});
-    });
-  }
+  // Apply filters
+  if(fEixo) tabItems = tabItems.filter(x=> x.kind==='entrega' ? (x.e.eixo||'')===fEixo : true);
+  if(fTipo) tabItems = tabItems.filter(x=>{
+    if(fTipo==='entregas') return x.kind==='entrega';
+    if(fTipo==='tarefas') return x.kind==='tarefa';
+    if(fTipo==='remanejadas') return x.kind==='remanejada';
+    return true;
+  });
 
-  // Tarefas normais (não remanejadas)
-  let tNorm = tarefasNormais;
-  if(fStatus) tNorm = tNorm.filter(t=>t.status===fStatus);
-  if(!fTipo || fTipo==='tarefas'){
-    tNorm.forEach(t=>{ items.push({kind:'tarefa', t, st:t.status}); });
-  }
-
-  // Remanejadas
-  let tRem = remanejados;
-  if(fStatus) tRem = tRem.filter(t=>t.status===fStatus);
-  if(!fTipo || fTipo==='remanejadas'){
-    tRem.forEach(t=>{ items.push({kind:'remanejada', t, st:t.status}); });
-  }
-
-  // Render
-  const renderEntregaRow = ({e, sid, i, st})=>{
-    const ex = exFor(e);
-    const mems = gEM(sid, i);
-    const code = (e.desc.match(/^[A-Z][0-9]+[a-z]?/)||[''])[0] || e.eixo;
-    const titulo = e.desc.replace(/^[A-Z][0-9]+[a-z]?\s*[—-]?\s*/, '');
-    const star = /★/.test(e.desc) ? ' ★' : '';
-    const sp = SP.find(x=>x.id===sid);
-    return `<div class="drow ${st}" onclick="openEntrega(${sid},${i})">
-      <span class="echip" style="background:${ex.bg};color:${ex.fg}">${e.eixo||'—'}</span>
+  // Render rows
+  const renderEntregaRow = (x)=>{
+    const ex = exFor(x.e);
+    const mems = gEM(x.sid, x.i);
+    const code = (x.e.desc.match(/^[A-Z][0-9]+[a-z]?/)||[''])[0] || x.e.eixo;
+    const titulo = x.e.desc.replace(/^[A-Z][0-9]+[a-z]?\s*[—-]?\s*/, '');
+    const star = /★/.test(x.e.desc) ? ' ★' : '';
+    const sp = SP.find(s=>s.id===x.sid);
+    return `<div class="drow ${x.st}" onclick="openEntrega(${x.sid},${x.i})">
+      <span class="echip" style="background:${ex.bg};color:${ex.fg}">${x.e.eixo||'—'}</span>
       <div class="dbody">
-        <div class="dproj">${code}${star} · ${e.tipo||'Entrega'}${isAll?` · S${sid} · ${sp.m}`:''}${e.resp?' • '+escapeHtml(e.resp):''}</div>
+        <div class="dproj">${code}${star} · ${x.e.tipo||'Entrega'}${isAll?` · S${x.sid} · ${sp.m}`:''}${x.e.resp?' • '+escapeHtml(x.e.resp):''}</div>
         <div class="ddesc">${escapeHtml(titulo)}</div>
         <div class="dmeta">
-          <span class="badge ${st}">${statL(st)}</span>
+          <span class="badge ${x.st}">${statL(x.st)}</span>
           ${mems.length?avS(mems,4):''}
         </div>
       </div>
       <div onclick="event.stopPropagation()">
-        <select class="ssel" onchange="qStEntrega(${sid},${i},this.value)">
-          ${STATUSES.map(o=>`<option value="${o.k}" ${st===o.k?'selected':''}>${o.l}</option>`).join('')}
+        <select class="ssel" onchange="qStEntrega(${x.sid},${x.i},this.value)">
+          ${STATUSES.map(o=>`<option value="${o.k}" ${x.st===o.k?'selected':''}>${o.l}</option>`).join('')}
         </select>
       </div>
     </div>`;
   };
 
-  const renderTarefaRow = ({t, st}, isRem)=>{
-    const mems = gTM(t.id);
-    return `<div class="drow ${st} ${isRem?'drow-remanejo':'drow-task'}" onclick="openTask('${t.id}')">
+  const renderTarefaRow = (x)=>{
+    const isRem = x.kind==='remanejada';
+    const mems = gTM(x.t.id);
+    return `<div class="drow ${x.st} ${isRem?'drow-remanejo':'drow-task'}" onclick="openTask('${x.t.id}')">
       <span class="echip" style="background:${isRem?'var(--a-bg);color:var(--amber)':'var(--acc-bg);color:var(--accent)'}">
         ${isRem?'↪':'T'}
       </span>
       <div class="dbody">
-        <div class="dproj">${isRem?'Remanejada':'Tarefa'} · S${t.sprint_id}${t.prioridade?' · '+t.prioridade:''}${isRem?' · vindo de sprint anterior':''}</div>
-        <div class="ddesc">${escapeHtml(t.titulo.replace(/^\[Remanejado S\d+\]\s*/,''))}</div>
+        <div class="dproj">${isRem?'Remanejada':'Tarefa'} · S${x.t.sprint_id}${x.t.prioridade?' · '+x.t.prioridade:''}${isRem?' · vindo de sprint anterior':''}</div>
+        <div class="ddesc">${escapeHtml(x.t.titulo.replace(/^\[Remanejado S\d+\]\s*/,''))}</div>
         <div class="dmeta">
-          <span class="badge ${st}">${statL(st)}</span>
-          ${t.story_points?`<span style="font-size:10px;color:var(--t3)">${t.story_points} pts</span>`:''}
+          <span class="badge ${x.st}">${statL(x.st)}</span>
+          ${x.t.story_points?`<span style="font-size:10px;color:var(--t3)">${x.t.story_points} pts</span>`:''}
           ${mems.length?avS(mems.map(m=>m.id),3):''}
         </div>
       </div>
       <div onclick="event.stopPropagation()">
-        <select class="ssel" onchange="qStTask('${t.id}',this.value)">
-          ${STATUSES.map(o=>`<option value="${o.k}" ${st===o.k?'selected':''}>${o.l}</option>`).join('')}
+        <select class="ssel" onchange="${x.kind==='entrega'?`qStEntrega(${x.sid},${x.i},this.value)`:`qStTask('${x.t.id}',this.value)`}">
+          ${STATUSES.map(o=>`<option value="${o.k}" ${x.st===o.k?'selected':''}>${o.l}</option>`).join('')}
         </select>
       </div>
     </div>`;
   };
 
+  const emptyMsg = _dhTab==='desp' ? 'Nenhuma atividade despriorizada'
+    : _dhTab==='canc' ? 'Nenhuma atividade cancelada'
+    : 'Nenhum item com esses filtros';
+  const emptyIcon = _dhTab==='desp' ? '🚫' : _dhTab==='canc' ? '❌' : '📭';
+
   let html = '';
-  if(items.length){
-    html = '<div class="dlist">' + items.map(it=>{
+  if(tabItems.length){
+    html = '<div class="dlist">' + tabItems.map(it=>{
       if(it.kind==='entrega') return renderEntregaRow(it);
-      return renderTarefaRow(it, it.kind==='remanejada');
+      return renderTarefaRow(it);
     }).join('') + '</div>';
   } else {
-    html = `<div class="empty"><div class="ic">📭</div>Nenhum item com esses filtros</div>`;
+    html = `<div class="empty"><div class="ic">${emptyIcon}</div>${emptyMsg}</div>`;
   }
 
   document.getElementById('dashPlanList').innerHTML = html;
