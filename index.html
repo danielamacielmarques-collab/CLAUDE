@@ -737,34 +737,38 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
           <button class="btn" onclick="openTask()">+ Nova tarefa</button>
         </div>
         <div class="metrics" id="metrics"></div>
-        <div class="dh-tabs" id="dhTabs">
-          <button class="on" onclick="dhTab('entregas',this)">Entregas <span class="tab-badge" id="dhEntCount">0</span></button>
-          <button onclick="dhTab('tarefas',this)">Tarefas <span class="tab-badge" id="dhTaskCount">0</span></button>
-          <button onclick="dhTab('planning',this)">Planejamento</button>
+        <div class="filtbar" style="margin-top:.5rem;flex-wrap:wrap;gap:.4rem">
+          <span class="filt-info">Tipo:</span>
+          <select class="sel" id="dfTipo" onchange="renderDash()">
+            <option value="">Todos</option>
+            <option value="entregas">📦 Entregas</option>
+            <option value="tarefas">✅ Tarefas</option>
+            <option value="remanejadas">↪ Remanejadas</option>
+          </select>
+          <span class="filt-info" style="margin-left:.5rem">Eixo:</span>
+          <select class="sel" id="dfEixo" onchange="renderDash()">
+            <option value="">Todos</option>
+            <option value="A">A · Governança</option>
+            <option value="B">B · Dados</option>
+            <option value="C">C · SUITE</option>
+            <option value="D">D · Automação</option>
+            <option value="E">E · Painéis</option>
+            <option value="F">F · Eficiência</option>
+            <option value="G">G · NEXUS</option>
+            <option value="H">H · Sustentação</option>
+          </select>
+          <span class="filt-info" style="margin-left:.5rem">Status:</span>
+          <select class="sel" id="dfStatus" onchange="renderDash()">
+            <option value="">Todos</option>
+            <option value="pendente">Pendente</option>
+            <option value="em_andamento">Em andamento</option>
+            <option value="concluido">Concluído</option>
+            <option value="bloqueado">Bloqueado</option>
+            <option value="despriorizado">Despriorizado</option>
+            <option value="cancelado">Cancelado</option>
+          </select>
         </div>
-        <div id="dhEntregasPanel">
-          <div class="filtbar">
-            <span class="filt-info">Eixo:</span>
-            <select class="sel" id="dfEixo" onchange="renderDash()">
-              <option value="">Todos</option>
-              <option value="A">A · Governança</option>
-              <option value="B">B · Dados</option>
-              <option value="C">C · SUITE</option>
-              <option value="D">D · Automação</option>
-              <option value="E">E · Painéis</option>
-              <option value="F">F · Eficiência</option>
-              <option value="G">G · NEXUS</option>
-              <option value="H">H · Sustentação</option>
-            </select>
-          </div>
-          <div id="dashList"></div>
-        </div>
-        <div id="dhTarefasPanel" style="display:none">
-          <div id="dashTaskList"></div>
-        </div>
-        <div id="dhPlanPanel" style="display:none">
-          <div id="dashPlanList"></div>
-        </div>
+        <div id="dashPlanList"></div>
       </section>
 
       <!-- KANBAN -->
@@ -2484,17 +2488,6 @@ function renderSnav(){
 /* ============================================================
    DASHBOARD
 ============================================================ */
-let _dhTab = 'entregas';
-function dhTab(tab, btn){
-  _dhTab = tab;
-  document.querySelectorAll('#dhTabs button').forEach(b=>b.classList.remove('on'));
-  btn.classList.add('on');
-  document.getElementById('dhEntregasPanel').style.display = tab==='entregas' ? '' : 'none';
-  document.getElementById('dhTarefasPanel').style.display  = tab==='tarefas'  ? '' : 'none';
-  document.getElementById('dhPlanPanel').style.display      = tab==='planning' ? '' : 'none';
-  if(tab==='planning') renderDashPlanning();
-}
-
 function renderDash(){
   const isAll = gF.sprint==='all';
   if(isAll){
@@ -2537,15 +2530,20 @@ function renderDash(){
   const pct = total ? Math.round(100*done/total) : 0;
   const pts = activeTasks.filter(t=>t.status==='concluido').reduce((a,t)=>a+(t.story_points||0),0);
   const totalPts = activeTasks.reduce((a,t)=>a+(t.story_points||0),0);
+  const isRemanejo = t => /^\[Remanejado/.test(t.titulo);
+  const remanejados = ts.filter(isRemanejo);
+  const tarefasNormais = ts.filter(t=>!isRemanejo(t));
 
   document.getElementById('metrics').innerHTML = `
     <div class="mc"><div class="lbl">Progresso</div><div class="val">${pct}%</div>
       <div class="sub">${done} de ${total} concluidos</div>
       <div class="pw"><div class="pf" style="width:${pct}%"></div></div></div>
-    <div class="mc"><div class="lbl">Em andamento</div><div class="val" style="color:var(--amber)">${inProg}</div>
-      <div class="sub">${tProg} tarefa(s) + ${eProg} entrega(s)</div></div>
-    <div class="mc"><div class="lbl">Concluidas</div><div class="val" style="color:var(--green)">${done}</div>
-      <div class="sub">${tDone} tarefa(s) + ${eDone} entrega(s)</div></div>
+    <div class="mc"><div class="lbl">Entregas</div><div class="val">${entsAll.length}</div>
+      <div class="sub">previstas na sprint</div></div>
+    <div class="mc"><div class="lbl">Tarefas</div><div class="val">${tarefasNormais.length}</div>
+      <div class="sub">backlog operacional</div></div>
+    <div class="mc"><div class="lbl">Remanejadas</div><div class="val" style="color:var(--amber)">${remanejados.length}</div>
+      <div class="sub">herdadas de sprints anteriores</div></div>
     <div class="mc"><div class="lbl">Bloqueadas</div><div class="val" style="color:var(--red)">${blocked}</div>
       <div class="sub">no escopo ativo</div></div>
     <div class="mc"><div class="lbl">Story Points</div><div class="val">${pts}/${totalPts||0}</div>
@@ -2554,15 +2552,40 @@ function renderDash(){
       <div class="sub">${desp} despriorizados · ${canc} cancelados</div></div>` : ''}
   `;
 
-  // Tab counts
-  const filteredEnts = ents.slice();
+  // === FILTERS ===
+  const fTipo = document.getElementById('dfTipo')?.value || '';
   const fEixo = document.getElementById('dfEixo')?.value || '';
-  let entsFilt = fEixo ? filteredEnts.filter(c=>(c._data.eixo||'')===fEixo) : filteredEnts;
-  document.getElementById('dhEntCount').textContent = entsFilt.length;
-  document.getElementById('dhTaskCount').textContent = ts.length;
+  const fStatus = document.getElementById('dfStatus')?.value || '';
 
-  // === ENTREGAS LIST ===
-  const rows = entsFilt.map(({_data:e, sprint_id:sid, entrega_idx:i, status:st})=>{
+  // Build unified items list
+  let items = [];
+
+  // Entregas
+  const filteredEnts = ents.slice();
+  let entsFilt = fEixo ? filteredEnts.filter(c=>(c._data.eixo||'')===fEixo) : filteredEnts;
+  if(fStatus) entsFilt = entsFilt.filter(c=>c.status===fStatus);
+  if(!fTipo || fTipo==='entregas'){
+    entsFilt.forEach(({_data:e, sprint_id:sid, entrega_idx:i, status:st})=>{
+      items.push({kind:'entrega', e, sid, i, st});
+    });
+  }
+
+  // Tarefas normais (não remanejadas)
+  let tNorm = tarefasNormais;
+  if(fStatus) tNorm = tNorm.filter(t=>t.status===fStatus);
+  if(!fTipo || fTipo==='tarefas'){
+    tNorm.forEach(t=>{ items.push({kind:'tarefa', t, st:t.status}); });
+  }
+
+  // Remanejadas
+  let tRem = remanejados;
+  if(fStatus) tRem = tRem.filter(t=>t.status===fStatus);
+  if(!fTipo || fTipo==='remanejadas'){
+    tRem.forEach(t=>{ items.push({kind:'remanejada', t, st:t.status}); });
+  }
+
+  // Render
+  const renderEntregaRow = ({e, sid, i, st})=>{
     const ex = exFor(e);
     const mems = gEM(sid, i);
     const code = (e.desc.match(/^[A-Z][0-9]+[a-z]?/)||[''])[0] || e.eixo;
@@ -2585,40 +2608,42 @@ function renderDash(){
         </select>
       </div>
     </div>`;
-  }).join('');
-  document.getElementById('dashList').innerHTML = entsFilt.length
-    ? `<div class="dlist">${rows}</div>`
-    : `<div class="empty"><div class="ic">📭</div>Nenhuma entrega com esses filtros</div>`;
+  };
 
-  // === TAREFAS LIST ===
-  const isRemanejo = t => /^\[Remanejado/.test(t.titulo);
-  const taskRows = ts.map(t=>{
+  const renderTarefaRow = ({t, st}, isRem)=>{
     const mems = gTM(t.id);
-    return `<div class="drow ${t.status} ${isRemanejo(t)?'drow-remanejo':'drow-task'}" onclick="openTask('${t.id}')">
-      <span class="echip" style="background:${isRemanejo(t)?'var(--a-bg);color:var(--amber)':'var(--acc-bg);color:var(--accent)'}">
-        ${isRemanejo(t)?'↪':'T'}
+    return `<div class="drow ${st} ${isRem?'drow-remanejo':'drow-task'}" onclick="openTask('${t.id}')">
+      <span class="echip" style="background:${isRem?'var(--a-bg);color:var(--amber)':'var(--acc-bg);color:var(--accent)'}">
+        ${isRem?'↪':'T'}
       </span>
       <div class="dbody">
-        <div class="dproj">${isRemanejo(t)?'Remanejado':'Tarefa'} · S${t.sprint_id}${t.prioridade?' · '+t.prioridade:''}</div>
+        <div class="dproj">${isRem?'Remanejada':'Tarefa'} · S${t.sprint_id}${t.prioridade?' · '+t.prioridade:''}${isRem?' · vindo de sprint anterior':''}</div>
         <div class="ddesc">${escapeHtml(t.titulo.replace(/^\[Remanejado S\d+\]\s*/,''))}</div>
         <div class="dmeta">
-          <span class="badge ${t.status}">${statL(t.status)}</span>
+          <span class="badge ${st}">${statL(st)}</span>
           ${t.story_points?`<span style="font-size:10px;color:var(--t3)">${t.story_points} pts</span>`:''}
           ${mems.length?avS(mems.map(m=>m.id),3):''}
         </div>
       </div>
       <div onclick="event.stopPropagation()">
         <select class="ssel" onchange="qStTask('${t.id}',this.value)">
-          ${STATUSES.map(o=>`<option value="${o.k}" ${t.status===o.k?'selected':''}>${o.l}</option>`).join('')}
+          ${STATUSES.map(o=>`<option value="${o.k}" ${st===o.k?'selected':''}>${o.l}</option>`).join('')}
         </select>
       </div>
     </div>`;
-  }).join('');
-  document.getElementById('dashTaskList').innerHTML = ts.length
-    ? `<div class="dlist">${taskRows}</div>`
-    : `<div class="empty"><div class="ic">📋</div>Nenhuma tarefa nesta sprint</div>`;
+  };
 
-  if(_dhTab==='planning') renderDashPlanning();
+  let html = '';
+  if(items.length){
+    html = '<div class="dlist">' + items.map(it=>{
+      if(it.kind==='entrega') return renderEntregaRow(it);
+      return renderTarefaRow(it, it.kind==='remanejada');
+    }).join('') + '</div>';
+  } else {
+    html = `<div class="empty"><div class="ic">📭</div>Nenhum item com esses filtros</div>`;
+  }
+
+  document.getElementById('dashPlanList').innerHTML = html;
 }
 
 async function qStTask(tid, status){
@@ -2635,107 +2660,6 @@ async function qStTask(tid, status){
   renderSnav();
   if(AV==='dashboard') renderDash();
   if(AV==='kanban') renderKanban();
-}
-
-function renderDashPlanning(){
-  const isAll = gF.sprint==='all';
-  const sid = isAll ? AS : AS;
-  const s = SP.find(x=>x.id===sid);
-  if(!s) return;
-
-  const prevSid = sid > 1 ? sid - 1 : null;
-  const remanejados = TSK.filter(t=>t.sprint_id===sid && /^\[Remanejado/.test(t.titulo));
-  const entregas = s.entregas.map((e,i)=>({e,i,st:gES(sid,i)}));
-  const pendentes = entregas.filter(x=>x.st==='pendente');
-  const emAndamento = entregas.filter(x=>x.st==='em_andamento');
-  const despriorizados = entregas.filter(x=>x.st==='despriorizado');
-  const cancelados = entregas.filter(x=>x.st==='cancelado');
-  const concluidos = entregas.filter(x=>x.st==='concluido');
-
-  const renderEntRow = (x, showControls=true) => {
-    const ex = exFor(x.e);
-    const code = (x.e.desc.match(/^[A-Z][0-9]+[a-z]?/)||[''])[0] || x.e.eixo;
-    const titulo = x.e.desc.replace(/^[A-Z][0-9]+[a-z]?\s*[—-]?\s*/, '');
-    return `<div class="drow ${x.st}" onclick="openEntrega(${sid},${x.i})">
-      <span class="echip" style="background:${ex.bg};color:${ex.fg}">${code}</span>
-      <div class="dbody">
-        <div class="ddesc">${escapeHtml(titulo)}</div>
-        <div class="dmeta"><span class="badge ${x.st}">${statL(x.st)}</span></div>
-      </div>
-      ${showControls ? `<div onclick="event.stopPropagation()">
-        <select class="ssel" onchange="qStEntrega(${sid},${x.i},this.value)">
-          ${STATUSES.map(o=>`<option value="${o.k}" ${x.st===o.k?'selected':''}>${o.l}</option>`).join('')}
-        </select>
-      </div>` : ''}
-    </div>`;
-  };
-
-  const renderTaskRow = t => {
-    return `<div class="drow ${t.status} drow-remanejo" onclick="openTask('${t.id}')">
-      <span class="echip" style="background:var(--a-bg);color:var(--amber)">↪</span>
-      <div class="dbody">
-        <div class="ddesc">${escapeHtml(t.titulo.replace(/^\[Remanejado S\d+\]\s*/,''))}</div>
-        <div class="dmeta">
-          <span class="badge ${t.status}">${statL(t.status)}</span>
-          <span style="font-size:10px;color:var(--t3)">vindo de sprint anterior</span>
-        </div>
-      </div>
-      <div onclick="event.stopPropagation()">
-        <select class="ssel" onchange="qStTask('${t.id}',this.value)">
-          ${STATUSES.map(o=>`<option value="${o.k}" ${t.status===o.k?'selected':''}>${o.l}</option>`).join('')}
-        </select>
-      </div>
-    </div>`;
-  };
-
-  let html = `<div style="margin-bottom:1rem">
-    <div class="rv-section">
-      <h3>Planejamento da Sprint ${s.id} — ${s.m}</h3>
-      <div style="font-size:12px;color:var(--t2);margin-bottom:.6rem">
-        Organize o escopo: mantenha, despriorize ou cancele entregas. Itens remanejados da sprint anterior aparecem aqui automaticamente.
-      </div>
-      <div class="rv-summary">
-        <div class="rv-mc"><div class="rv-val">${entregas.length}</div><div class="rv-lbl">Entregas previstas</div></div>
-        <div class="rv-mc"><div class="rv-val" style="color:var(--amber)">${remanejados.length}</div><div class="rv-lbl">Remanejadas</div></div>
-        <div class="rv-mc"><div class="rv-val" style="color:var(--green)">${concluidos.length}</div><div class="rv-lbl">Concluidas</div></div>
-        <div class="rv-mc"><div class="rv-val">${pendentes.length + emAndamento.length}</div><div class="rv-lbl">A fazer</div></div>
-        <div class="rv-mc"><div class="rv-val" style="color:var(--t3)">${despriorizados.length}</div><div class="rv-lbl">Despriorizadas</div></div>
-        <div class="rv-mc"><div class="rv-val" style="color:var(--t3)">${cancelados.length}</div><div class="rv-lbl">Canceladas</div></div>
-      </div>
-    </div>
-  </div>`;
-
-  if(remanejados.length){
-    html += `<div class="plan-header"><strong>↪ Remanejadas de sprints anteriores</strong><span class="plan-count">${remanejados.length}</span></div>
-    <div class="dlist" style="margin-bottom:1rem">${remanejados.map(renderTaskRow).join('')}</div>`;
-  }
-
-  if(emAndamento.length){
-    html += `<div class="plan-header"><strong>Em andamento</strong><span class="plan-count">${emAndamento.length}</span></div>
-    <div class="dlist" style="margin-bottom:1rem">${emAndamento.map(x=>renderEntRow(x)).join('')}</div>`;
-  }
-
-  if(pendentes.length){
-    html += `<div class="plan-header"><strong>Pendentes — defina o escopo</strong><span class="plan-count">${pendentes.length}</span></div>
-    <div class="dlist" style="margin-bottom:1rem">${pendentes.map(x=>renderEntRow(x)).join('')}</div>`;
-  }
-
-  if(concluidos.length){
-    html += `<div class="plan-header"><strong>Concluidas</strong><span class="plan-count">${concluidos.length}</span></div>
-    <div class="dlist" style="margin-bottom:1rem">${concluidos.map(x=>renderEntRow(x,false)).join('')}</div>`;
-  }
-
-  if(despriorizados.length || cancelados.length){
-    const fora = [...despriorizados, ...cancelados];
-    html += `<div class="plan-header"><strong>Fora do escopo</strong><span class="plan-count">${fora.length}</span></div>
-    <div class="dlist" style="margin-bottom:1rem">${fora.map(x=>renderEntRow(x)).join('')}</div>`;
-  }
-
-  if(!entregas.length && !remanejados.length){
-    html = `<div class="empty"><div class="ic">📋</div>Nenhuma entrega ou tarefa nesta sprint</div>`;
-  }
-
-  document.getElementById('dashPlanList').innerHTML = html;
 }
 
 async function qStEntrega(sid, idx, status){
