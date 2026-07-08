@@ -64,7 +64,10 @@ visual FUNCEF, com login real (Supabase Auth) e modo claro/escuro.
 13. (Plano de Ação COBEN — Gestão de Benefício) Execute `schema_addon_v16.sql`.
    - Cria tabela `pa_items` (estado e vínculo das 62 subações com as sprints).
    - O catálogo das 62 subações já vem embutido no `index.html` (PA_GB).
-14. Em **Authentication → Providers → Email** desabilite "Confirm email".
+14. (Ideias & Aprendizado) Execute `schema_addon_v17.sql`.
+   - Cria tabela `ideias` (projetos embrionários, cursos, workshops).
+   - O Giro da Semana não precisa de tabela nova (usa dados existentes).
+15. Em **Authentication → Providers → Email** desabilite "Confirm email".
 
 ### 2) Rodar localmente
 Abra `index.html` direto no navegador, ou:

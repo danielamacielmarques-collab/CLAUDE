@@ -547,6 +547,8 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
 .pa-badge.atraso{background:var(--r-bg);color:var(--red)}
 .pa-btn{font-size:11px;font-weight:600;padding:4px 10px;border-radius:7px;border:1px solid var(--border);background:var(--bg1);color:var(--t1);cursor:pointer;font-family:inherit}
 .pa-btn:hover{border-color:var(--accent);color:var(--accent)}
+.giro-section{margin-bottom:1.2rem}
+.giro-section h4{font-size:14px;font-weight:700;color:var(--t1);margin:0 0 .5rem 0;padding-bottom:.3rem;border-bottom:1px solid var(--border)}
 .pa-btn.primary{background:var(--accent);color:#fff;border-color:transparent}
 .pa-link-targets{max-height:280px;overflow-y:auto;border:1px solid var(--border);border-radius:10px;padding:.5rem}
 .pa-link-grouplbl{font-size:10px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin:2px 0 4px}
@@ -712,6 +714,8 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
       <button class="nb" data-v="team"     onclick="nav('team',this)"><span class="ic">👥</span>Equipe</button>
       <button class="nb" data-v="reviews"  onclick="nav('reviews',this)"><span class="ic">📈</span>Reviews</button>
       <button class="nb" data-v="planoacao" onclick="nav('planoacao',this)"><span class="ic">🎯</span>Plano de Ação</button>
+      <button class="nb" data-v="ideias" onclick="nav('ideias',this)"><span class="ic">💡</span>Ideias & Aprendizado</button>
+      <button class="nb" data-v="giro" onclick="nav('giro',this)"><span class="ic">📰</span>Giro da Semana</button>
       <button class="nb" data-v="audit"    onclick="nav('audit',this)" id="navAudit" style="display:none"><span class="ic">🔍</span>Governança <span style="background:var(--orange);color:#fff;font-size:9px;padding:1px 6px;border-radius:20px;margin-left:auto;font-weight:800">ADMIN</span></button>
       <button class="nb" data-v="users"    onclick="nav('users',this)" id="navUsers" style="display:none"><span class="ic">⚙️</span>Usuários <span style="background:var(--orange);color:#fff;font-size:9px;padding:1px 6px;border-radius:20px;margin-left:auto;font-weight:800">ADMIN</span></button>
       <button class="nb" data-v="import"  onclick="nav('import',this)" id="navImport" style="display:none"><span class="ic">📥</span>Importar PA <span style="background:var(--orange);color:#fff;font-size:9px;padding:1px 6px;border-radius:20px;margin-left:auto;font-weight:800">ADMIN</span></button>
@@ -887,6 +891,42 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
         </div>
         <div class="pa-summary" id="paSummary"></div>
         <div id="paList"></div>
+      </section>
+
+      <!-- IDEIAS & APRENDIZADO -->
+      <section class="view" id="vIdeias">
+        <div class="vh">
+          <div><h1>💡 Ideias & Aprendizado</h1><div class="vh-sub">Projetos embrionários, ideias de inovação, cursos e workshops compartilhados</div></div>
+          <div class="vh-grow"></div>
+          <select class="sel" id="idFilterTipo" onchange="renderIdeias()">
+            <option value="">Todos os tipos</option>
+            <option value="ideia">💡 Ideia de projeto</option>
+            <option value="embrionario">🌱 Projeto embrionário</option>
+            <option value="curso">📚 Curso / Certificação</option>
+            <option value="workshop">🎓 Workshop / Palestra</option>
+          </select>
+          <select class="sel" id="idFilterStatus" onchange="renderIdeias()">
+            <option value="">Todos os status</option>
+            <option value="rascunho">Rascunho</option>
+            <option value="compartilhado">Compartilhado</option>
+            <option value="em_avaliacao">Em avaliação</option>
+            <option value="aprovado">Aprovado</option>
+            <option value="arquivado">Arquivado</option>
+          </select>
+          <button class="btn primary" onclick="openIdeia()">+ Nova ideia</button>
+        </div>
+        <div id="ideiasList"></div>
+      </section>
+
+      <!-- GIRO DA SEMANA -->
+      <section class="view" id="vGiro">
+        <div class="vh">
+          <div><h1>📰 Giro da Semana</h1><div class="vh-sub">Resumo semanal de movimentações, reuniões, decisões e atualizações</div></div>
+          <div class="vh-grow"></div>
+          <label style="font-size:12px;color:var(--t2);margin-right:.3rem">Semana de:</label>
+          <input type="date" class="sel" id="giroDate" onchange="renderGiro()">
+        </div>
+        <div id="giroContent"></div>
       </section>
 
       <!-- AUDIT / GOVERNANÇA -->
@@ -1728,6 +1768,7 @@ let ATT = {};        // task_attachments — chave: tarefa_id -> array
 let RVD = {};        // reviews — sprint_id -> array of review objects
 let RVI = {};        // review items — review_id -> array of items
 let PAI = {};        // plano de ação — pa_idx -> item (status/vinculo/sprint)
+let IDB = [];        // ideias & aprendizado
 let AUD = [];        // audit_log entries
 let EV  = [];        // calendar_events
 let EVM = {};        // event_members — chave: evento_id -> [profile_id]
@@ -1988,7 +2029,7 @@ async function loadAll(){
       (CLD[k]=CLD[k]||[]).push(c);
     });
     // Comments + attachments + reviews + audit + eventos em paralelo
-    const [rv, rc, ra, rau, rev, revm, rvi, rpa] = await Promise.all([
+    const [rv, rc, ra, rau, rev, revm, rvi, rpa, rid] = await Promise.all([
       db.from('sprint_reviews').select('*').order('data_realizacao',{ascending:false}),
       db.from('task_comments').select('*').order('created_at',{ascending:true}),
       db.from('task_attachments').select('*').order('created_at',{ascending:false}),
@@ -1997,10 +2038,12 @@ async function loadAll(){
       db.from('event_members').select('*'),
       db.from('sprint_review_items').select('*').then(r=>r).catch(()=>({data:[]})),
       db.from('pa_items').select('*').then(r=>r).catch(()=>({data:[]})),
+      db.from('ideias').select('*').order('created_at',{ascending:false}).then(r=>r).catch(()=>({data:[]})),
     ]);
     AUD = rau.data || [];
     EV  = rev.data || [];
     PAI = {}; (rpa.data||[]).forEach(p=>{ PAI[p.pa_idx]=p; });
+    IDB = rid.data || [];
     // Sincroniza CP (perfil atual) com a versão fresca em MB
     if(CP){
       const meFresh = MB.find(m => m.id === CP.id);
@@ -2460,6 +2503,8 @@ function renderAll(){
   if(AV==='reviews')   renderReview();
   if(AV==='sobre')     renderSobre();
   if(AV==='planoacao') renderPlanoAcao();
+  if(AV==='ideias')    renderIdeias();
+  if(AV==='giro')      renderGiro();
   if(AV==='audit')     renderAudit();
   if(AV==='users')     renderUsers();
   if(AV==='import')    renderImport();
@@ -3947,6 +3992,385 @@ async function testAudit(){
   ss('ok','Gravado');
   toast('✅ Gravação OK! Auditoria está funcionando.','ok');
   renderAudit();
+}
+
+/* ============================================================
+   IDEIAS & APRENDIZADO
+============================================================ */
+const IDEA_TIPOS = [
+  {k:'ideia',       l:'💡 Ideia de projeto',   cor:'var(--accent)'},
+  {k:'embrionario', l:'🌱 Projeto embrionário', cor:'var(--green)'},
+  {k:'curso',       l:'📚 Curso / Certificação',cor:'var(--amber)'},
+  {k:'workshop',    l:'🎓 Workshop / Palestra', cor:'var(--orange)'},
+];
+const IDEA_STATUS = [
+  {k:'rascunho',     l:'Rascunho',     cor:'var(--t3)'},
+  {k:'compartilhado',l:'Compartilhado',cor:'var(--accent)'},
+  {k:'em_avaliacao', l:'Em avaliação', cor:'var(--amber)'},
+  {k:'aprovado',     l:'Aprovado',     cor:'var(--green)'},
+  {k:'arquivado',    l:'Arquivado',    cor:'var(--t3)'},
+];
+
+let _editingIdeia = null;
+
+function renderIdeias(){
+  const fTipo = document.getElementById('idFilterTipo')?.value || '';
+  const fSt = document.getElementById('idFilterStatus')?.value || '';
+  let items = IDB.slice();
+  if(fTipo) items = items.filter(i=>i.tipo===fTipo);
+  if(fSt) items = items.filter(i=>i.status===fSt);
+
+  const counts = {};
+  IDEA_TIPOS.forEach(t=>{ counts[t.k] = IDB.filter(i=>i.tipo===t.k).length; });
+
+  const el = document.getElementById('ideiasList');
+  if(!items.length){
+    el.innerHTML = `<div class="empty"><div class="ic">💡</div>Nenhuma ideia registrada ainda. Clique em "+ Nova ideia" para começar!</div>`;
+    return;
+  }
+
+  el.innerHTML = `<div class="rv-summary" style="margin-bottom:1rem">
+    ${IDEA_TIPOS.map(t=>`<div class="rv-mc"><div class="rv-val" style="color:${t.cor}">${counts[t.k]||0}</div><div class="rv-lbl">${t.l.replace(/^.\s/,'')}</div></div>`).join('')}
+  </div>` + `<div class="dlist">${items.map(idea=>{
+    const tp = IDEA_TIPOS.find(t=>t.k===idea.tipo) || IDEA_TIPOS[0];
+    const st = IDEA_STATUS.find(s=>s.k===idea.status) || IDEA_STATUS[0];
+    const autor = mBI(idea.autor_id);
+    const dt = idea.created_at ? new Date(idea.created_at).toLocaleDateString('pt-BR') : '';
+    return `<div class="drow" style="cursor:pointer" onclick="openIdeia('${idea.id}')">
+      <span class="echip" style="background:${tp.cor};color:#fff;font-size:14px">${tp.l.split(' ')[0]}</span>
+      <div class="dbody">
+        <div class="dproj">${tp.l.replace(/^.\s/,'')} · ${dt}${autor?' · '+escapeHtml(autor.nome):''}</div>
+        <div class="ddesc">${escapeHtml(idea.titulo)}</div>
+        ${idea.descricao?`<div style="font-size:11px;color:var(--t3);margin-top:2px;max-height:40px;overflow:hidden">${escapeHtml(idea.descricao).slice(0,150)}${idea.descricao.length>150?'...':''}</div>`:''}
+        <div class="dmeta">
+          <span class="badge" style="background:${st.cor};color:#fff">${st.l}</span>
+          ${idea.link?`<span style="font-size:10px;color:var(--accent)">🔗 Link</span>`:''}
+          ${idea.tags_text?idea.tags_text.split(',').map(t=>`<span style="font-size:10px;background:var(--bg3);color:var(--t2);padding:1px 6px;border-radius:8px">${t.trim()}</span>`).join(''):''}
+        </div>
+      </div>
+      <div onclick="event.stopPropagation()">
+        <select class="ssel" onchange="updateIdeiaStatus('${idea.id}',this.value)">
+          ${IDEA_STATUS.map(o=>`<option value="${o.k}" ${idea.status===o.k?'selected':''}>${o.l}</option>`).join('')}
+        </select>
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function openIdeia(id){
+  _editingIdeia = id ? IDB.find(i=>i.id===id) : null;
+  const idea = _editingIdeia;
+  const html = `<div class="modal-overlay on" onclick="if(event.target===this)closeIdeia()">
+    <div class="modal" style="max-width:600px">
+      <div class="mh"><h2>${idea?'Editar':'Nova'} Ideia</h2><button class="mx" onclick="closeIdeia()">×</button></div>
+      <div class="mb" style="padding:1.2rem">
+        <label class="fl">Tipo</label>
+        <select class="sel" id="ideaTipo" style="width:100%;margin-bottom:.8rem">
+          ${IDEA_TIPOS.map(t=>`<option value="${t.k}" ${idea?.tipo===t.k?'selected':''}>${t.l}</option>`).join('')}
+        </select>
+        <label class="fl">Título</label>
+        <input class="inp" id="ideaTitulo" value="${idea?escapeHtml(idea.titulo):''}" placeholder="Ex: Automação de relatórios com IA" style="width:100%;margin-bottom:.8rem">
+        <label class="fl">Descrição</label>
+        <textarea class="inp" id="ideaDesc" rows="4" placeholder="Descreva a ideia, objetivo, benefícios esperados..." style="width:100%;margin-bottom:.8rem">${idea?escapeHtml(idea.descricao||''):''}</textarea>
+        <label class="fl">Link (material, curso, repositório)</label>
+        <input class="inp" id="ideaLink" value="${idea?escapeHtml(idea.link||''):''}" placeholder="https://..." style="width:100%;margin-bottom:.8rem">
+        <label class="fl">Tags (separadas por vírgula)</label>
+        <input class="inp" id="ideaTags" value="${idea?escapeHtml(idea.tags_text||''):''}" placeholder="IA, dados, automação" style="width:100%;margin-bottom:.8rem">
+        <label class="fl">Status</label>
+        <select class="sel" id="ideaStatus" style="width:100%;margin-bottom:1rem">
+          ${IDEA_STATUS.map(s=>`<option value="${s.k}" ${(idea?.status||'rascunho')===s.k?'selected':''}>${s.l}</option>`).join('')}
+        </select>
+        <div style="display:flex;gap:.5rem;justify-content:flex-end;align-items:center">
+          ${idea?`<button class="btn danger" onclick="deleteIdeia('${idea.id}')" style="margin-right:auto">🗑️ Excluir</button>`:''}
+          <button class="btn" onclick="closeIdeia()">Cancelar</button>
+          <button class="btn primary" onclick="saveIdeia()">💾 Salvar</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+  const div = document.createElement('div');
+  div.id = 'ideiaModal';
+  div.innerHTML = html;
+  document.body.appendChild(div);
+}
+
+function closeIdeia(){
+  const m = document.getElementById('ideiaModal');
+  if(m) m.remove();
+  _editingIdeia = null;
+}
+
+async function saveIdeia(){
+  const titulo = document.getElementById('ideaTitulo').value.trim();
+  if(!titulo){ toast('Informe o título','err'); return; }
+  const payload = {
+    tipo: document.getElementById('ideaTipo').value,
+    titulo,
+    descricao: document.getElementById('ideaDesc').value.trim(),
+    link: document.getElementById('ideaLink').value.trim() || null,
+    tags_text: document.getElementById('ideaTags').value.trim() || null,
+    status: document.getElementById('ideaStatus').value,
+  };
+  ss('loading','Salvando...');
+  if(_editingIdeia){
+    const {error} = await db.from('ideias').update(payload).eq('id', _editingIdeia.id);
+    if(error){ toast('Erro: '+error.message,'err'); ss('err','Erro'); return; }
+  } else {
+    payload.autor_id = CP?.id || null;
+    const {error} = await db.from('ideias').insert(payload);
+    if(error){ toast('Erro: '+error.message,'err'); ss('err','Erro'); return; }
+  }
+  await loadAll(); ss('ok','Salvo');
+  toast(_editingIdeia ? 'Ideia atualizada!' : 'Ideia registrada!');
+  logAudit({action:_editingIdeia?'idea_update':'idea_create', entityType:'ideia',
+    summary:`${_editingIdeia?'Editou':'Criou'} ${payload.tipo}: "${titulo.slice(0,80)}"`});
+  closeIdeia(); renderIdeias();
+}
+
+async function deleteIdeia(id){
+  if(!confirm('Excluir esta ideia permanentemente?')) return;
+  ss('loading','Excluindo...');
+  const {error} = await db.from('ideias').delete().eq('id', id);
+  if(error){ toast('Erro: '+error.message,'err'); ss('err','Erro'); return; }
+  await loadAll(); ss('ok','Excluído'); toast('Ideia excluída');
+  closeIdeia(); renderIdeias();
+}
+
+async function updateIdeiaStatus(id, status){
+  ss('loading','Salvando...');
+  const {error} = await db.from('ideias').update({status}).eq('id', id);
+  if(error){ toast('Erro: '+error.message,'err'); ss('err','Erro'); return; }
+  const it = IDB.find(i=>i.id===id);
+  if(it) it.status = status;
+  ss('ok','Salvo'); toast('Status atualizado');
+  renderIdeias();
+}
+
+/* ============================================================
+   GIRO DA SEMANA
+============================================================ */
+function getWeekRange(dateStr){
+  const d = dateStr ? new Date(dateStr+'T12:00:00') : new Date();
+  const day = d.getDay();
+  const mon = new Date(d); mon.setDate(d.getDate() - (day===0?6:day-1));
+  const sun = new Date(mon); sun.setDate(mon.getDate()+6);
+  return {
+    start: mon.toISOString().slice(0,10),
+    end: sun.toISOString().slice(0,10),
+    label: `${mon.toLocaleDateString('pt-BR',{day:'2-digit',month:'short'})} a ${sun.toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'})}`
+  };
+}
+
+function renderGiro(){
+  const dateInput = document.getElementById('giroDate');
+  if(!dateInput.value){
+    const today = new Date();
+    dateInput.value = today.toISOString().slice(0,10);
+  }
+  const wk = getWeekRange(dateInput.value);
+  const el = document.getElementById('giroContent');
+
+  // 1. Audit entries this week
+  const weekAud = AUD.filter(a=>{
+    const d = a.created_at?.slice(0,10);
+    return d && d>=wk.start && d<=wk.end;
+  });
+
+  // 2. Events/meetings this week
+  const weekEvents = EV.filter(ev=>{
+    if(!ev.data) return false;
+    if(ev.recorrencia && ev.recorrencia!=='nenhuma'){
+      const evDate = new Date(ev.data+'T12:00:00');
+      const s = new Date(wk.start+'T12:00:00');
+      const e = new Date(wk.end+'T12:00:00');
+      for(let d=new Date(s); d<=e; d.setDate(d.getDate()+1)){
+        if(ev.recorrencia==='semanal' && d.getDay()===evDate.getDay()) return true;
+      }
+      return false;
+    }
+    return ev.data>=wk.start && ev.data<=wk.end;
+  });
+
+  // 3. Task updates this week (from audit)
+  const taskUpdates = weekAud.filter(a=>a.entity_type==='task' && (a.action==='task_update'||a.action==='task_create'));
+  const entregaUpdates = weekAud.filter(a=>a.action==='entrega_update');
+
+  // 4. Reviews saved this week
+  const reviewActions = weekAud.filter(a=>a.entity_type==='review');
+
+  // 5. Comments this week
+  const weekComments = [];
+  Object.entries(CMT).forEach(([k, arr])=>{
+    arr.forEach(c=>{
+      const d = c.created_at?.slice(0,10);
+      if(d && d>=wk.start && d<=wk.end) weekComments.push({...c, _key:k});
+    });
+  });
+
+  // 6. Attachments this week
+  const weekAttach = [];
+  Object.entries(ATT).forEach(([k, arr])=>{
+    arr.forEach(a=>{
+      const d = a.created_at?.slice(0,10);
+      if(d && d>=wk.start && d<=wk.end) weekAttach.push({...a, _key:k});
+    });
+  });
+
+  // 7. Ideas created this week
+  const weekIdeias = IDB.filter(i=>{
+    const d = i.created_at?.slice(0,10);
+    return d && d>=wk.start && d<=wk.end;
+  });
+
+  // Build summary
+  let html = `<div class="rv-section" style="margin-bottom:1.2rem">
+    <h3 style="margin-bottom:.5rem">📰 Giro da Semana: ${wk.label}</h3>
+    <div class="rv-summary">
+      <div class="rv-mc"><div class="rv-val">${weekEvents.length}</div><div class="rv-lbl">Reuniões</div></div>
+      <div class="rv-mc"><div class="rv-val">${taskUpdates.length}</div><div class="rv-lbl">Tarefas movimentadas</div></div>
+      <div class="rv-mc"><div class="rv-val">${entregaUpdates.length}</div><div class="rv-lbl">Entregas atualizadas</div></div>
+      <div class="rv-mc"><div class="rv-val">${weekComments.length}</div><div class="rv-lbl">Comentários</div></div>
+      <div class="rv-mc"><div class="rv-val">${weekAttach.length}</div><div class="rv-lbl">Anexos</div></div>
+      <div class="rv-mc"><div class="rv-val">${weekIdeias.length}</div><div class="rv-lbl">Ideias novas</div></div>
+    </div>
+  </div>`;
+
+  // Meetings section
+  if(weekEvents.length){
+    html += `<div class="giro-section"><h4>📅 Reuniões e Eventos</h4><div class="dlist">`;
+    weekEvents.forEach(ev=>{
+      const mems = (EVM[ev.id]||[]).map(id=>mBI(id)).filter(Boolean);
+      const evComments = weekComments.filter(c=>c._key.startsWith('ev_'+ev.id));
+      const evAttach = weekAttach.filter(a=>a.evento_id===ev.id);
+      html += `<div class="drow" style="cursor:default">
+        <span class="echip" style="background:var(--accent);color:#fff">📅</span>
+        <div class="dbody">
+          <div class="dproj">${ev.tipo||'Reunião'} · ${ev.hora_inicio||''} ${ev.local?'· '+escapeHtml(ev.local):''}</div>
+          <div class="ddesc">${escapeHtml(ev.titulo)}</div>
+          <div class="dmeta">
+            ${mems.length?`<span style="font-size:10px;color:var(--t3)">${mems.map(m=>m.nome.split(' ')[0]).join(', ')}</span>`:''}
+            ${evComments.length?`<span style="font-size:10px;color:var(--accent)">💬 ${evComments.length} comentário(s)</span>`:''}
+            ${evAttach.length?`<span style="font-size:10px;color:var(--amber)">📎 ${evAttach.length} anexo(s)</span>`:''}
+          </div>
+        </div>
+      </div>`;
+    });
+    html += `</div></div>`;
+  }
+
+  // Task updates section
+  if(taskUpdates.length){
+    html += `<div class="giro-section"><h4>✅ Tarefas Movimentadas</h4><div class="dlist">`;
+    const seen = new Set();
+    taskUpdates.forEach(a=>{
+      if(seen.has(a.entity_id)) return;
+      seen.add(a.entity_id);
+      const autor = a.user_id ? mBI(a.user_id) : null;
+      const details = a.details ? (typeof a.details==='string'?JSON.parse(a.details):a.details) : {};
+      html += `<div class="drow" style="cursor:default">
+        <span class="echip" style="background:${a.action==='task_create'?'var(--green)':'var(--accent)'};color:#fff">${a.action==='task_create'?'+':'↻'}</span>
+        <div class="dbody">
+          <div class="dproj">${a.action==='task_create'?'Criada':'Atualizada'}${a.sprint_id?' · S'+a.sprint_id:''}${autor?' · '+autor.nome.split(' ')[0]:''}</div>
+          <div class="ddesc">${escapeHtml(a.summary||'')}</div>
+          ${details.from?`<div style="font-size:10px;color:var(--t3)">${details.from} → ${details.to}</div>`:''}
+        </div>
+      </div>`;
+    });
+    html += `</div></div>`;
+  }
+
+  // Entrega updates
+  if(entregaUpdates.length){
+    html += `<div class="giro-section"><h4>📦 Entregas Atualizadas</h4><div class="dlist">`;
+    entregaUpdates.forEach(a=>{
+      const autor = a.user_id ? mBI(a.user_id) : null;
+      const details = a.details ? (typeof a.details==='string'?JSON.parse(a.details):a.details) : {};
+      html += `<div class="drow" style="cursor:default">
+        <span class="echip" style="background:var(--amber);color:#fff">📦</span>
+        <div class="dbody">
+          <div class="dproj">S${a.sprint_id||'?'}${autor?' · '+autor.nome.split(' ')[0]:''}</div>
+          <div class="ddesc">${escapeHtml(a.summary||'')}</div>
+          ${details.from?`<div style="font-size:10px;color:var(--t3)">${details.from} → ${details.to}</div>`:''}
+        </div>
+      </div>`;
+    });
+    html += `</div></div>`;
+  }
+
+  // Comments
+  if(weekComments.length){
+    html += `<div class="giro-section"><h4>💬 Comentários e Decisões</h4><div class="dlist">`;
+    weekComments.slice(0,20).forEach(c=>{
+      const autor = c.user_id ? mBI(c.user_id) : null;
+      const dt = new Date(c.created_at).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+      html += `<div class="drow" style="cursor:default">
+        <span class="echip" style="background:var(--bg3);color:var(--t2)">💬</span>
+        <div class="dbody">
+          <div class="dproj">${dt}${autor?' · '+autor.nome.split(' ')[0]:''}</div>
+          <div class="ddesc" style="max-height:40px;overflow:hidden">${escapeHtml((c.texto||'').slice(0,200))}</div>
+        </div>
+      </div>`;
+    });
+    if(weekComments.length>20) html += `<div style="text-align:center;font-size:11px;color:var(--t3);padding:.5rem">... e mais ${weekComments.length-20} comentário(s)</div>`;
+    html += `</div></div>`;
+  }
+
+  // Attachments
+  if(weekAttach.length){
+    html += `<div class="giro-section"><h4>📎 Documentos Anexados</h4><div class="dlist">`;
+    weekAttach.forEach(a=>{
+      const autor = a.user_id ? mBI(a.user_id) : null;
+      const dt = new Date(a.created_at).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
+      html += `<div class="drow" style="cursor:default">
+        <span class="echip" style="background:var(--bg3);color:var(--t2)">📎</span>
+        <div class="dbody">
+          <div class="dproj">${dt}${autor?' · '+autor.nome.split(' ')[0]:''}</div>
+          <div class="ddesc">${escapeHtml(a.nome_arquivo||a.file_name||'Arquivo')}</div>
+        </div>
+      </div>`;
+    });
+    html += `</div></div>`;
+  }
+
+  // Ideas
+  if(weekIdeias.length){
+    html += `<div class="giro-section"><h4>💡 Ideias Registradas</h4><div class="dlist">`;
+    weekIdeias.forEach(i=>{
+      const tp = IDEA_TIPOS.find(t=>t.k===i.tipo) || IDEA_TIPOS[0];
+      const autor = i.autor_id ? mBI(i.autor_id) : null;
+      html += `<div class="drow" style="cursor:default">
+        <span class="echip" style="background:${tp.cor};color:#fff">${tp.l.split(' ')[0]}</span>
+        <div class="dbody">
+          <div class="dproj">${tp.l.replace(/^.\s/,'')}${autor?' · '+autor.nome.split(' ')[0]:''}</div>
+          <div class="ddesc">${escapeHtml(i.titulo)}</div>
+        </div>
+      </div>`;
+    });
+    html += `</div></div>`;
+  }
+
+  // Reviews
+  if(reviewActions.length){
+    html += `<div class="giro-section"><h4>📈 Reviews</h4><div class="dlist">`;
+    reviewActions.forEach(a=>{
+      const autor = a.user_id ? mBI(a.user_id) : null;
+      html += `<div class="drow" style="cursor:default">
+        <span class="echip" style="background:var(--green);color:#fff">📈</span>
+        <div class="dbody">
+          <div class="dproj">${a.action==='review_save'?'Salva':'Atualizada'}${autor?' · '+autor.nome.split(' ')[0]:''}</div>
+          <div class="ddesc">${escapeHtml(a.summary||'')}</div>
+        </div>
+      </div>`;
+    });
+    html += `</div></div>`;
+  }
+
+  // Empty state
+  if(!weekEvents.length && !taskUpdates.length && !entregaUpdates.length && !weekComments.length && !weekAttach.length && !weekIdeias.length && !reviewActions.length){
+    html += `<div class="empty"><div class="ic">📭</div>Nenhuma movimentação registrada nesta semana.</div>`;
+  }
+
+  el.innerHTML = html;
 }
 
 function renderAudit(){
