@@ -921,12 +921,14 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
       <!-- GIRO DA SEMANA -->
       <section class="view" id="vGiro">
         <div class="vh">
-          <div><h1>📰 Giro da Semana</h1><div class="vh-sub">Resumo semanal de movimentações, reuniões, decisões e atualizações</div></div>
+          <div><h1>📰 Giro da Semana</h1><div class="vh-sub">Resumo inteligente para a Weekly — gerado por IA</div></div>
           <div class="vh-grow"></div>
           <label style="font-size:12px;color:var(--t2);margin-right:.3rem">Semana de:</label>
           <input type="date" class="sel" id="giroDate" onchange="renderGiro()">
+          <button class="btn primary" onclick="gerarGiroIA()" id="btnGiroIA">🤖 Gerar com IA</button>
         </div>
         <div id="giroContent"></div>
+        <div id="giroIAResult" style="display:none"></div>
       </section>
 
       <!-- AUDIT / GOVERNANÇA -->
@@ -4227,7 +4229,7 @@ async function updateIdeiaStatus(id, status){
 }
 
 /* ============================================================
-   GIRO DA SEMANA
+   GIRO DA SEMANA (com IA)
 ============================================================ */
 function getWeekRange(dateStr){
   const d = dateStr ? new Date(dateStr+'T12:00:00') : new Date();
@@ -4241,28 +4243,13 @@ function getWeekRange(dateStr){
   };
 }
 
-function renderGiro(){
-  const dateInput = document.getElementById('giroDate');
-  if(!dateInput.value){
-    const today = new Date();
-    dateInput.value = today.toISOString().slice(0,10);
-  }
-  const wk = getWeekRange(dateInput.value);
-  const el = document.getElementById('giroContent');
-
-  // 1. Audit entries this week
-  const weekAud = AUD.filter(a=>{
-    const d = a.created_at?.slice(0,10);
-    return d && d>=wk.start && d<=wk.end;
-  });
-
-  // 2. Events/meetings this week
+function collectWeekData(wk){
+  const weekAud = AUD.filter(a=>{ const d=a.created_at?.slice(0,10); return d&&d>=wk.start&&d<=wk.end; });
   const weekEvents = EV.filter(ev=>{
     if(!ev.data) return false;
     if(ev.recorrencia && ev.recorrencia!=='nenhuma'){
       const evDate = new Date(ev.data+'T12:00:00');
-      const s = new Date(wk.start+'T12:00:00');
-      const e = new Date(wk.end+'T12:00:00');
+      const s = new Date(wk.start+'T12:00:00'), e = new Date(wk.end+'T12:00:00');
       for(let d=new Date(s); d<=e; d.setDate(d.getDate()+1)){
         if(ev.recorrencia==='semanal' && d.getDay()===evDate.getDay()) return true;
       }
@@ -4270,187 +4257,270 @@ function renderGiro(){
     }
     return ev.data>=wk.start && ev.data<=wk.end;
   });
-
-  // 3. Task updates this week (from audit)
-  const taskUpdates = weekAud.filter(a=>a.entity_type==='task' && (a.action==='task_update'||a.action==='task_create'));
+  const taskUpdates = weekAud.filter(a=>a.entity_type==='task'&&(a.action==='task_update'||a.action==='task_create'));
   const entregaUpdates = weekAud.filter(a=>a.action==='entrega_update');
-
-  // 4. Reviews saved this week
   const reviewActions = weekAud.filter(a=>a.entity_type==='review');
-
-  // 5. Comments this week
   const weekComments = [];
-  Object.entries(CMT).forEach(([k, arr])=>{
-    arr.forEach(c=>{
-      const d = c.created_at?.slice(0,10);
-      if(d && d>=wk.start && d<=wk.end) weekComments.push({...c, _key:k});
-    });
-  });
-
-  // 6. Attachments this week
+  Object.entries(CMT).forEach(([k,arr])=>{ arr.forEach(c=>{ const d=c.created_at?.slice(0,10); if(d&&d>=wk.start&&d<=wk.end) weekComments.push({...c,_key:k}); }); });
   const weekAttach = [];
-  Object.entries(ATT).forEach(([k, arr])=>{
-    arr.forEach(a=>{
-      const d = a.created_at?.slice(0,10);
-      if(d && d>=wk.start && d<=wk.end) weekAttach.push({...a, _key:k});
-    });
-  });
+  Object.entries(ATT).forEach(([k,arr])=>{ arr.forEach(a=>{ const d=a.created_at?.slice(0,10); if(d&&d>=wk.start&&d<=wk.end) weekAttach.push({...a,_key:k}); }); });
+  const weekIdeias = IDB.filter(i=>{ const d=i.created_at?.slice(0,10); return d&&d>=wk.start&&d<=wk.end; });
+  return {weekAud,weekEvents,taskUpdates,entregaUpdates,reviewActions,weekComments,weekAttach,weekIdeias};
+}
 
-  // 7. Ideas created this week
-  const weekIdeias = IDB.filter(i=>{
-    const d = i.created_at?.slice(0,10);
-    return d && d>=wk.start && d<=wk.end;
-  });
+function renderGiro(){
+  const dateInput = document.getElementById('giroDate');
+  if(!dateInput.value) dateInput.value = new Date().toISOString().slice(0,10);
+  const wk = getWeekRange(dateInput.value);
+  const data = collectWeekData(wk);
+  const el = document.getElementById('giroContent');
+  const iaEl = document.getElementById('giroIAResult');
+  iaEl.style.display = 'none';
 
-  // Build summary
+  const hasKey = !!localStorage.getItem('anthropic_key');
+
   let html = `<div class="rv-section" style="margin-bottom:1.2rem">
-    <h3 style="margin-bottom:.5rem">📰 Giro da Semana: ${wk.label}</h3>
+    <h3 style="margin-bottom:.5rem">Semana: ${wk.label}</h3>
     <div class="rv-summary">
-      <div class="rv-mc"><div class="rv-val">${weekEvents.length}</div><div class="rv-lbl">Reuniões</div></div>
-      <div class="rv-mc"><div class="rv-val">${taskUpdates.length}</div><div class="rv-lbl">Tarefas movimentadas</div></div>
-      <div class="rv-mc"><div class="rv-val">${entregaUpdates.length}</div><div class="rv-lbl">Entregas atualizadas</div></div>
-      <div class="rv-mc"><div class="rv-val">${weekComments.length}</div><div class="rv-lbl">Comentários</div></div>
-      <div class="rv-mc"><div class="rv-val">${weekAttach.length}</div><div class="rv-lbl">Anexos</div></div>
-      <div class="rv-mc"><div class="rv-val">${weekIdeias.length}</div><div class="rv-lbl">Ideias novas</div></div>
+      <div class="rv-mc"><div class="rv-val">${data.weekEvents.length}</div><div class="rv-lbl">Reunioes</div></div>
+      <div class="rv-mc"><div class="rv-val">${data.taskUpdates.length}</div><div class="rv-lbl">Tarefas</div></div>
+      <div class="rv-mc"><div class="rv-val">${data.entregaUpdates.length}</div><div class="rv-lbl">Entregas</div></div>
+      <div class="rv-mc"><div class="rv-val">${data.weekComments.length}</div><div class="rv-lbl">Comentarios</div></div>
+      <div class="rv-mc"><div class="rv-val">${data.weekAttach.length}</div><div class="rv-lbl">Anexos</div></div>
+      <div class="rv-mc"><div class="rv-val">${data.weekIdeias.length}</div><div class="rv-lbl">Ideias</div></div>
     </div>
   </div>`;
 
-  // Meetings section
-  if(weekEvents.length){
-    html += `<div class="giro-section"><h4>📅 Reuniões e Eventos</h4><div class="dlist">`;
-    weekEvents.forEach(ev=>{
-      const mems = (EVM[ev.id]||[]).map(id=>mBI(id)).filter(Boolean);
-      const evComments = weekComments.filter(c=>c._key.startsWith('ev_'+ev.id));
-      const evAttach = weekAttach.filter(a=>a.evento_id===ev.id);
-      html += `<div class="drow" style="cursor:default">
-        <span class="echip" style="background:var(--accent);color:#fff">📅</span>
-        <div class="dbody">
-          <div class="dproj">${ev.tipo||'Reunião'} · ${ev.hora_inicio||''} ${ev.local?'· '+escapeHtml(ev.local):''}</div>
-          <div class="ddesc">${escapeHtml(ev.titulo)}</div>
-          <div class="dmeta">
-            ${mems.length?`<span style="font-size:10px;color:var(--t3)">${mems.map(m=>m.nome.split(' ')[0]).join(', ')}</span>`:''}
-            ${evComments.length?`<span style="font-size:10px;color:var(--accent)">💬 ${evComments.length} comentário(s)</span>`:''}
-            ${evAttach.length?`<span style="font-size:10px;color:var(--amber)">📎 ${evAttach.length} anexo(s)</span>`:''}
-          </div>
-        </div>
-      </div>`;
-    });
-    html += `</div></div>`;
+  if(!hasKey){
+    html += `<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.2rem;margin-bottom:1rem">
+      <h4 style="margin:0 0 .5rem 0">🔑 Configurar chave da IA</h4>
+      <p style="font-size:12px;color:var(--t2);margin:0 0 .8rem 0">Para gerar o resumo inteligente, configure sua chave da API Anthropic (Claude). A chave fica salva apenas no seu navegador.</p>
+      <div style="display:flex;gap:.5rem;align-items:center">
+        <input class="inp" id="apiKeyInput" type="password" placeholder="sk-ant-api03-..." style="flex:1">
+        <button class="btn primary" onclick="saveApiKey()">Salvar chave</button>
+      </div>
+      <p style="font-size:10px;color:var(--t3);margin:.5rem 0 0 0">Obtenha sua chave em <strong>console.anthropic.com</strong> > API Keys</p>
+    </div>`;
+  } else {
+    html += `<div style="display:flex;gap:.5rem;align-items:center;margin-bottom:1rem">
+      <span style="font-size:12px;color:var(--green)">🔑 Chave configurada</span>
+      <button class="btn sm" onclick="if(confirm('Remover chave da IA?')){localStorage.removeItem('anthropic_key');renderGiro()}" style="font-size:10px">Remover chave</button>
+    </div>`;
   }
 
-  // Task updates section
-  if(taskUpdates.length){
-    html += `<div class="giro-section"><h4>✅ Tarefas Movimentadas</h4><div class="dlist">`;
-    const seen = new Set();
-    taskUpdates.forEach(a=>{
-      if(seen.has(a.entity_id)) return;
-      seen.add(a.entity_id);
-      const autor = a.user_id ? mBI(a.user_id) : null;
-      const details = a.details ? (typeof a.details==='string'?JSON.parse(a.details):a.details) : {};
-      html += `<div class="drow" style="cursor:default">
-        <span class="echip" style="background:${a.action==='task_create'?'var(--green)':'var(--accent)'};color:#fff">${a.action==='task_create'?'+':'↻'}</span>
-        <div class="dbody">
-          <div class="dproj">${a.action==='task_create'?'Criada':'Atualizada'}${a.sprint_id?' · S'+a.sprint_id:''}${autor?' · '+autor.nome.split(' ')[0]:''}</div>
-          <div class="ddesc">${escapeHtml(a.summary||'')}</div>
-          ${details.from?`<div style="font-size:10px;color:var(--t3)">${details.from} → ${details.to}</div>`:''}
-        </div>
-      </div>`;
-    });
-    html += `</div></div>`;
+  const total = data.weekEvents.length+data.taskUpdates.length+data.entregaUpdates.length+data.weekComments.length+data.weekAttach.length+data.weekIdeias.length+data.reviewActions.length;
+  if(!total){
+    html += `<div class="empty"><div class="ic">📭</div>Nenhuma movimentacao registrada nesta semana.<br><span style="font-size:12px;color:var(--t3)">Movimente tarefas, faca reunioes e adicione comentarios para gerar o giro.</span></div>`;
   }
-
-  // Entrega updates
-  if(entregaUpdates.length){
-    html += `<div class="giro-section"><h4>📦 Entregas Atualizadas</h4><div class="dlist">`;
-    entregaUpdates.forEach(a=>{
-      const autor = a.user_id ? mBI(a.user_id) : null;
-      const details = a.details ? (typeof a.details==='string'?JSON.parse(a.details):a.details) : {};
-      html += `<div class="drow" style="cursor:default">
-        <span class="echip" style="background:var(--amber);color:#fff">📦</span>
-        <div class="dbody">
-          <div class="dproj">S${a.sprint_id||'?'}${autor?' · '+autor.nome.split(' ')[0]:''}</div>
-          <div class="ddesc">${escapeHtml(a.summary||'')}</div>
-          ${details.from?`<div style="font-size:10px;color:var(--t3)">${details.from} → ${details.to}</div>`:''}
-        </div>
-      </div>`;
-    });
-    html += `</div></div>`;
-  }
-
-  // Comments
-  if(weekComments.length){
-    html += `<div class="giro-section"><h4>💬 Comentários e Decisões</h4><div class="dlist">`;
-    weekComments.slice(0,20).forEach(c=>{
-      const autor = c.user_id ? mBI(c.user_id) : null;
-      const dt = new Date(c.created_at).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
-      html += `<div class="drow" style="cursor:default">
-        <span class="echip" style="background:var(--bg3);color:var(--t2)">💬</span>
-        <div class="dbody">
-          <div class="dproj">${dt}${autor?' · '+autor.nome.split(' ')[0]:''}</div>
-          <div class="ddesc" style="max-height:40px;overflow:hidden">${escapeHtml((c.texto||'').slice(0,200))}</div>
-        </div>
-      </div>`;
-    });
-    if(weekComments.length>20) html += `<div style="text-align:center;font-size:11px;color:var(--t3);padding:.5rem">... e mais ${weekComments.length-20} comentário(s)</div>`;
-    html += `</div></div>`;
-  }
-
-  // Attachments
-  if(weekAttach.length){
-    html += `<div class="giro-section"><h4>📎 Documentos Anexados</h4><div class="dlist">`;
-    weekAttach.forEach(a=>{
-      const autor = a.user_id ? mBI(a.user_id) : null;
-      const dt = new Date(a.created_at).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
-      html += `<div class="drow" style="cursor:default">
-        <span class="echip" style="background:var(--bg3);color:var(--t2)">📎</span>
-        <div class="dbody">
-          <div class="dproj">${dt}${autor?' · '+autor.nome.split(' ')[0]:''}</div>
-          <div class="ddesc">${escapeHtml(a.nome_arquivo||a.file_name||'Arquivo')}</div>
-        </div>
-      </div>`;
-    });
-    html += `</div></div>`;
-  }
-
-  // Ideas
-  if(weekIdeias.length){
-    html += `<div class="giro-section"><h4>💡 Ideias Registradas</h4><div class="dlist">`;
-    weekIdeias.forEach(i=>{
-      const tp = IDEA_TIPOS.find(t=>t.k===i.tipo) || IDEA_TIPOS[0];
-      const autor = i.autor_id ? mBI(i.autor_id) : null;
-      html += `<div class="drow" style="cursor:default">
-        <span class="echip" style="background:${tp.cor};color:#fff">${tp.l.split(' ')[0]}</span>
-        <div class="dbody">
-          <div class="dproj">${tp.l.replace(/^.\s/,'')}${autor?' · '+autor.nome.split(' ')[0]:''}</div>
-          <div class="ddesc">${escapeHtml(i.titulo)}</div>
-        </div>
-      </div>`;
-    });
-    html += `</div></div>`;
-  }
-
-  // Reviews
-  if(reviewActions.length){
-    html += `<div class="giro-section"><h4>📈 Reviews</h4><div class="dlist">`;
-    reviewActions.forEach(a=>{
-      const autor = a.user_id ? mBI(a.user_id) : null;
-      html += `<div class="drow" style="cursor:default">
-        <span class="echip" style="background:var(--green);color:#fff">📈</span>
-        <div class="dbody">
-          <div class="dproj">${a.action==='review_save'?'Salva':'Atualizada'}${autor?' · '+autor.nome.split(' ')[0]:''}</div>
-          <div class="ddesc">${escapeHtml(a.summary||'')}</div>
-        </div>
-      </div>`;
-    });
-    html += `</div></div>`;
-  }
-
-  // Empty state
-  if(!weekEvents.length && !taskUpdates.length && !entregaUpdates.length && !weekComments.length && !weekAttach.length && !weekIdeias.length && !reviewActions.length){
-    html += `<div class="empty"><div class="ic">📭</div>Nenhuma movimentação registrada nesta semana.</div>`;
-  }
-
   el.innerHTML = html;
+}
+
+function saveApiKey(){
+  const key = document.getElementById('apiKeyInput')?.value?.trim();
+  if(!key){ toast('Informe a chave','err'); return; }
+  localStorage.setItem('anthropic_key', key);
+  toast('Chave salva com sucesso!');
+  renderGiro();
+}
+
+function buildGiroPrompt(wk, data){
+  const s = cs();
+  const sprintInfo = s ? `Sprint ${s.id} — ${s.m} (foco: ${s.foco})` : 'Todas as sprints';
+
+  let ctx = `Voce e a assistente do Nucleo de Inovacao e Dados (NID) da COBEN/FUNCEF.
+Gere o GIRO DA SEMANA (${wk.label}) para abrir a Weekly do time.
+
+Sprint atual: ${sprintInfo}
+Equipe: ${MB.filter(m=>m.ativo!==false).map(m=>m.nome.split(' ')[0]).join(', ')}
+
+DADOS DA SEMANA:\n\n`;
+
+  if(data.weekEvents.length){
+    ctx += `REUNIOES E EVENTOS (${data.weekEvents.length}):\n`;
+    data.weekEvents.forEach(ev=>{
+      const mems = (EVM[ev.id]||[]).map(id=>mBI(id)).filter(Boolean);
+      ctx += `- ${ev.titulo} (${ev.tipo||'Reuniao'}, ${ev.hora_inicio||'sem horario'})`;
+      if(mems.length) ctx += ` | Participantes: ${mems.map(m=>m.nome.split(' ')[0]).join(', ')}`;
+      const evCmt = data.weekComments.filter(c=>c._key.startsWith('ev_'+ev.id));
+      if(evCmt.length) ctx += ` | Comentarios: ${evCmt.map(c=>`"${(c.texto||'').slice(0,100)}"`).join('; ')}`;
+      const evAtt = data.weekAttach.filter(a=>a.evento_id===ev.id);
+      if(evAtt.length) ctx += ` | Documentos: ${evAtt.map(a=>a.nome||a.nome_arquivo||'arquivo').join(', ')}`;
+      ctx += '\n';
+    });
+    ctx += '\n';
+  }
+
+  if(data.taskUpdates.length){
+    ctx += `TAREFAS MOVIMENTADAS (${data.taskUpdates.length}):\n`;
+    const seen = new Set();
+    data.taskUpdates.forEach(a=>{
+      if(seen.has(a.entity_id)) return; seen.add(a.entity_id);
+      const autor = a.user_id ? mBI(a.user_id) : null;
+      const det = a.details ? (typeof a.details==='string'?JSON.parse(a.details):a.details) : {};
+      ctx += `- ${a.summary||'Tarefa'}`;
+      if(det.from) ctx += ` (${det.from} -> ${det.to})`;
+      if(autor) ctx += ` por ${autor.nome.split(' ')[0]}`;
+      ctx += '\n';
+    });
+    ctx += '\n';
+  }
+
+  if(data.entregaUpdates.length){
+    ctx += `ENTREGAS ATUALIZADAS (${data.entregaUpdates.length}):\n`;
+    data.entregaUpdates.forEach(a=>{
+      const det = a.details?(typeof a.details==='string'?JSON.parse(a.details):a.details):{};
+      ctx += `- ${a.summary||'Entrega'} S${a.sprint_id||'?'}`;
+      if(det.from) ctx += ` (${det.from} -> ${det.to})`;
+      ctx += '\n';
+    });
+    ctx += '\n';
+  }
+
+  if(data.weekComments.length){
+    const nonEvCmt = data.weekComments.filter(c=>!c._key.startsWith('ev_'));
+    if(nonEvCmt.length){
+      ctx += `COMENTARIOS EM TAREFAS/ENTREGAS (${nonEvCmt.length}):\n`;
+      nonEvCmt.slice(0,15).forEach(c=>{
+        const autor = c.user_id?mBI(c.user_id):null;
+        ctx += `- ${autor?autor.nome.split(' ')[0]+': ':''}${(c.texto||'').slice(0,150)}\n`;
+      });
+      ctx += '\n';
+    }
+  }
+
+  if(data.weekAttach.length){
+    const nonEvAtt = data.weekAttach.filter(a=>!a.evento_id);
+    if(nonEvAtt.length){
+      ctx += `DOCUMENTOS ANEXADOS (${nonEvAtt.length}):\n`;
+      nonEvAtt.forEach(a=>{
+        ctx += `- ${a.nome||a.nome_arquivo||'arquivo'}\n`;
+      });
+      ctx += '\n';
+    }
+  }
+
+  if(data.weekIdeias.length){
+    ctx += `IDEIAS NOVAS (${data.weekIdeias.length}):\n`;
+    data.weekIdeias.forEach(i=>{
+      const tp = IDEA_TIPOS.find(t=>t.k===i.tipo)||IDEA_TIPOS[0];
+      ctx += `- [${tp.l.replace(/^.\s/,'')}] ${i.titulo}${i.descricao?' — '+i.descricao.slice(0,100):''}\n`;
+    });
+    ctx += '\n';
+  }
+
+  if(data.reviewActions.length){
+    ctx += `REVIEWS REALIZADAS: ${data.reviewActions.length} review(s) salva(s)/atualizada(s)\n\n`;
+  }
+
+  ctx += `INSTRUCOES:
+Gere um resumo executivo para abrir a Weekly do NID/COBEN. O tom deve ser leve, direto e motivador.
+
+Estruture assim:
+1. ABERTURA (1-2 frases de contexto da semana, tom leve e engajador)
+2. DESTAQUES DA SEMANA (os 3-5 fatos mais relevantes, com nomes de quem fez)
+3. REUNIOES (resumo do que foi discutido, decisoes tomadas, documentos compartilhados)
+4. MOVIMENTACAO DE TAREFAS (o que avancou, o que foi criado, bloqueios)
+5. PONTOS DE ATENCAO (riscos, bloqueios, coisas que precisam de decisao)
+6. FRASE DE FECHAMENTO (motivacional, curta)
+
+Se nao houver dados em alguma secao, omita-a.
+Responda em portugues brasileiro. Use markdown para formatar.
+Seja conciso mas completo. Maximo 600 palavras.`;
+
+  return ctx;
+}
+
+async function gerarGiroIA(){
+  const key = localStorage.getItem('anthropic_key');
+  if(!key){ toast('Configure a chave da IA primeiro','err'); return; }
+
+  const dateInput = document.getElementById('giroDate');
+  if(!dateInput.value) dateInput.value = new Date().toISOString().slice(0,10);
+  const wk = getWeekRange(dateInput.value);
+  const data = collectWeekData(wk);
+
+  const total = data.weekEvents.length+data.taskUpdates.length+data.entregaUpdates.length+data.weekComments.length+data.weekAttach.length+data.weekIdeias.length+data.reviewActions.length;
+  if(!total){ toast('Nenhuma movimentacao nesta semana para gerar o resumo','err'); return; }
+
+  const btn = document.getElementById('btnGiroIA');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Gerando...';
+
+  const iaEl = document.getElementById('giroIAResult');
+  iaEl.style.display = '';
+  iaEl.innerHTML = `<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-top:1rem">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:1rem">
+      <span style="font-size:20px">🤖</span>
+      <h3 style="margin:0">Gerando resumo inteligente...</h3>
+    </div>
+    <div id="giroIAText" style="font-size:13px;line-height:1.7;color:var(--t1)">
+      <div class="spinner" style="margin:1rem auto"></div>
+    </div>
+  </div>`;
+
+  try {
+    const prompt = buildGiroPrompt(wk, data);
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1500,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    if(!resp.ok){
+      const err = await resp.json().catch(()=>({}));
+      throw new Error(err.error?.message || `HTTP ${resp.status}`);
+    }
+
+    const result = await resp.json();
+    const text = result.content?.[0]?.text || 'Sem resposta da IA';
+
+    const htmlText = text
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+      .replace(/^### (.+)$/gm,'<h4 style="margin:1rem 0 .3rem;color:var(--accent)">$1</h4>')
+      .replace(/^## (.+)$/gm,'<h3 style="margin:1.2rem 0 .4rem;color:var(--accent)">$1</h3>')
+      .replace(/^# (.+)$/gm,'<h2 style="margin:1.2rem 0 .5rem;color:var(--accent)">$1</h2>')
+      .replace(/^- (.+)$/gm,'<div style="padding-left:1rem;margin:.15rem 0">• $1</div>')
+      .replace(/^(\d+)\. (.+)$/gm,'<div style="padding-left:1rem;margin:.15rem 0">$1. $2</div>')
+      .replace(/\n\n/g,'<br><br>')
+      .replace(/\n/g,'<br>');
+
+    document.getElementById('giroIAText').innerHTML = htmlText;
+
+    iaEl.innerHTML = `<div style="background:linear-gradient(135deg, var(--bg2), var(--acc-bg));border:1px solid var(--accent);border-radius:12px;padding:1.5rem;margin-top:1rem">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:.8rem">
+        <span style="font-size:20px">🤖</span>
+        <h3 style="margin:0;flex:1">Giro da Semana — ${wk.label}</h3>
+        <button class="btn sm" onclick="copyGiro()" title="Copiar para area de transferencia">📋 Copiar</button>
+      </div>
+      <div id="giroIAText" style="font-size:13px;line-height:1.7;color:var(--t1)">${htmlText}</div>
+      <div id="giroRawText" style="display:none">${escapeHtml(text)}</div>
+      <div style="margin-top:1rem;font-size:10px;color:var(--t3);text-align:right">Gerado por Claude (Anthropic) com base nos dados do app</div>
+    </div>`;
+
+  } catch(e){
+    document.getElementById('giroIAText').innerHTML = `<div style="color:var(--red)">Erro ao gerar: ${escapeHtml(e.message)}</div>
+      <div style="font-size:11px;color:var(--t3);margin-top:.5rem">Verifique se a chave esta correta e tente novamente.</div>`;
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '🤖 Gerar com IA';
+}
+
+function copyGiro(){
+  const raw = document.getElementById('giroRawText');
+  if(!raw) return;
+  const text = raw.textContent;
+  navigator.clipboard.writeText(text).then(()=>toast('Resumo copiado!')).catch(()=>toast('Erro ao copiar','err'));
 }
 
 function renderAudit(){
