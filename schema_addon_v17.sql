@@ -33,3 +33,7 @@ drop policy if exists ideias_read  on ideias;
 drop policy if exists ideias_write on ideias;
 create policy ideias_read  on ideias for select using (auth.role() = 'authenticated');
 create policy ideias_write on ideias for all    using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
+
+-- Anexos em ideias (reusa a tabela task_attachments com coluna ideia_id)
+alter table task_attachments add column if not exists ideia_id uuid references ideias(id) on delete cascade;
+create index if not exists idx_task_attachments_ideia on task_attachments(ideia_id);

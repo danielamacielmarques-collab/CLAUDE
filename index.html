@@ -2065,7 +2065,8 @@ async function loadAll(){
     });
     ATT={}; (ra.data||[]).forEach(a=>{
       let k;
-      if(a.tarefa_id) k = a.tarefa_id;
+      if(a.ideia_id) k = 'idea_'+a.ideia_id;
+      else if(a.tarefa_id) k = a.tarefa_id;
       else if(a.evento_id) k = a.evento_data ? `ev_${a.evento_id}_${a.evento_data}` : `ev_${a.evento_id}`;
       else k = `e_${a.sprint_id}_${a.entrega_idx}`;
       (ATT[k]=ATT[k]||[]).push(a);
@@ -4060,8 +4061,9 @@ function renderIdeias(){
 function openIdeia(id){
   _editingIdeia = id ? IDB.find(i=>i.id===id) : null;
   const idea = _editingIdeia;
+  const attachs = idea ? (ATT['idea_'+idea.id]||[]) : [];
   const html = `<div class="modal-overlay on" onclick="if(event.target===this)closeIdeia()">
-    <div class="modal" style="max-width:600px">
+    <div class="modal" style="max-width:640px">
       <div class="mh"><h2>${idea?'Editar':'Nova'} Ideia</h2><button class="mx" onclick="closeIdeia()">×</button></div>
       <div class="mb" style="padding:1.2rem">
         <label class="fl">Tipo</label>
@@ -4080,7 +4082,23 @@ function openIdeia(id){
         <select class="sel" id="ideaStatus" style="width:100%;margin-bottom:1rem">
           ${IDEA_STATUS.map(s=>`<option value="${s.k}" ${(idea?.status||'rascunho')===s.k?'selected':''}>${s.l}</option>`).join('')}
         </select>
-        <div style="display:flex;gap:.5rem;justify-content:flex-end;align-items:center">
+
+        ${idea ? `<div style="border-top:1px solid var(--border);padding-top:.8rem;margin-top:.3rem">
+          <label class="fl">📎 Anexos</label>
+          <div class="dropzone" onclick="document.getElementById('ideaFileInput').click()" style="margin-bottom:.6rem">
+            <div style="font-size:24px">📁</div>
+            <div><strong>Clique para anexar arquivo</strong></div>
+            <div style="font-size:11px;color:var(--t3)">PDF, Word, slides, imagens — até 50MB</div>
+          </div>
+          <input type="file" id="ideaFileInput" style="display:none" onchange="uploadIdeiaAttach(event)" multiple>
+          <div id="ideaAttachList">${attachs.length ? attachs.map(a=>`<div class="att-row">
+            <a href="${a.url}" target="_blank" class="att-link">📄 ${escapeHtml(a.nome||a.nome_arquivo||'Arquivo')}</a>
+            <span style="font-size:10px;color:var(--t3)">${a.tamanho?Math.round(a.tamanho/1024)+'KB':''}</span>
+            <button class="btn sm danger" onclick="delIdeiaAttach('${a.id}','${a.storage_path}')">🗑️</button>
+          </div>`).join('') : '<div style="font-size:12px;color:var(--t3)">Sem anexos ainda.</div>'}</div>
+        </div>` : `<div style="font-size:11px;color:var(--t3);font-style:italic;margin-bottom:.5rem">💡 Salve a ideia primeiro para poder anexar arquivos.</div>`}
+
+        <div style="display:flex;gap:.5rem;justify-content:flex-end;align-items:center;margin-top:.5rem">
           ${idea?`<button class="btn danger" onclick="deleteIdeia('${idea.id}')" style="margin-right:auto">🗑️ Excluir</button>`:''}
           <button class="btn" onclick="closeIdeia()">Cancelar</button>
           <button class="btn primary" onclick="saveIdeia()">💾 Salvar</button>
@@ -4117,14 +4135,76 @@ async function saveIdeia(){
     if(error){ toast('Erro: '+error.message,'err'); ss('err','Erro'); return; }
   } else {
     payload.autor_id = CP?.id || null;
-    const {error} = await db.from('ideias').insert(payload);
+    const {data, error} = await db.from('ideias').insert(payload).select().single();
     if(error){ toast('Erro: '+error.message,'err'); ss('err','Erro'); return; }
+    if(data) _editingIdeia = data;
   }
   await loadAll(); ss('ok','Salvo');
-  toast(_editingIdeia ? 'Ideia atualizada!' : 'Ideia registrada!');
-  logAudit({action:_editingIdeia?'idea_update':'idea_create', entityType:'ideia',
-    summary:`${_editingIdeia?'Editou':'Criou'} ${payload.tipo}: "${titulo.slice(0,80)}"`});
-  closeIdeia(); renderIdeias();
+  const wasNew = !_editingIdeia?.id;
+  toast(_editingIdeia ? 'Ideia salva!' : 'Ideia registrada!');
+  logAudit({action: wasNew ? 'idea_create':'idea_update', entityType:'ideia',
+    summary:`${wasNew?'Criou':'Editou'} ${payload.tipo}: "${titulo.slice(0,80)}"`});
+  if(_editingIdeia?.id){
+    closeIdeia();
+    openIdeia(_editingIdeia.id);
+  } else {
+    closeIdeia();
+  }
+  renderIdeias();
+}
+
+async function uploadIdeiaAttach(evt){
+  if(!_editingIdeia){ toast('Salve a ideia primeiro','err'); return; }
+  const files = evt.target.files;
+  if(!files || !files.length) return;
+  for(const file of files){
+    if(file.size > 50*1024*1024){ toast(`${file.name} maior que 50MB`,'err'); continue; }
+    ss('loading',`Enviando ${file.name}...`);
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+    const path = `ideias/${_editingIdeia.id}/${Date.now()}_${safeName}`;
+    const up = await db.storage.from('task-files').upload(path, file, { upsert:false, contentType: file.type });
+    if(up.error){ toast(explainStorageErr(up.error.message),'err'); continue; }
+    const { data:pub } = db.storage.from('task-files').getPublicUrl(path);
+    const payload = {
+      ideia_id: _editingIdeia.id, profile_id: CP?.id,
+      nome: file.name, storage_path: path, url: pub.publicUrl,
+      mime: file.type, tamanho: file.size
+    };
+    const {data, error} = await db.from('task_attachments').insert(payload).select().single();
+    if(error){
+      await db.storage.from('task-files').remove([path]);
+      toast('Erro: '+error.message,'err'); continue;
+    }
+    (ATT['idea_'+_editingIdeia.id] = ATT['idea_'+_editingIdeia.id]||[]).unshift(data);
+  }
+  evt.target.value='';
+  ss('ok','Anexado'); toast('Arquivo(s) anexado(s)');
+  const listEl = document.getElementById('ideaAttachList');
+  const attachs = ATT['idea_'+_editingIdeia.id]||[];
+  listEl.innerHTML = attachs.map(a=>`<div class="att-row">
+    <a href="${a.url}" target="_blank" class="att-link">📄 ${escapeHtml(a.nome||a.nome_arquivo||'Arquivo')}</a>
+    <span style="font-size:10px;color:var(--t3)">${a.tamanho?Math.round(a.tamanho/1024)+'KB':''}</span>
+    <button class="btn sm danger" onclick="delIdeiaAttach('${a.id}','${a.storage_path}')">🗑️</button>
+  </div>`).join('');
+}
+
+async function delIdeiaAttach(id, path){
+  if(!confirm('Excluir este anexo?')) return;
+  ss('loading','Excluindo...');
+  await db.storage.from('task-files').remove([path]);
+  const {error} = await db.from('task_attachments').delete().eq('id', id);
+  if(error){ toast('Erro: '+error.message,'err'); ss('err','Erro'); return; }
+  if(_editingIdeia && ATT['idea_'+_editingIdeia.id]){
+    ATT['idea_'+_editingIdeia.id] = ATT['idea_'+_editingIdeia.id].filter(a=>a.id!==id);
+  }
+  ss('ok','Removido');
+  const listEl = document.getElementById('ideaAttachList');
+  const attachs = ATT['idea_'+_editingIdeia.id]||[];
+  listEl.innerHTML = attachs.length ? attachs.map(a=>`<div class="att-row">
+    <a href="${a.url}" target="_blank" class="att-link">📄 ${escapeHtml(a.nome||a.nome_arquivo||'Arquivo')}</a>
+    <span style="font-size:10px;color:var(--t3)">${a.tamanho?Math.round(a.tamanho/1024)+'KB':''}</span>
+    <button class="btn sm danger" onclick="delIdeiaAttach('${a.id}','${a.storage_path}')">🗑️</button>
+  </div>`).join('') : '<div style="font-size:12px;color:var(--t3)">Sem anexos.</div>';
 }
 
 async function deleteIdeia(id){
