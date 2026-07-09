@@ -6060,11 +6060,14 @@ function renderImport(){
       <div class="dropzone" onclick="document.getElementById('impFileInput').click()">
         <div style="font-size:26px">📄</div>
         <div style="font-weight:700;margin-top:6px">${_impFileName ? '📎 '+escapeHtml(_impFileName) : 'Clique para escolher um arquivo'}</div>
-        <div style="font-size:11px;color:var(--t3);margin-top:4px">xlsx · xls · csv · docx · pdf · eml · txt</div>
-        <input type="file" id="impFileInput" style="display:none" accept=".xlsx,.xls,.csv,.docx,.pdf,.eml,.txt,.md" onchange="impPickFile(event)">
+        <div style="font-size:11px;color:var(--t3);margin-top:4px">xlsx · xls · csv · docx · pdf · eml · msg · txt</div>
+        <input type="file" id="impFileInput" style="display:none" accept=".xlsx,.xls,.csv,.docx,.pdf,.eml,.msg,.txt,.md" onchange="impPickFile(event)">
       </div>
-      <div style="text-align:center;font-size:11px;color:var(--t3);margin:.6rem 0">— ou cole o conteúdo abaixo —</div>
-      <textarea id="impPaste" placeholder="Cole aqui o texto do e-mail, planilha ou documento..." style="width:100%;min-height:110px">${escapeHtml(_impText)}</textarea>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin:.8rem 0 .3rem">
+        <span style="font-size:11px;color:var(--t3)">— prévia do conteúdo (revise/edite antes de extrair) —</span>
+        <span style="font-size:11px;color:var(--t3)" id="impCharCt">${_impText?(_impText.length+' caracteres'):''}</span>
+      </div>
+      <textarea id="impPaste" placeholder="Cole aqui o texto do e-mail, planilha ou documento — ou carregue um arquivo acima para ver a prévia..." style="width:100%;min-height:140px" oninput="document.getElementById('impCharCt').textContent=this.value.length+' caracteres'">${escapeHtml(_impText)}</textarea>
       ${!hasKey?`<div style="background:var(--a-bg);border:1px solid var(--amber);border-radius:10px;padding:.7rem;margin-top:.8rem;font-size:12px;color:var(--amber)">⚠️ Configure a chave da IA na aba <b>Giro da Semana</b> para extrair as tarefas automaticamente.</div>`:''}
       <div style="display:flex;gap:.5rem;margin-top:1rem;align-items:center">
         <button class="btn primary" id="impExtractBtn" onclick="impExtract()" ${!hasKey?'disabled':''}>🤖 Extrair tarefas com IA</button>
@@ -6114,8 +6117,50 @@ async function impReadFile(file){
     }
     return out;
   }
+  if(/\.msg$/.test(name)) return await impReadMsg(file);
   // fallback
   return await file.text();
+}
+
+// Lê e-mail Outlook .msg (formato OLE/CFB): assunto + corpo + anexos embutidos
+async function impReadMsg(file){
+  await loadScriptOnce('https://cdn.jsdelivr.net/npm/cfb@1.2.2/dist/cfb.min.js');
+  const cfb = CFB.read(new Uint8Array(await file.arrayBuffer()), {type:'buffer'});
+  const paths = cfb.FullPaths, idx = cfb.FileIndex;
+  const u8 = b => b instanceof Uint8Array ? b : new Uint8Array(b);
+  const dec16 = b => { try { return new TextDecoder('utf-16le').decode(u8(b)); } catch(_){ return ''; } };
+  const dec8  = b => { try { return new TextDecoder('utf-8').decode(u8(b)); } catch(_){ return ''; } };
+  const findLeaf = suf => { const i = paths.findIndex(p=>p.endsWith(suf)); return i>=0 ? idx[i].content : null; };
+
+  let out = '';
+  const subj = findLeaf('0037001F');
+  if(subj) out += 'Assunto: ' + dec16(subj) + '\n\n';
+  const bodyU = findLeaf('1000001F');
+  const bodyA = findLeaf('1000001E');
+  if(bodyU) out += dec16(bodyU) + '\n\n';
+  else if(bodyA) out += dec8(bodyA) + '\n\n';
+
+  // Anexos embutidos: parear filename (3707001F/3704001F) com dados (37010102) pelo storage pai
+  const parent = p => p.slice(0, p.lastIndexOf('/')+1);
+  const names = {}, datas = {};
+  paths.forEach((p,i)=>{
+    if(p.endsWith('3707001F') || p.endsWith('3704001F')){ const nm = dec16(idx[i].content); if(nm && (!names[parent(p)]||p.endsWith('3707001F'))) names[parent(p)] = nm; }
+    if(p.endsWith('37010102')) datas[parent(p)] = idx[i].content;
+  });
+  for(const par of Object.keys(datas)){
+    const nm = names[par] || 'anexo';
+    const bytes = u8(datas[par]);
+    out += `\n\n===== ANEXO: ${nm} =====\n`;
+    try {
+      if(/\.(docx|pdf|xlsx|xls|csv|txt|eml|md)$/i.test(nm)){
+        const sub = new File([bytes], nm);
+        out += await impReadFile(sub);
+      } else {
+        out += '(anexo não textual — ignorado)';
+      }
+    } catch(e){ out += '(falha ao ler anexo: '+e.message+')'; }
+  }
+  return out;
 }
 
 async function impPickFile(evt){
