@@ -4528,7 +4528,8 @@ async function gerarGiroIA(){
       },
       body: JSON.stringify({
         model: 'claude-sonnet-5',
-        max_tokens: 1500,
+        max_tokens: 16000,
+        thinking: { type: 'disabled' },
         messages: [{ role: 'user', content: prompt }]
       })
     });
@@ -4539,7 +4540,8 @@ async function gerarGiroIA(){
     }
 
     const result = await resp.json();
-    const text = result.content?.[0]?.text || 'Sem resposta da IA';
+    const textBlock = result.content?.find(b => b.type === 'text');
+    const text = textBlock?.text || 'Sem resposta da IA';
 
     const htmlText = text
       .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
