@@ -1289,6 +1289,28 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
   </div>
 </div>
 
+<!-- ============ MODAL CRIAR TAREFA (escolher sprint) ============ -->
+<div class="mbg" id="createTaskModal">
+  <div class="modal" style="max-width:520px">
+    <div class="mhead"><h2>Criar tarefa em uma sprint</h2><button class="mclose" onclick="closeCreateTask()">✕</button></div>
+    <div class="mbody">
+      <div style="background:var(--bg3);border-radius:10px;padding:.7rem .85rem;margin-bottom:1rem">
+        <div id="ctTitle" style="font-size:12.5px;font-weight:700;line-height:1.4"></div>
+        <div id="ctInfo" style="font-size:11px;color:var(--t3);margin-top:4px"></div>
+      </div>
+      <div class="field"><label>Sprint de destino <span style="color:var(--t3);font-weight:400">(sugerida pela data de prazo)</span></label>
+        <select class="sel" id="ctSprint" style="width:100%"></select>
+      </div>
+      <div id="ctSugHint" style="font-size:11px;color:var(--accent);margin-top:.5rem"></div>
+    </div>
+    <div class="mfoot">
+      <div style="flex:1"></div>
+      <button class="btn" onclick="closeCreateTask()">Cancelar</button>
+      <button class="btn primary" onclick="confirmCreateTask()">+ Criar tarefa</button>
+    </div>
+  </div>
+</div>
+
 <!-- ============ MODAL ENTREGA ============ -->
 <div class="mbg" id="entregaModal">
   <div class="modal" style="max-width:820px">
@@ -3926,7 +3948,7 @@ function renderPlanoAcao(){
           ${pi.vinculo_tipo
             ? `<button class="pa-btn" onclick="paUnlink(${x.idx})">Desvincular</button>`
             : `<button class="pa-btn" onclick="openPaLink(${x.idx})">🔗 Vincular a tarefa</button>
-               <button class="pa-btn primary" onclick="paCreateTask(${x.idx})">+ Criar tarefa na S${sugSid}</button>`}
+               <button class="pa-btn primary" onclick="paCreateTask(${x.idx})">+ Criar tarefa (sug. S${sugSid})</button>`}
         </div>
       </div>`;
     }).join('');
@@ -3968,11 +3990,18 @@ async function paSetStatus(idx, val){
   renderPlanoAcao();
 }
 
-async function paCreateTask(idx){
+function paCreateTask(idx){
   const it = PA_GB[idx];
-  const sid = sprintForDate(it.fim);
-  const s = SP.find(x=>x.id===sid);
-  if(!confirm(`Criar tarefa na Sprint ${sid} (${s.m}) para:\n\n"${it.sub}"\n\nData de entrega: ${it.fim||'—'}?`)) return;
+  const sugSid = sprintForDate(it.fim);
+  openCreateTask({
+    title: it.sub.replace(/^[\d.]+\s*/,'').slice(0,120),
+    info: `OM${it.om} · Prazo de entrega: ${it.fim||'—'}`,
+    sugSid,
+    onConfirm: (sid)=>paCreateTaskDo(idx, sid)
+  });
+}
+async function paCreateTaskDo(idx, sid){
+  const it = PA_GB[idx];
   ss('loading','Criando tarefa...');
   const desc = `Plano de Ação — Gestão de Benefício\nOM${it.om}: ${it.omt}\nAção: ${it.acao}\nResponsável: ${it.resp||'—'}\nPrazo de entrega: ${it.fim||'—'}${it.obs?'\n\nObs.: '+it.obs:''}`;
   const payload = {
@@ -3992,6 +4021,27 @@ async function paCreateTask(idx){
   logAudit({action:'task_create', entityType:'task', entityId:data.id, sprintId:sid,
     summary:`PA OM${it.om}: tarefa criada na S${sid}`});
   renderPlanoAcao();
+}
+
+// Modal genérico de escolha de sprint ao criar tarefa (PA e Auditoria)
+let _ctOnConfirm = null, _ctSugSid = null;
+function openCreateTask({title, info, sugSid, onConfirm}){
+  _ctOnConfirm = onConfirm;
+  _ctSugSid = sugSid;
+  document.getElementById('ctTitle').textContent = title;
+  document.getElementById('ctInfo').textContent = info;
+  const sel = document.getElementById('ctSprint');
+  sel.innerHTML = SP.map(s=>`<option value="${s.id}" ${s.id===sugSid?'selected':''}>Sprint ${s.id} — ${s.m}${s.id===sugSid?' (sugerida)':''}</option>`).join('');
+  const sugS = SP.find(s=>s.id===sugSid);
+  document.getElementById('ctSugHint').textContent = sugS ? `💡 Sugerida pela data de prazo: Sprint ${sugSid} — ${sugS.m}` : '';
+  document.getElementById('createTaskModal').classList.add('on');
+}
+function closeCreateTask(){ document.getElementById('createTaskModal').classList.remove('on'); _ctOnConfirm=null; }
+function confirmCreateTask(){
+  const sid = +document.getElementById('ctSprint').value;
+  const cb = _ctOnConfirm;
+  closeCreateTask();
+  if(cb) cb(sid);
 }
 
 let _paLinkIdx = null;
@@ -4141,7 +4191,7 @@ function renderAuditoria(){
           ${pi.vinculo_tipo
             ? `<button class="pa-btn" onclick="auUnlink(${x.idx})">Desvincular</button>`
             : `<button class="pa-btn" onclick="openAuLink(${x.idx})">🔗 Vincular a tarefa</button>
-               <button class="pa-btn primary" onclick="auCreateTask(${x.idx})">+ Criar tarefa na S${sugSid}</button>`}
+               <button class="pa-btn primary" onclick="auCreateTask(${x.idx})">+ Criar tarefa (sug. S${sugSid})</button>`}
         </div>
       </div>`;
     }).join('');
@@ -4193,11 +4243,18 @@ async function auSetStatus(idx, val){
   renderAuditoria();
 }
 
-async function auCreateTask(idx){
+function auCreateTask(idx){
   const it = AUDIT_GB[idx];
-  const sid = sprintForDate(it.fim);
-  const s = SP.find(x=>x.id===sid);
-  if(!confirm(`Criar tarefa na Sprint ${sid} (${s.m}) para a ação ${it.num} do apontamento ${it.apCode}?\n\n"${it.desc.slice(0,120)}..."\n\nPrazo final: ${it.fim||'—'}`)) return;
+  const sugSid = sprintForDate(it.fim);
+  openCreateTask({
+    title: `Ação ${it.num}: ${it.desc.slice(0,110)}`,
+    info: `${it.apCode} · ${it.apTit.slice(0,55)} · Prazo final: ${it.fim||'—'}`,
+    sugSid,
+    onConfirm: (sid)=>auCreateTaskDo(idx, sid)
+  });
+}
+async function auCreateTaskDo(idx, sid){
+  const it = AUDIT_GB[idx];
   ss('loading','Criando tarefa...');
   const desc = `Auditoria — ${it.ra}\nApontamento ${it.apCode}: ${it.apTit}\nCriticidade: ${it.crit}\nUnidade: ${it.unid}\n\nAção ${it.num}: ${it.desc}\nResponsável: ${it.resp||'—'}${it.interv?'\nInterveniente: '+it.interv:''}\nInício: ${it.ini||'—'} · Prazo final: ${it.fim||'—'}`;
   const payload = {
