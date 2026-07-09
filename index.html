@@ -714,6 +714,7 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
       <button class="nb" data-v="team"     onclick="nav('team',this)"><span class="ic">👥</span>Equipe</button>
       <button class="nb" data-v="reviews"  onclick="nav('reviews',this)"><span class="ic">📈</span>Reviews</button>
       <button class="nb" data-v="planoacao" onclick="nav('planoacao',this)"><span class="ic">🎯</span>Plano de Ação</button>
+      <button class="nb" data-v="auditoria" onclick="nav('auditoria',this)"><span class="ic">🛡️</span>Auditoria</button>
       <button class="nb" data-v="ideias" onclick="nav('ideias',this)"><span class="ic">💡</span>Ideias & Aprendizado</button>
       <button class="nb" data-v="giro" onclick="nav('giro',this)"><span class="ic">📰</span>Giro da Semana</button>
       <button class="nb" data-v="audit"    onclick="nav('audit',this)" id="navAudit" style="display:none"><span class="ic">🔍</span>Governança <span style="background:var(--orange);color:#fff;font-size:9px;padding:1px 6px;border-radius:20px;margin-left:auto;font-weight:800">ADMIN</span></button>
@@ -893,6 +894,34 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
         <div id="paList"></div>
       </section>
 
+      <!-- AUDITORIA — Plano de Ação de Auditoria -->
+      <section class="view" id="vAuditoria">
+        <div class="vh">
+          <div><h1>🛡️ Auditoria — Plano de Ação</h1><div class="vh-sub">Apontamentos da auditoria interna (RA AUDIR_MZ 0003/2026) · vincule às sprints ou crie tarefas</div></div>
+          <div class="vh-grow"></div>
+          <select class="sel" id="auFilterCrit" onchange="renderAuditoria()">
+            <option value="">Toda criticidade</option>
+            <option value="Alta">🔴 Alta</option>
+            <option value="Média">🟡 Média</option>
+            <option value="Outras Constatações">🔵 Outras Constatações</option>
+          </select>
+          <select class="sel" id="auFilterStatus" onchange="renderAuditoria()">
+            <option value="">Todos os status</option>
+            <option value="Não iniciado">Não iniciado</option>
+            <option value="Em andamento">Em andamento</option>
+            <option value="Concluído">Concluído</option>
+            <option value="Atrasado">Atrasado</option>
+          </select>
+          <select class="sel" id="auFilterVinc" onchange="renderAuditoria()">
+            <option value="">Vínculo: todos</option>
+            <option value="sim">Já vinculados</option>
+            <option value="nao">Sem vínculo</option>
+          </select>
+        </div>
+        <div class="pa-summary" id="auSummary"></div>
+        <div id="auList"></div>
+      </section>
+
       <!-- IDEIAS & APRENDIZADO -->
       <section class="view" id="vIdeias">
         <div class="vh">
@@ -923,8 +952,13 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
         <div class="vh">
           <div><h1>📰 Giro da Semana</h1><div class="vh-sub">Resumo inteligente para a Weekly — gerado por IA</div></div>
           <div class="vh-grow"></div>
-          <label style="font-size:12px;color:var(--t2);margin-right:.3rem">Semana de:</label>
-          <input type="date" class="sel" id="giroDate" onchange="renderGiro()">
+          <label style="font-size:12px;color:var(--t2);margin-right:.3rem">De:</label>
+          <input type="date" class="sel" id="giroDateStart" onchange="renderGiro()" style="width:auto">
+          <label style="font-size:12px;color:var(--t2);margin:0 .3rem">Até:</label>
+          <input type="date" class="sel" id="giroDateEnd" onchange="renderGiro()" style="width:auto">
+          <button class="btn sm" onclick="setGiroPeriod('week')" title="Semana atual" style="font-size:11px">Esta semana</button>
+          <button class="btn sm" onclick="setGiroPeriod('lastweek')" title="Semana passada" style="font-size:11px">Semana passada</button>
+          <button class="btn sm" onclick="setGiroPeriod('month')" title="Mês atual" style="font-size:11px">Este mês</button>
           <button class="btn primary" onclick="gerarGiroIA()" id="btnGiroIA">🤖 Gerar com IA</button>
         </div>
         <div id="giroContent"></div>
@@ -1227,6 +1261,30 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
       <div style="flex:1"></div>
       <button class="btn" onclick="closePaLink()">Cancelar</button>
       <button class="btn primary" onclick="confirmPaLink()">🔗 Vincular</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODAL VÍNCULO AUDITORIA ============ -->
+<div class="mbg" id="auLinkModal">
+  <div class="modal" style="max-width:560px">
+    <div class="mhead"><h2>Vincular ação de auditoria a uma tarefa/entrega</h2><button class="mclose" onclick="closeAuLink()">✕</button></div>
+    <div class="mbody">
+      <div style="background:var(--bg3);border-radius:10px;padding:.7rem .85rem;margin-bottom:1rem">
+        <div id="auLinkTitle" style="font-size:12.5px;font-weight:700;line-height:1.4"></div>
+        <div id="auLinkInfo" style="font-size:11px;color:var(--t3);margin-top:4px"></div>
+      </div>
+      <div class="field" style="margin-bottom:.85rem"><label>Sprint de destino (sugerida pela data de entrega)</label>
+        <select class="sel" id="auLinkSprint" onchange="renderAuLinkTargets()" style="width:100%"></select>
+      </div>
+      <div class="field"><label>Escolha a entrega ou tarefa correspondente</label>
+        <div id="auLinkTargets" class="pa-link-targets"></div>
+      </div>
+    </div>
+    <div class="mfoot">
+      <div style="flex:1"></div>
+      <button class="btn" onclick="closeAuLink()">Cancelar</button>
+      <button class="btn primary" onclick="confirmAuLink()">🔗 Vincular</button>
     </div>
   </div>
 </div>
@@ -1584,6 +1642,40 @@ const PA_GB = [
 ];
 
 /* ============================================================
+   AUDITORIA — Plano de Ação (RA AUDIR_MZ 0003/2026)
+   Apontamentos de auditoria e suas ações. Mesmo mecanismo do
+   Plano de Ação: vincular a sprints/tarefas ou criar tarefas.
+============================================================ */
+const AUDIT_GB = [
+// Apontamento 0 — #004 FRAGILIDADES NO TRATAMENTO DE DIVERGÊNCIAS INSS/FUNCEF
+{ap:0,ra:`RA AUDIR_MZ 0003/2026`,trab:`PREVI261(CONBE)-001 · FUNCEF · GEBEN Gerência de Benefícios`,apCode:`CB0001 · #004`,apTit:`Fragilidades no processo de tratamento das divergências oriundas do contrato de pagamento de benefícios INSS e FUNCEF`,crit:`Média`,unid:`Gerência de Benefícios (GEBEN)`,rec:`Não há`,sit:`Divergências no tratamento de benefícios do contrato INSS/FUNCEF.`,num:`01`,desc:`Levantamento/Análise/Plano de trabalho para regularização de benefícios glosados indevidamente. Tratativas com a CAIXA, para emissão de comprovantes de crédito dos benefícios em conta bancária dos assistidos. Encaminhamento dos documentos ao INSS.`,resp:`COBEN`,ini:`2026-07-07`,fim:`2026-09-07`,interv:``,st:`Não iniciado`},
+{ap:0,ra:`RA AUDIR_MZ 0003/2026`,trab:`PREVI261(CONBE)-001 · FUNCEF · GEBEN Gerência de Benefícios`,apCode:`CB0001 · #004`,apTit:`Fragilidades no processo de tratamento das divergências oriundas do contrato de pagamento de benefícios INSS e FUNCEF`,crit:`Média`,unid:`Gerência de Benefícios (GEBEN)`,rec:`Não há`,sit:`Divergências no tratamento de benefícios do contrato INSS/FUNCEF.`,num:`02`,desc:`Levantamento/Análise de benefícios retidos há mais de 6 meses, de assistidos que não realizaram a prova de vida. Elaboração/encaminhamento de Ofício DIBEN ao INSS. Acompanhamento da regularização dos benefícios reembolsados e não adiantados, assim como a cessação dos reembolsos.`,resp:`COBEN`,ini:`2026-09-08`,fim:`2026-11-08`,interv:`COCAD`,st:`Não iniciado`},
+{ap:0,ra:`RA AUDIR_MZ 0003/2026`,trab:`PREVI261(CONBE)-001 · FUNCEF · GEBEN Gerência de Benefícios`,apCode:`CB0001 · #004`,apTit:`Fragilidades no processo de tratamento das divergências oriundas do contrato de pagamento de benefícios INSS e FUNCEF`,crit:`Média`,unid:`Gerência de Benefícios (GEBEN)`,rec:`Não há`,sit:`Divergências no tratamento de benefícios do contrato INSS/FUNCEF.`,num:`03`,desc:`Normatização de regra de prazo para oficializar o INSS sobre os assistidos que não realizaram a prova de vida (MEG 048).`,resp:`COBEN`,ini:`2026-11-09`,fim:`2027-01-09`,interv:``,st:`Não iniciado`},
+{ap:0,ra:`RA AUDIR_MZ 0003/2026`,trab:`PREVI261(CONBE)-001 · FUNCEF · GEBEN Gerência de Benefícios`,apCode:`CB0001 · #004`,apTit:`Fragilidades no processo de tratamento das divergências oriundas do contrato de pagamento de benefícios INSS e FUNCEF`,crit:`Média`,unid:`Gerência de Benefícios (GEBEN)`,rec:`Não há`,sit:`Divergências no tratamento de benefícios do contrato INSS/FUNCEF.`,num:`04`,desc:`Implementação de controles de monitoramento de pendências.`,resp:`COBEN`,ini:`2027-01-10`,fim:`2027-03-07`,interv:``,st:`Não iniciado`},
+// Apontamento 1 — OC0001 FRAGILIDADES NO CÁLCULO E REGISTROS DO FATOR ATUARIAL
+{ap:1,ra:`RA AUDIR_MZ 0003/2026`,trab:`PREVI261(CONBE)-001 · FUNCEF · GEBEN Gerência de Benefícios`,apCode:`OC0001`,apTit:`Fragilidades no cálculo e nos registros do Fator Atuarial (FA)`,crit:`Outras Constatações`,unid:`Gerência de Gestão Atuarial (GEATU) e Gerência de Benefícios (GEBEN)`,rec:`Não há`,sit:`Cálculo não acurado do Fator Atuarial (FA) — Benefício Programado Pleno do Novo Plano e REG/REPLAN Saldado.`,num:`01`,desc:`Avaliar os processos de concessão dos benefícios Programado Pleno do Novo Plano e REG/REPLAN Saldado, concedidos em 2024 e 2025, incluindo dados cadastrais dos titulares e dependentes, e envio às providências da COATU em caso de identificação de diferenças cadastrais utilizadas no cálculo da concessão.`,resp:`COBEN`,ini:`2026-07-07`,fim:`2026-08-31`,interv:``,st:`Não iniciado`},
+{ap:1,ra:`RA AUDIR_MZ 0003/2026`,trab:`PREVI261(CONBE)-001 · FUNCEF · GEBEN Gerência de Benefícios`,apCode:`OC0001`,apTit:`Fragilidades no cálculo e nos registros do Fator Atuarial (FA)`,crit:`Outras Constatações`,unid:`Gerência de Gestão Atuarial (GEATU) e Gerência de Benefícios (GEBEN)`,rec:`Não há`,sit:`Cálculo não acurado do Fator Atuarial (FA) — Benefício Programado Pleno do Novo Plano e REG/REPLAN Saldado.`,num:`02`,desc:`Avaliar as memórias de cálculo do FA utilizadas na concessão de benefícios cadastradas no sistema Concessão Web.`,resp:`COBEN`,ini:`2026-09-01`,fim:`2026-10-31`,interv:``,st:`Não iniciado`},
+{ap:1,ra:`RA AUDIR_MZ 0003/2026`,trab:`PREVI261(CONBE)-001 · FUNCEF · GEBEN Gerência de Benefícios`,apCode:`OC0001`,apTit:`Fragilidades no cálculo e nos registros do Fator Atuarial (FA)`,crit:`Outras Constatações`,unid:`Gerência de Gestão Atuarial (GEATU) e Gerência de Benefícios (GEBEN)`,rec:`Não há`,sit:`Cálculo não acurado do Fator Atuarial (FA) — Benefício Programado Pleno do Novo Plano e REG/REPLAN Saldado.`,num:`03`,desc:`Reprocessar os Fatores Atuariais requeridos pela COBEN.`,resp:`COATU`,ini:`2026-10-01`,fim:`2026-11-30`,interv:``,st:`Não iniciado`},
+{ap:1,ra:`RA AUDIR_MZ 0003/2026`,trab:`PREVI261(CONBE)-001 · FUNCEF · GEBEN Gerência de Benefícios`,apCode:`OC0001`,apTit:`Fragilidades no cálculo e nos registros do Fator Atuarial (FA)`,crit:`Outras Constatações`,unid:`Gerência de Gestão Atuarial (GEATU) e Gerência de Benefícios (GEBEN)`,rec:`Não há`,sit:`Cálculo não acurado do Fator Atuarial (FA) — Benefício Programado Pleno do Novo Plano e REG/REPLAN Saldado.`,num:`04`,desc:`Revisitação dos benefícios, em caso de identificação de inconsistência na concessão.`,resp:`COBEN`,ini:`2026-12-01`,fim:`2026-12-31`,interv:``,st:`Não iniciado`},
+{ap:1,ra:`RA AUDIR_MZ 0003/2026`,trab:`PREVI261(CONBE)-001 · FUNCEF · GEBEN Gerência de Benefícios`,apCode:`OC0001`,apTit:`Fragilidades no cálculo e nos registros do Fator Atuarial (FA)`,crit:`Outras Constatações`,unid:`Gerência de Gestão Atuarial (GEATU) e Gerência de Benefícios (GEBEN)`,rec:`Não há`,sit:`Cálculo não acurado do Fator Atuarial (FA) — Benefício Programado Pleno do Novo Plano e REG/REPLAN Saldado.`,num:`05`,desc:`Estabelecer tratativas junto à GETEC para identificar eventuais causas das falhas sistêmicas na gravação, associação e integração das memórias de cálculo no Concessão Web com os sistemas transacionais correlatos.`,resp:`COBEN`,ini:`2027-01-01`,fim:`2027-03-07`,interv:`GETEC`,st:`Não iniciado`},
+// Apontamento 2 — #003 FRAGILIDADES NA COBRANÇA ADMINISTRATIVA DAS DÍVIDAS
+{ap:2,ra:`RA AUDIR_MZ 0003/2026`,trab:`PREVI261(CONBE)-001 · FUNCEF · GEBEN Gerência de Benefícios`,apCode:`CB0001 · #003`,apTit:`Fragilidades na cobrança administrativa das dívidas previdenciárias`,crit:`Alta`,unid:`Gerência de Benefícios (GEBEN)`,rec:`Não há`,sit:`Cobrança administrativa das dívidas previdenciárias sem êxito de regularização.`,num:`01`,desc:`Análise e encaminhamento à área jurídica dos dossiês das dívidas previdenciárias de assistidos que tiveram cobrança administrativa sem êxito de regularização.`,resp:`COBEN`,ini:`2026-07-07`,fim:`2026-09-07`,interv:`COTEN`,st:`Não iniciado`},
+{ap:2,ra:`RA AUDIR_MZ 0003/2026`,trab:`PREVI261(CONBE)-001 · FUNCEF · GEBEN Gerência de Benefícios`,apCode:`CB0001 · #003`,apTit:`Fragilidades na cobrança administrativa das dívidas previdenciárias`,crit:`Alta`,unid:`Gerência de Benefícios (GEBEN)`,rec:`Não há`,sit:`Cobrança administrativa das dívidas previdenciárias sem êxito de regularização.`,num:`02`,desc:`Submeter à análise da área jurídica da FUNCEF proposta de normatização das regras para a operacionalização da cobrança de dívidas previdenciárias.`,resp:`COBEN`,ini:`2026-09-08`,fim:`2026-11-08`,interv:`COPRE`,st:`Não iniciado`},
+{ap:2,ra:`RA AUDIR_MZ 0003/2026`,trab:`PREVI261(CONBE)-001 · FUNCEF · GEBEN Gerência de Benefícios`,apCode:`CB0001 · #003`,apTit:`Fragilidades na cobrança administrativa das dívidas previdenciárias`,crit:`Alta`,unid:`Gerência de Benefícios (GEBEN)`,rec:`Não há`,sit:`Cobrança administrativa das dívidas previdenciárias sem êxito de regularização.`,num:`03`,desc:`Atualizar normativo interno (MEG 048), se for o caso.`,resp:`COBEN`,ini:`2026-11-09`,fim:`2027-01-07`,interv:``,st:`Não iniciado`},
+{ap:2,ra:`RA AUDIR_MZ 0003/2026`,trab:`PREVI261(CONBE)-001 · FUNCEF · GEBEN Gerência de Benefícios`,apCode:`CB0001 · #003`,apTit:`Fragilidades na cobrança administrativa das dívidas previdenciárias`,crit:`Alta`,unid:`Gerência de Benefícios (GEBEN)`,rec:`Não há`,sit:`Cobrança administrativa das dívidas previdenciárias sem êxito de regularização.`,num:`04`,desc:`Implementar controles de monitoramento de pendências.`,resp:`COBEN`,ini:`2026-09-08`,fim:`2027-01-07`,interv:``,st:`Não iniciado`},
+// Apontamento 3 — #006 FRAGILIDADES NOS CONTROLES DO PROCESSO DE CONCESSÃO E MANUTENÇÃO
+{ap:3,ra:`RA AUDIR_MZ 0003/2026`,trab:`PREVI261(CONBE)-001 · FUNCEF · GEBEN Gerência de Benefícios`,apCode:`OC0001 · #006`,apTit:`Fragilidades nos controles do processo de concessão e manutenção de benefícios previdenciários`,crit:`Média`,unid:`Gerência de Benefícios (GEBEN)`,rec:`Não há`,sit:`Ausência de recálculo do Benefício Programado Pleno do Novo Plano após habilitação superveniente de beneficiários não previstos na data da concessão. Concessão de Benefício Programado Pleno do Novo Plano a participante falecido, após ciência prévia do óbito pela Fundação.`,num:`01`,desc:`Levantamento de beneficiários que tiveram o cadastro alterado após a concessão do benefício programado.`,resp:`COBEN`,ini:`2026-07-07`,fim:`2026-09-07`,interv:`COCAD`,st:`Não iniciado`},
+{ap:3,ra:`RA AUDIR_MZ 0003/2026`,trab:`PREVI261(CONBE)-001 · FUNCEF · GEBEN Gerência de Benefícios`,apCode:`OC0001 · #006`,apTit:`Fragilidades nos controles do processo de concessão e manutenção de benefícios previdenciários`,crit:`Média`,unid:`Gerência de Benefícios (GEBEN)`,rec:`Não há`,sit:`Ausência de recálculo do Benefício Programado Pleno do Novo Plano após habilitação superveniente de beneficiários não previstos na data da concessão. Concessão de Benefício Programado Pleno do Novo Plano a participante falecido, após ciência prévia do óbito pela Fundação.`,num:`02`,desc:`Revisão dos benefícios, se for o caso.`,resp:`COBEN`,ini:`2026-09-08`,fim:`2026-11-08`,interv:`COCAD e COATU`,st:`Não iniciado`},
+{ap:3,ra:`RA AUDIR_MZ 0003/2026`,trab:`PREVI261(CONBE)-001 · FUNCEF · GEBEN Gerência de Benefícios`,apCode:`OC0001 · #006`,apTit:`Fragilidades nos controles do processo de concessão e manutenção de benefícios previdenciários`,crit:`Média`,unid:`Gerência de Benefícios (GEBEN)`,rec:`Não há`,sit:`Ausência de recálculo do Benefício Programado Pleno do Novo Plano após habilitação superveniente de beneficiários não previstos na data da concessão. Concessão de Benefício Programado Pleno do Novo Plano a participante falecido, após ciência prévia do óbito pela Fundação.`,num:`03`,desc:`Normatização de regra para participante falecido durante os trâmites do processo de concessão do benefício programado (MEG 036).`,resp:`COBEN`,ini:`2026-11-09`,fim:`2027-01-09`,interv:``,st:`Não iniciado`},
+{ap:3,ra:`RA AUDIR_MZ 0003/2026`,trab:`PREVI261(CONBE)-001 · FUNCEF · GEBEN Gerência de Benefícios`,apCode:`OC0001 · #006`,apTit:`Fragilidades nos controles do processo de concessão e manutenção de benefícios previdenciários`,crit:`Média`,unid:`Gerência de Benefícios (GEBEN)`,rec:`Não há`,sit:`Ausência de recálculo do Benefício Programado Pleno do Novo Plano após habilitação superveniente de beneficiários não previstos na data da concessão. Concessão de Benefício Programado Pleno do Novo Plano a participante falecido, após ciência prévia do óbito pela Fundação.`,num:`04`,desc:`Implementação de controles de monitoramento para alteração/inclusão de beneficiários não previstos na data da concessão.`,resp:`COBEN`,ini:`2027-01-10`,fim:`2027-03-10`,interv:`COCAD`,st:`Não iniciado`},
+// Apontamento 4 — #002 CONCESSÃO DE PECÚLIO POR MORTE A REQUERENTES NÃO ELEGÍVEIS
+{ap:4,ra:`RA AUDIR_MZ 0003/2026`,trab:`PREVI261(CONBE)-001 · FUNCEF · GEBEN Gerência de Benefícios`,apCode:`CB0001 · #002`,apTit:`Concessão de pecúlio por morte a requerentes não elegíveis`,crit:`Alta`,unid:`Gerência de Benefícios (GEBEN)`,rec:`Promover alinhamento entre o processo de concessão do pecúlio por morte do REG/REPLAN, os normativos internos aplicáveis e o regulamento do plano, de forma a assegurar a observância da hierarquia normativa e a aderência às regras de elegibilidade formalmente aprovadas.`,sit:`Concessão de pecúlio por morte a requerentes não elegíveis.`,num:`01`,desc:`Deliberação do VO DIBEN 0012/2026 – FS (DEX 020 07). Publicação do Destaque/Ata nº 001/2129. Constituição de Grupo de Trabalho (GT), com representantes da DIBEN e PRESI, para elaboração de proposta de atualização dos Regulamentos dos planos NOVO PLANO e REG/REPLAN, modalidades saldada e não saldada.`,resp:`COBEN`,ini:`2026-07-07`,fim:`2026-07-30`,interv:`DIBEN e PRESI`,st:`Não iniciado`},
+{ap:4,ra:`RA AUDIR_MZ 0003/2026`,trab:`PREVI261(CONBE)-001 · FUNCEF · GEBEN Gerência de Benefícios`,apCode:`CB0001 · #002`,apTit:`Concessão de pecúlio por morte a requerentes não elegíveis`,crit:`Alta`,unid:`Gerência de Benefícios (GEBEN)`,rec:`Promover alinhamento entre o processo de concessão do pecúlio por morte do REG/REPLAN, os normativos internos aplicáveis e o regulamento do plano, de forma a assegurar a observância da hierarquia normativa e a aderência às regras de elegibilidade formalmente aprovadas.`,sit:`Concessão de pecúlio por morte a requerentes não elegíveis.`,num:`02`,desc:`Emissão de Portaria PRESI para formalização do GT.`,resp:`COBEN`,ini:`2026-08-01`,fim:`2026-08-31`,interv:`PRESI`,st:`Não iniciado`},
+{ap:4,ra:`RA AUDIR_MZ 0003/2026`,trab:`PREVI261(CONBE)-001 · FUNCEF · GEBEN Gerência de Benefícios`,apCode:`CB0001 · #002`,apTit:`Concessão de pecúlio por morte a requerentes não elegíveis`,crit:`Alta`,unid:`Gerência de Benefícios (GEBEN)`,rec:`Promover alinhamento entre o processo de concessão do pecúlio por morte do REG/REPLAN, os normativos internos aplicáveis e o regulamento do plano, de forma a assegurar a observância da hierarquia normativa e a aderência às regras de elegibilidade formalmente aprovadas.`,sit:`Concessão de pecúlio por morte a requerentes não elegíveis.`,num:`03`,desc:`Análise dos normativos internos. Elaboração de proposta de atualização dos Regulamentos dos planos NOVO PLANO e REG/REPLAN, modalidades saldada e não saldada. Emissão de parecer atuarial. Emissão de parecer jurídico.`,resp:`COBEN`,ini:`2026-09-01`,fim:`2026-11-30`,interv:`Grupo de Trabalho (GT)`,st:`Não iniciado`},
+{ap:4,ra:`RA AUDIR_MZ 0003/2026`,trab:`PREVI261(CONBE)-001 · FUNCEF · GEBEN Gerência de Benefícios`,apCode:`CB0001 · #002`,apTit:`Concessão de pecúlio por morte a requerentes não elegíveis`,crit:`Alta`,unid:`Gerência de Benefícios (GEBEN)`,rec:`Promover alinhamento entre o processo de concessão do pecúlio por morte do REG/REPLAN, os normativos internos aplicáveis e o regulamento do plano, de forma a assegurar a observância da hierarquia normativa e a aderência às regras de elegibilidade formalmente aprovadas.`,sit:`Concessão de pecúlio por morte a requerentes não elegíveis.`,num:`04`,desc:`Submeter proposta de Voto conjunto DIBEN/PRESI à apreciação e deliberação dos Órgãos Colegiados da FUNCEF.`,resp:`COBEN`,ini:`2026-12-01`,fim:`2027-01-07`,interv:`Grupo de Trabalho (GT)`,st:`Não iniciado`},
+];
+
+/* ============================================================
    SPRINT PLAN — Abril 2026 / Março 2027
 ============================================================ */
 const SP = [
@@ -1770,6 +1862,7 @@ let ATT = {};        // task_attachments — chave: tarefa_id -> array
 let RVD = {};        // reviews — sprint_id -> array of review objects
 let RVI = {};        // review items — review_id -> array of items
 let PAI = {};        // plano de ação — pa_idx -> item (status/vinculo/sprint)
+let AUI = {};        // auditoria — audit_idx -> item (status/vinculo/sprint)
 let IDB = [];        // ideias & aprendizado
 let AUD = [];        // audit_log entries
 let EV  = [];        // calendar_events
@@ -2031,7 +2124,7 @@ async function loadAll(){
       (CLD[k]=CLD[k]||[]).push(c);
     });
     // Comments + attachments + reviews + audit + eventos em paralelo
-    const [rv, rc, ra, rau, rev, revm, rvi, rpa, rid] = await Promise.all([
+    const [rv, rc, ra, rau, rev, revm, rvi, rpa, rid, rai] = await Promise.all([
       db.from('sprint_reviews').select('*').order('data_realizacao',{ascending:false}),
       db.from('task_comments').select('*').order('created_at',{ascending:true}),
       db.from('task_attachments').select('*').order('created_at',{ascending:false}),
@@ -2041,10 +2134,12 @@ async function loadAll(){
       db.from('sprint_review_items').select('*').then(r=>r).catch(()=>({data:[]})),
       db.from('pa_items').select('*').then(r=>r).catch(()=>({data:[]})),
       db.from('ideias').select('*').order('created_at',{ascending:false}).then(r=>r).catch(()=>({data:[]})),
+      db.from('audit_items').select('*').then(r=>r).catch(()=>({data:[]})),
     ]);
     AUD = rau.data || [];
     EV  = rev.data || [];
     PAI = {}; (rpa.data||[]).forEach(p=>{ PAI[p.pa_idx]=p; });
+    AUI = {}; (rai.data||[]).forEach(p=>{ AUI[p.audit_idx]=p; });
     IDB = rid.data || [];
     // Sincroniza CP (perfil atual) com a versão fresca em MB
     if(CP){
@@ -2506,6 +2601,7 @@ function renderAll(){
   if(AV==='reviews')   renderReview();
   if(AV==='sobre')     renderSobre();
   if(AV==='planoacao') renderPlanoAcao();
+  if(AV==='auditoria') renderAuditoria();
   if(AV==='ideias')    renderIdeias();
   if(AV==='giro')      renderGiro();
   if(AV==='audit')     renderAudit();
@@ -3948,6 +4044,231 @@ async function paUnlink(idx){
 }
 
 /* ============================================================
+   AUDITORIA — Plano de Ação de Auditoria (mesmo mecanismo do PA)
+============================================================ */
+let _auOpen = {};
+function auItem(idx){ return AUI[idx] || {}; }
+function auEffStatus(idx){ return auItem(idx).status || AUDIT_GB[idx].st || 'Não iniciado'; }
+function auCritColor(crit){
+  if(/alta/i.test(crit)) return 'var(--red)';
+  if(/média|media/i.test(crit)) return 'var(--amber)';
+  return 'var(--accent)';
+}
+function auCritBg(crit){
+  if(/alta/i.test(crit)) return 'var(--r-bg)';
+  if(/média|media/i.test(crit)) return 'var(--a-bg)';
+  return 'var(--acc-bg)';
+}
+
+function renderAuditoria(){
+  const fCrit   = document.getElementById('auFilterCrit')?.value || '';
+  const fStatus = document.getElementById('auFilterStatus')?.value || '';
+  const fVinc   = document.getElementById('auFilterVinc')?.value || '';
+
+  // agrupa por apontamento preservando ordem
+  const aps = [];
+  const apMap = {};
+  AUDIT_GB.forEach((it, idx)=>{
+    if(!apMap[it.ap]){ apMap[it.ap] = {ap:it.ap, ...it, items:[]}; aps.push(apMap[it.ap]); }
+    apMap[it.ap].items.push({...it, idx});
+  });
+
+  // métricas globais
+  const total = AUDIT_GB.length;
+  const nConcl = AUDIT_GB.filter((_,i)=>/concl/i.test(auEffStatus(i))).length;
+  const nAnd   = AUDIT_GB.filter((_,i)=>/andamento/i.test(auEffStatus(i))).length;
+  const nVinc  = AUDIT_GB.filter((_,i)=>auItem(i).vinculo_tipo).length;
+  const nAlta  = aps.filter(a=>/alta/i.test(a.crit)).length;
+  const pct    = Math.round(100*nConcl/total);
+  document.getElementById('auSummary').innerHTML = `
+    <div class="rv-mc"><div class="rv-val">${aps.length}</div><div class="rv-lbl">Apontamentos</div></div>
+    <div class="rv-mc"><div class="rv-val">${total}</div><div class="rv-lbl">Ações</div></div>
+    <div class="rv-mc"><div class="rv-val" style="color:var(--red)">${nAlta}</div><div class="rv-lbl">Alta criticidade</div></div>
+    <div class="rv-mc"><div class="rv-val" style="color:var(--green)">${nConcl}</div><div class="rv-lbl">Concluídas</div></div>
+    <div class="rv-mc"><div class="rv-val" style="color:var(--amber)">${nAnd}</div><div class="rv-lbl">Em andamento</div></div>
+    <div class="rv-mc"><div class="rv-val" style="color:var(--accent)">${nVinc}</div><div class="rv-lbl">Vinculadas</div></div>
+    <div class="rv-mc"><div class="rv-val">${pct}%</div><div class="rv-lbl">Progresso</div></div>`;
+
+  const html = aps.map(group=>{
+    if(fCrit && group.crit!==fCrit) return '';
+    let items = group.items;
+    if(fStatus) items = items.filter(x=>auEffStatus(x.idx)===fStatus);
+    if(fVinc==='sim') items = items.filter(x=>auItem(x.idx).vinculo_tipo);
+    if(fVinc==='nao') items = items.filter(x=>!auItem(x.idx).vinculo_tipo);
+    if(!items.length) return '';
+
+    const done = group.items.filter(x=>/concl/i.test(auEffStatus(x.idx))).length;
+    const isOpen = _auOpen[group.ap];
+    const cColor = auCritColor(group.crit);
+    const cBg = auCritBg(group.crit);
+
+    const subs = items.map(x=>{
+      const st = auEffStatus(x.idx);
+      const pi = auItem(x.idx);
+      const sugSid = sprintForDate(x.fim);
+      const sugS = SP.find(s=>s.id===sugSid);
+      let vinc;
+      if(pi.vinculo_tipo==='tarefa'){
+        const t = TSK.find(t=>t.id===pi.tarefa_id);
+        vinc = `<span class="pa-vinc on">🔗 Tarefa: ${escapeHtml((t?.titulo||'—').replace(/^\[.*?\]\s*/,'').slice(0,40))} · S${pi.sprint_id}</span>`;
+      } else if(pi.vinculo_tipo==='entrega'){
+        const [sid,ei] = (pi.entrega_ref||'').split('-').map(Number);
+        const e = SP.find(s=>s.id===sid)?.entregas[ei];
+        vinc = `<span class="pa-vinc on">🔗 Entrega: ${escapeHtml((e?.desc||'—').slice(0,40))} · S${sid}</span>`;
+      } else {
+        vinc = `<span class="pa-vinc off">Sem vínculo</span>`;
+      }
+      return `<div class="pa-sub">
+        <div class="pa-sub-top">
+          <span class="pa-sub-code">${escapeHtml(x.num)}</span>
+          <div style="flex:1">
+            <div class="pa-sub-desc">${escapeHtml(x.desc)}</div>
+            <div class="pa-sub-meta">
+              ${x.resp?`<span><b>Resp.:</b> ${escapeHtml(x.resp)}</span>`:''}
+              ${x.interv?`<span><b>Interveniente:</b> ${escapeHtml(x.interv)}</span>`:''}
+              ${x.ini?`<span><b>Início:</b> ${x.ini}</span>`:''}
+              ${x.fim?`<span><b>Prazo final:</b> ${x.fim} → S${sugSid} (${sugS?.m||''})</span>`:''}
+            </div>
+          </div>
+          <span class="pa-badge ${paStatusClass(st)}">${escapeHtml(st)}</span>
+        </div>
+        <div class="pa-sub-actions">
+          ${vinc}
+          <div style="flex:1"></div>
+          <select onchange="auSetStatus(${x.idx}, this.value)" title="Status">
+            ${['Não iniciado','Em andamento','Concluído','Atrasado'].map(s=>`<option ${st===s?'selected':''}>${s}</option>`).join('')}
+          </select>
+          ${pi.vinculo_tipo
+            ? `<button class="pa-btn" onclick="auUnlink(${x.idx})">Desvincular</button>`
+            : `<button class="pa-btn" onclick="openAuLink(${x.idx})">🔗 Vincular a tarefa</button>
+               <button class="pa-btn primary" onclick="auCreateTask(${x.idx})">+ Criar tarefa na S${sugSid}</button>`}
+        </div>
+      </div>`;
+    }).join('');
+
+    return `<div class="pa-om ${isOpen?'open':''}">
+      <div class="pa-om-head" onclick="toggleAuAp(${group.ap})" style="border-left:4px solid ${cColor}">
+        <span class="pa-om-num" style="background:${cBg};color:${cColor}">${escapeHtml(group.apCode)}</span>
+        <div class="pa-om-tit">${escapeHtml(group.apTit)}
+          <div class="pa-om-meta">
+            <span style="color:${cColor};font-weight:700">● ${escapeHtml(group.crit)} criticidade</span> ·
+            ${escapeHtml(group.unid)} · ${group.items.length} açõe(s) · ${done} concluída(s)
+          </div>
+        </div>
+        <span class="pa-caret">▶</span>
+      </div>
+      <div class="pa-om-body">
+        <div style="background:var(--bg3);border-radius:10px;padding:.7rem .9rem;margin-bottom:.6rem;font-size:11.5px;color:var(--t2);line-height:1.5">
+          <div><b>Trabalho:</b> ${escapeHtml(group.trab)}</div>
+          ${group.sit?`<div style="margin-top:4px"><b>Situações identificadas:</b> ${escapeHtml(group.sit)}</div>`:''}
+          ${group.rec && group.rec!=='Não há'?`<div style="margin-top:4px"><b>Recomendação:</b> ${escapeHtml(group.rec)}</div>`:''}
+        </div>
+        ${subs}
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('auList').innerHTML = html || `<div class="empty"><div class="ic">🛡️</div>Nenhuma ação com esses filtros</div>`;
+}
+
+function toggleAuAp(ap){ _auOpen[ap] = !_auOpen[ap]; renderAuditoria(); }
+
+async function auUpsert(idx, patch){
+  const cur = AUI[idx] || {audit_idx: idx};
+  const payload = {...cur, ...patch, audit_idx: idx};
+  delete payload.id; delete payload.updated_at;
+  const {data, error} = await db.from('audit_items').upsert(payload, {onConflict:'audit_idx'}).select().single();
+  if(error){ toast('Erro: '+error.message,'err'); ss('err','Erro'); return null; }
+  AUI[idx] = data;
+  return data;
+}
+
+async function auSetStatus(idx, val){
+  ss('loading','Salvando...');
+  const r = await auUpsert(idx, {status: val});
+  if(!r) return;
+  ss('ok','Salvo'); toast('Status atualizado');
+  logAudit({action:'import_pa', entityType:'audit', entityId:String(idx), sprintId:AUI[idx]?.sprint_id||null,
+    summary:`Auditoria ${AUDIT_GB[idx].apCode} ação ${AUDIT_GB[idx].num}: status "${val}"`});
+  renderAuditoria();
+}
+
+async function auCreateTask(idx){
+  const it = AUDIT_GB[idx];
+  const sid = sprintForDate(it.fim);
+  const s = SP.find(x=>x.id===sid);
+  if(!confirm(`Criar tarefa na Sprint ${sid} (${s.m}) para a ação ${it.num} do apontamento ${it.apCode}?\n\n"${it.desc.slice(0,120)}..."\n\nPrazo final: ${it.fim||'—'}`)) return;
+  ss('loading','Criando tarefa...');
+  const desc = `Auditoria — ${it.ra}\nApontamento ${it.apCode}: ${it.apTit}\nCriticidade: ${it.crit}\nUnidade: ${it.unid}\n\nAção ${it.num}: ${it.desc}\nResponsável: ${it.resp||'—'}${it.interv?'\nInterveniente: '+it.interv:''}\nInício: ${it.ini||'—'} · Prazo final: ${it.fim||'—'}`;
+  const payload = {
+    sprint_id: sid,
+    titulo: `[AUD ${it.apCode} · ${it.num}] ${it.desc.slice(0,80)}`,
+    descricao: desc,
+    status: /concl/i.test(auEffStatus(idx)) ? 'concluido' : 'pendente',
+    prioridade: /alta/i.test(it.crit) ? 'alta' : 'media',
+    fase: 'execucao',
+    data_fim: it.fim || null,
+    criado_por: CP?.id || null,
+  };
+  const {data, error} = await db.from('subtarefas').insert(payload).select().single();
+  if(error){ toast('Erro ao criar tarefa: '+error.message,'err'); ss('err','Erro'); return; }
+  await auUpsert(idx, {vinculo_tipo:'tarefa', tarefa_id:data.id, sprint_id:sid, entrega_ref:null});
+  await loadAll(); ss('ok','Criada'); toast(`Tarefa criada na Sprint ${sid}`);
+  logAudit({action:'task_create', entityType:'task', entityId:data.id, sprintId:sid,
+    summary:`Auditoria ${it.apCode}: tarefa criada na S${sid}`});
+  renderAuditoria();
+}
+
+let _auLinkIdx = null;
+function openAuLink(idx){
+  _auLinkIdx = idx;
+  const it = AUDIT_GB[idx];
+  const sugSid = sprintForDate(it.fim);
+  document.getElementById('auLinkTitle').textContent = `Ação ${it.num}: ${it.desc.slice(0,90)}`;
+  document.getElementById('auLinkInfo').textContent = `${it.apCode} · ${it.apTit.slice(0,60)} · Prazo: ${it.fim||'—'}`;
+  const sel = document.getElementById('auLinkSprint');
+  sel.innerHTML = SP.map(s=>`<option value="${s.id}" ${s.id===sugSid?'selected':''}>Sprint ${s.id} — ${s.m}</option>`).join('');
+  renderAuLinkTargets();
+  document.getElementById('auLinkModal').classList.add('on');
+}
+function closeAuLink(){ document.getElementById('auLinkModal').classList.remove('on'); _auLinkIdx=null; }
+function renderAuLinkTargets(){
+  const sid = +document.getElementById('auLinkSprint').value;
+  const s = SP.find(x=>x.id===sid);
+  const ents = s.entregas.map((e,i)=>`<label class="pa-link-opt"><input type="radio" name="auTarget" value="e:${sid}-${i}"><span class="echip" style="background:var(--acc-bg);color:var(--accent)">${e.eixo}</span> ${escapeHtml(e.desc.slice(0,70))}</label>`).join('');
+  const tasks = spT(sid).map(t=>`<label class="pa-link-opt"><input type="radio" name="auTarget" value="t:${t.id}"><span class="echip" style="background:var(--a-bg);color:var(--amber)">T</span> ${escapeHtml((t.titulo||'').slice(0,70))}</label>`).join('');
+  document.getElementById('auLinkTargets').innerHTML =
+    `<div class="pa-link-grouplbl">📦 Entregas da sprint</div>${ents||'<div style="font-size:11px;color:var(--t3);padding:4px">Nenhuma</div>'}
+     <div class="pa-link-grouplbl" style="margin-top:10px">📋 Tarefas da sprint</div>${tasks||'<div style="font-size:11px;color:var(--t3);padding:4px">Nenhuma</div>'}`;
+}
+async function confirmAuLink(){
+  const idx = _auLinkIdx;
+  const sid = +document.getElementById('auLinkSprint').value;
+  const sel = document.querySelector('input[name="auTarget"]:checked');
+  if(!sel){ toast('Selecione uma entrega ou tarefa','err'); return; }
+  const [kind, ref] = sel.value.split(':');
+  ss('loading','Vinculando...');
+  const patch = kind==='e'
+    ? {vinculo_tipo:'entrega', entrega_ref:ref, tarefa_id:null, sprint_id:sid}
+    : {vinculo_tipo:'tarefa', tarefa_id:ref, entrega_ref:null, sprint_id:sid};
+  const r = await auUpsert(idx, patch);
+  if(!r) return;
+  closeAuLink();
+  ss('ok','Vinculado'); toast('Ação vinculada');
+  logAudit({action:'import_pa', entityType:'audit', entityId:String(idx), sprintId:sid,
+    summary:`Auditoria ${AUDIT_GB[idx].apCode}: vinculada a ${kind==='e'?'entrega':'tarefa'} na S${sid}`});
+  renderAuditoria();
+}
+async function auUnlink(idx){
+  if(!confirm('Remover o vínculo desta ação? (a tarefa criada, se houver, não é excluída)')) return;
+  ss('loading','Removendo vínculo...');
+  const r = await auUpsert(idx, {vinculo_tipo:null, tarefa_id:null, entrega_ref:null});
+  if(!r) return;
+  ss('ok','Removido'); toast('Vínculo removido');
+  renderAuditoria();
+}
+
+/* ============================================================
    GOVERNANÇA — Audit Log
 ============================================================ */
 async function reloadAudit(){
@@ -4290,16 +4611,55 @@ async function updateIdeiaStatus(id, status){
 /* ============================================================
    GIRO DA SEMANA (com IA)
 ============================================================ */
-function getWeekRange(dateStr){
-  const d = dateStr ? new Date(dateStr+'T12:00:00') : new Date();
+function getWeekRange(){
+  const startEl = document.getElementById('giroDateStart');
+  const endEl = document.getElementById('giroDateEnd');
+  if(!startEl.value || !endEl.value) initGiroDates();
+  const start = startEl.value;
+  const end = endEl.value;
+  const s = new Date(start+'T12:00:00');
+  const e = new Date(end+'T12:00:00');
+  return {
+    start, end,
+    label: `${s.toLocaleDateString('pt-BR',{day:'2-digit',month:'short'})} a ${e.toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'})}`
+  };
+}
+
+function initGiroDates(){
+  const startEl = document.getElementById('giroDateStart');
+  const endEl = document.getElementById('giroDateEnd');
+  if(startEl.value && endEl.value) return;
+  const d = new Date();
   const day = d.getDay();
   const mon = new Date(d); mon.setDate(d.getDate() - (day===0?6:day-1));
   const sun = new Date(mon); sun.setDate(mon.getDate()+6);
-  return {
-    start: mon.toISOString().slice(0,10),
-    end: sun.toISOString().slice(0,10),
-    label: `${mon.toLocaleDateString('pt-BR',{day:'2-digit',month:'short'})} a ${sun.toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'})}`
-  };
+  startEl.value = mon.toISOString().slice(0,10);
+  endEl.value = sun.toISOString().slice(0,10);
+}
+
+function setGiroPeriod(type){
+  const startEl = document.getElementById('giroDateStart');
+  const endEl = document.getElementById('giroDateEnd');
+  const now = new Date();
+  if(type==='week'){
+    const day = now.getDay();
+    const mon = new Date(now); mon.setDate(now.getDate() - (day===0?6:day-1));
+    const sun = new Date(mon); sun.setDate(mon.getDate()+6);
+    startEl.value = mon.toISOString().slice(0,10);
+    endEl.value = sun.toISOString().slice(0,10);
+  } else if(type==='lastweek'){
+    const day = now.getDay();
+    const mon = new Date(now); mon.setDate(now.getDate() - (day===0?6:day-1) - 7);
+    const sun = new Date(mon); sun.setDate(mon.getDate()+6);
+    startEl.value = mon.toISOString().slice(0,10);
+    endEl.value = sun.toISOString().slice(0,10);
+  } else if(type==='month'){
+    const first = new Date(now.getFullYear(), now.getMonth(), 1);
+    const last = new Date(now.getFullYear(), now.getMonth()+1, 0);
+    startEl.value = first.toISOString().slice(0,10);
+    endEl.value = last.toISOString().slice(0,10);
+  }
+  renderGiro();
 }
 
 function collectWeekData(wk){
@@ -4333,9 +4693,8 @@ function collectWeekData(wk){
 }
 
 function renderGiro(){
-  const dateInput = document.getElementById('giroDate');
-  if(!dateInput.value) dateInput.value = new Date().toISOString().slice(0,10);
-  const wk = getWeekRange(dateInput.value);
+  initGiroDates();
+  const wk = getWeekRange();
   const data = collectWeekData(wk);
   const el = document.getElementById('giroContent');
   const iaEl = document.getElementById('giroIAResult');
@@ -4560,9 +4919,8 @@ async function gerarGiroIA(){
   const key = localStorage.getItem('anthropic_key');
   if(!key){ toast('Configure a chave da IA primeiro','err'); return; }
 
-  const dateInput = document.getElementById('giroDate');
-  if(!dateInput.value) dateInput.value = new Date().toISOString().slice(0,10);
-  const wk = getWeekRange(dateInput.value);
+  initGiroDates();
+  const wk = getWeekRange();
   const data = collectWeekData(wk);
 
   const total = data.weekEvents.length+data.taskUpdates.length+data.entregaUpdates.length+data.weekComments.length+data.weekAttach.length+data.weekIdeias.length+data.reviewActions.length;

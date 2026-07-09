@@ -146,3 +146,51 @@ create policy "task_files_update" on storage.objects for update to authenticated
   using (bucket_id = 'task-files');
 create policy "task_files_delete" on storage.objects for delete to authenticated
   using (bucket_id = 'task-files');
+
+-- =====================================================
+-- PLANO DE AÇÃO — estado/vínculos das subações (catálogo PA_GB no app)
+-- =====================================================
+create table if not exists pa_items (
+  id           uuid primary key default gen_random_uuid(),
+  pa_idx       integer not null unique,
+  status       text,
+  sprint_id    integer,
+  vinculo_tipo text check (vinculo_tipo in ('entrega','tarefa') or vinculo_tipo is null),
+  entrega_ref  text,
+  tarefa_id    uuid references subtarefas(id) on delete set null,
+  obs          text,
+  updated_at   timestamptz default now()
+);
+create index if not exists idx_pa_items_sprint on pa_items(sprint_id);
+drop trigger if exists t_pa_upd on pa_items;
+create trigger t_pa_upd before update on pa_items
+  for each row execute function set_updated_at();
+alter table pa_items enable row level security;
+drop policy if exists pa_items_read  on pa_items;
+drop policy if exists pa_items_write on pa_items;
+create policy pa_items_read  on pa_items for select using (auth.role() = 'authenticated');
+create policy pa_items_write on pa_items for all    using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
+
+-- =====================================================
+-- AUDITORIA — estado/vínculos das ações de auditoria (catálogo AUDIT_GB no app)
+-- =====================================================
+create table if not exists audit_items (
+  id           uuid primary key default gen_random_uuid(),
+  audit_idx    integer not null unique,
+  status       text,
+  sprint_id    integer,
+  vinculo_tipo text check (vinculo_tipo in ('entrega','tarefa') or vinculo_tipo is null),
+  entrega_ref  text,
+  tarefa_id    uuid references subtarefas(id) on delete set null,
+  obs          text,
+  updated_at   timestamptz default now()
+);
+create index if not exists idx_audit_items_sprint on audit_items(sprint_id);
+drop trigger if exists t_audit_upd on audit_items;
+create trigger t_audit_upd before update on audit_items
+  for each row execute function set_updated_at();
+alter table audit_items enable row level security;
+drop policy if exists audit_items_read  on audit_items;
+drop policy if exists audit_items_write on audit_items;
+create policy audit_items_read  on audit_items for select using (auth.role() = 'authenticated');
+create policy audit_items_write on audit_items for all    using (auth.role() = 'authenticated') with check (auth.role() = 'authenticated');
