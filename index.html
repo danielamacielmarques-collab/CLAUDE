@@ -4061,7 +4061,8 @@ function renderIdeias(){
 }
 
 function openIdeia(id){
-  _editingIdeia = id ? IDB.find(i=>i.id===id) : null;
+  const found = id ? IDB.find(i=>i.id===id) : null;
+  _editingIdeia = found ? {...found, _existed: true} : null;
   const idea = _editingIdeia;
   const attachs = idea ? (ATT['idea_'+idea.id]||[]) : [];
   const html = `<div class="modal-overlay on" onclick="if(event.target===this)closeIdeia()">
@@ -4141,16 +4142,15 @@ async function saveIdeia(){
     if(error){ toast('Erro: '+error.message,'err'); ss('err','Erro'); return; }
     if(data) _editingIdeia = data;
   }
+  const isNew = !_editingIdeia || !_editingIdeia._existed;
   await loadAll(); ss('ok','Salvo');
-  const wasNew = !_editingIdeia?.id;
-  toast(_editingIdeia ? 'Ideia salva!' : 'Ideia registrada!');
-  logAudit({action: wasNew ? 'idea_create':'idea_update', entityType:'ideia',
-    summary:`${wasNew?'Criou':'Editou'} ${payload.tipo}: "${titulo.slice(0,80)}"`});
-  if(_editingIdeia?.id){
-    closeIdeia();
-    openIdeia(_editingIdeia.id);
-  } else {
-    closeIdeia();
+  toast(isNew ? 'Ideia registrada!' : 'Ideia salva!');
+  logAudit({action: isNew ? 'idea_create':'idea_update', entityType:'ideia',
+    summary:`${isNew?'Criou':'Editou'} ${payload.tipo}: "${titulo.slice(0,80)}"`});
+  const reopenId = _editingIdeia?.id || null;
+  closeIdeia();
+  if(reopenId){
+    openIdeia(reopenId);
   }
   renderIdeias();
 }
