@@ -4574,13 +4574,17 @@ async function gerarGiroIA(){
 
   const iaEl = document.getElementById('giroIAResult');
   iaEl.style.display = '';
-  iaEl.innerHTML = `<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-top:1rem">
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:1rem">
-      <span style="font-size:20px">🤖</span>
-      <h3 style="margin:0">Gerando resumo inteligente...</h3>
+  iaEl.innerHTML = `<div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--rxl);margin-top:1rem;overflow:hidden;box-shadow:var(--shadow-lg)">
+    <div style="background:linear-gradient(135deg,var(--accent),var(--acc2));padding:1.2rem 1.5rem;display:flex;align-items:center;gap:12px">
+      <div style="width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;animation:pulse 1.5s ease-in-out infinite">📰</div>
+      <div>
+        <h3 style="margin:0;color:#fff;font-size:16px;font-weight:800">Gerando Giro da Semana...</h3>
+        <div style="color:rgba(255,255,255,.7);font-size:12px;margin-top:2px">Analisando reuniões, tarefas e movimentações</div>
+      </div>
     </div>
-    <div id="giroIAText" style="font-size:13px;line-height:1.7;color:var(--t1)">
-      <div class="spinner" style="margin:1rem auto"></div>
+    <div style="padding:2rem 1.5rem;text-align:center">
+      <div class="spinner" style="margin:0 auto 1rem"></div>
+      <div style="font-size:12px;color:var(--t3)">Isso pode levar alguns segundos...</div>
     </div>
   </div>`;
 
@@ -4611,33 +4615,125 @@ async function gerarGiroIA(){
     const textBlock = result.content?.find(b => b.type === 'text');
     const text = textBlock?.text || 'Sem resposta da IA';
 
-    const htmlText = text
-      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-      .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
-      .replace(/^### (.+)$/gm,'<h4 style="margin:1rem 0 .3rem;color:var(--accent)">$1</h4>')
-      .replace(/^## (.+)$/gm,'<h3 style="margin:1.2rem 0 .4rem;color:var(--accent)">$1</h3>')
-      .replace(/^# (.+)$/gm,'<h2 style="margin:1.2rem 0 .5rem;color:var(--accent)">$1</h2>')
-      .replace(/^- (.+)$/gm,'<div style="padding-left:1rem;margin:.15rem 0">• $1</div>')
-      .replace(/^(\d+)\. (.+)$/gm,'<div style="padding-left:1rem;margin:.15rem 0">$1. $2</div>')
-      .replace(/\n\n/g,'<br><br>')
-      .replace(/\n/g,'<br>');
+    const sectionIcons = {'abertura':'','destaques':'','reunio':'','movimenta':'','tarefa':'','entrega':'','resultado':'','ponto':'','atenc':'','fechamento':'','frase':''};
+    function getSectionIcon(title){
+      const t = title.toLowerCase();
+      if(/abertura/.test(t)) return '👋';
+      if(/destaque/.test(t)) return '⭐';
+      if(/reuni|discuss/.test(t)) return '🗓️';
+      if(/tarefa|movimenta/.test(t)) return '📋';
+      if(/entrega|resultado/.test(t)) return '🎯';
+      if(/ponto|atenc|risco|bloqueio/.test(t)) return '⚠️';
+      if(/fecha|motiva|frase/.test(t)) return '🚀';
+      if(/ideia|aprendiz/.test(t)) return '💡';
+      if(/review/.test(t)) return '📈';
+      return '📌';
+    }
 
-    document.getElementById('giroIAText').innerHTML = htmlText;
+    const sections = [];
+    let currentSection = null;
+    text.split('\n').forEach(line => {
+      const h2 = line.match(/^##\s+(.+)/);
+      const h3 = line.match(/^###\s+(.+)/);
+      const h1 = line.match(/^#\s+(.+)/);
+      if(h1 || h2 || h3){
+        const title = (h1||h2||h3)[1].replace(/\*\*/g,'').trim();
+        currentSection = { title, lines: [], level: h1?1:(h2?2:3) };
+        sections.push(currentSection);
+      } else if(currentSection){
+        currentSection.lines.push(line);
+      } else {
+        if(!sections.length) sections.push({ title:'', lines:[], level:0 });
+        sections[sections.length-1].lines.push(line);
+      }
+    });
 
-    iaEl.innerHTML = `<div style="background:linear-gradient(135deg, var(--bg2), var(--acc-bg));border:1px solid var(--accent);border-radius:12px;padding:1.5rem;margin-top:1rem">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:.8rem">
-        <span style="font-size:20px">🤖</span>
-        <h3 style="margin:0;flex:1">Giro da Semana — ${wk.label}</h3>
-        <button class="btn sm" onclick="copyGiro()" title="Copiar para area de transferencia">📋 Copiar</button>
+    function fmtLines(lines){
+      return lines.join('\n')
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+        .replace(/\*(.+?)\*/g,'<em>$1</em>')
+        .replace(/^- (.+)$/gm,'<div style="display:flex;gap:8px;margin:4px 0 4px 4px;align-items:baseline"><span style="color:var(--accent);font-weight:700;flex-shrink:0">›</span><span>$1</span></div>')
+        .replace(/^(\d+)\.\s+(.+)$/gm,'<div style="display:flex;gap:8px;margin:4px 0 4px 4px;align-items:baseline"><span style="color:var(--accent);font-weight:800;min-width:18px;flex-shrink:0">$1.</span><span>$2</span></div>')
+        .replace(/\n\n/g,'<div style="height:8px"></div>')
+        .replace(/\n/g,'<br>');
+    }
+
+    let cardsHtml = '';
+    sections.forEach((sec, i) => {
+      const body = fmtLines(sec.lines);
+      if(!body.trim() && !sec.title) return;
+      if(!sec.title){
+        cardsHtml += `<div style="font-size:13.5px;line-height:1.75;color:var(--text);margin-bottom:8px">${body}</div>`;
+        return;
+      }
+      const icon = getSectionIcon(sec.title);
+      const isAlert = /ponto|atenc|risco|bloqueio/i.test(sec.title);
+      const isClosing = /fecha|motiva|frase/i.test(sec.title);
+      let cardStyle = 'background:var(--bg3);border:1px solid var(--border);border-radius:var(--rlg);padding:1.1rem 1.3rem;margin-bottom:10px;';
+      if(isAlert) cardStyle = 'background:var(--a-bg);border:1px solid var(--amber);border-radius:var(--rlg);padding:1.1rem 1.3rem;margin-bottom:10px;';
+      if(isClosing) cardStyle = 'background:linear-gradient(135deg,var(--acc-bg),var(--g-bg));border:1px solid var(--green);border-radius:var(--rlg);padding:1.1rem 1.3rem;margin-bottom:10px;';
+      if(i===0) cardStyle += 'border-left:4px solid var(--accent);';
+      cardsHtml += `<div style="${cardStyle}">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+          <span style="font-size:16px">${icon}</span>
+          <h4 style="margin:0;font-size:13.5px;font-weight:800;color:var(--text);letter-spacing:.3px;text-transform:uppercase">${sec.title.replace(/\*\*/g,'')}</h4>
+        </div>
+        <div style="font-size:13px;line-height:1.75;color:var(--text)">${body}</div>
+      </div>`;
+    });
+
+    const now = new Date();
+    const genTime = now.toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+
+    iaEl.innerHTML = `<div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--rxl);padding:0;margin-top:1rem;overflow:hidden;box-shadow:var(--shadow-lg)">
+      <div style="background:linear-gradient(135deg,var(--accent),var(--acc2));padding:1.2rem 1.5rem;display:flex;align-items:center;gap:12px">
+        <div style="width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">📰</div>
+        <div style="flex:1;min-width:0">
+          <h3 style="margin:0;color:#fff;font-size:16px;font-weight:800;letter-spacing:.3px">Giro da Semana</h3>
+          <div style="color:rgba(255,255,255,.8);font-size:12px;margin-top:2px">${wk.label} · Sprint ${cs()?.id||'—'}</div>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="btn sm" onclick="copyGiro()" style="background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.3);backdrop-filter:blur(4px)" title="Copiar texto">📋 Copiar</button>
+          <button class="btn sm" onclick="window.print()" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.2)" title="Imprimir">🖨️</button>
+        </div>
       </div>
-      <div id="giroIAText" style="font-size:13px;line-height:1.7;color:var(--t1)">${htmlText}</div>
-      <div id="giroRawText" style="display:none">${escapeHtml(text)}</div>
-      <div style="margin-top:1rem;font-size:10px;color:var(--t3);text-align:right">Gerado por Claude (Anthropic) com base nos dados do app</div>
+      <div style="padding:1.3rem 1.5rem">
+        <div style="display:flex;gap:10px;margin-bottom:1rem;flex-wrap:wrap">
+          <div style="background:var(--acc-bg);color:var(--accent);padding:6px 14px;border-radius:20px;font-size:11px;font-weight:700">📅 ${data.weekEvents.length} Reuniões</div>
+          <div style="background:var(--g-bg);color:var(--green);padding:6px 14px;border-radius:20px;font-size:11px;font-weight:700">📋 ${(data.newTasks||[]).length+(data.updatedTasks||[]).length} Tarefas</div>
+          <div style="background:var(--org-bg);color:var(--orange);padding:6px 14px;border-radius:20px;font-size:11px;font-weight:700">📎 ${data.weekAttach.length} Anexos</div>
+          <div style="background:var(--p-bg);color:var(--purple);padding:6px 14px;border-radius:20px;font-size:11px;font-weight:700">💬 ${data.weekComments.length} Comentários</div>
+        </div>
+        ${cardsHtml}
+      </div>
+      <div style="border-top:1px solid var(--border);padding:.8rem 1.5rem;display:flex;align-items:center;justify-content:space-between;background:var(--bg3)">
+        <div style="display:flex;align-items:center;gap:6px;font-size:10px;color:var(--t3)">
+          <span style="font-size:12px">🤖</span> Gerado por Claude (Anthropic)
+        </div>
+        <div style="font-size:10px;color:var(--t3)">${genTime}</div>
+      </div>
     </div>`;
+    document.getElementById('giroRawText')?.remove();
+    const rawEl = document.createElement('div');
+    rawEl.id = 'giroRawText';
+    rawEl.style.display = 'none';
+    rawEl.textContent = text;
+    iaEl.appendChild(rawEl);
 
   } catch(e){
-    document.getElementById('giroIAText').innerHTML = `<div style="color:var(--red)">Erro ao gerar: ${escapeHtml(e.message)}</div>
-      <div style="font-size:11px;color:var(--t3);margin-top:.5rem">Verifique se a chave esta correta e tente novamente.</div>`;
+    iaEl.innerHTML = `<div style="background:var(--bg2);border:1px solid var(--red);border-radius:var(--rxl);margin-top:1rem;overflow:hidden;box-shadow:var(--shadow)">
+      <div style="background:var(--r-bg);padding:1.2rem 1.5rem;display:flex;align-items:center;gap:12px">
+        <span style="font-size:22px">⚠️</span>
+        <div>
+          <h4 style="margin:0;color:var(--red);font-size:14px;font-weight:700">Erro ao gerar o resumo</h4>
+          <div style="font-size:12px;color:var(--t2);margin-top:3px">${escapeHtml(e.message)}</div>
+        </div>
+      </div>
+      <div style="padding:1rem 1.5rem;font-size:12px;color:var(--t2)">
+        Verifique se a chave da API está correta e tente novamente. Se o problema persistir, a chave pode ter expirado ou atingido o limite de uso.
+      </div>
+    </div>`;
   }
 
   btn.disabled = false;
