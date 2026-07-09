@@ -4315,7 +4315,8 @@ function collectWeekData(wk){
     }
     return ev.data>=wk.start && ev.data<=wk.end;
   });
-  const taskUpdates = weekAud.filter(a=>a.entity_type==='task'&&(a.action==='task_update'||a.action==='task_create'));
+  const taskCreates = weekAud.filter(a=>a.entity_type==='task'&&a.action==='task_create');
+  const taskUpdates = weekAud.filter(a=>a.entity_type==='task'&&a.action==='task_update');
   const entregaUpdates = weekAud.filter(a=>a.action==='entrega_update');
   const reviewActions = weekAud.filter(a=>a.entity_type==='review');
   const weekComments = [];
@@ -4323,7 +4324,11 @@ function collectWeekData(wk){
   const weekAttach = [];
   Object.entries(ATT).forEach(([k,arr])=>{ arr.forEach(a=>{ const d=a.created_at?.slice(0,10); if(d&&d>=wk.start&&d<=wk.end) weekAttach.push({...a,_key:k}); }); });
   const weekIdeias = IDB.filter(i=>{ const d=i.created_at?.slice(0,10); return d&&d>=wk.start&&d<=wk.end; });
-  return {weekAud,weekEvents,taskUpdates,entregaUpdates,reviewActions,weekComments,weekAttach,weekIdeias};
+  const newTaskIds = new Set(taskCreates.map(a=>a.entity_id));
+  const newTasks = TSK.filter(t=>newTaskIds.has(t.id));
+  const updatedTaskIds = new Set(taskUpdates.map(a=>a.entity_id));
+  const updatedTasks = TSK.filter(t=>updatedTaskIds.has(t.id) && !newTaskIds.has(t.id));
+  return {weekAud,weekEvents,taskCreates,taskUpdates:weekAud.filter(a=>a.entity_type==='task'&&(a.action==='task_update'||a.action==='task_create')),entregaUpdates,reviewActions,weekComments,weekAttach,weekIdeias,newTasks,updatedTasks};
 }
 
 function renderGiro(){
@@ -4341,7 +4346,8 @@ function renderGiro(){
     <h3 style="margin-bottom:.5rem">Semana: ${wk.label}</h3>
     <div class="rv-summary">
       <div class="rv-mc"><div class="rv-val">${data.weekEvents.length}</div><div class="rv-lbl">Reunioes</div></div>
-      <div class="rv-mc"><div class="rv-val">${data.taskUpdates.length}</div><div class="rv-lbl">Tarefas</div></div>
+      <div class="rv-mc"><div class="rv-val">${(data.newTasks||[]).length}</div><div class="rv-lbl">Novas Tarefas</div></div>
+      <div class="rv-mc"><div class="rv-val">${(data.updatedTasks||[]).length}</div><div class="rv-lbl">Tarefas Alteradas</div></div>
       <div class="rv-mc"><div class="rv-val">${data.entregaUpdates.length}</div><div class="rv-lbl">Entregas</div></div>
       <div class="rv-mc"><div class="rv-val">${data.weekComments.length}</div><div class="rv-lbl">Comentarios</div></div>
       <div class="rv-mc"><div class="rv-val">${data.weekAttach.length}</div><div class="rv-lbl">Anexos</div></div>
@@ -4394,28 +4400,83 @@ Equipe: ${MB.filter(m=>m.ativo!==false).map(m=>m.nome.split(' ')[0]).join(', ')}
 DADOS DA SEMANA:\n\n`;
 
   if(data.weekEvents.length){
-    ctx += `REUNIOES E EVENTOS (${data.weekEvents.length}):\n`;
+    ctx += `=== REUNIOES E EVENTOS (${data.weekEvents.length}) ===\n`;
     data.weekEvents.forEach(ev=>{
       const mems = (EVM[ev.id]||[]).map(id=>mBI(id)).filter(Boolean);
-      ctx += `- ${ev.titulo} (${ev.tipo||'Reuniao'}, ${ev.hora_inicio||'sem horario'})`;
-      if(mems.length) ctx += ` | Participantes: ${mems.map(m=>m.nome.split(' ')[0]).join(', ')}`;
-      const evCmt = data.weekComments.filter(c=>c._key.startsWith('ev_'+ev.id));
-      if(evCmt.length) ctx += ` | Comentarios: ${evCmt.map(c=>`"${(c.texto||'').slice(0,100)}"`).join('; ')}`;
-      const evAtt = data.weekAttach.filter(a=>a.evento_id===ev.id);
-      if(evAtt.length) ctx += ` | Documentos: ${evAtt.map(a=>a.nome||a.nome_arquivo||'arquivo').join(', ')}`;
+      ctx += `\n>> ${ev.titulo} (${ev.tipo||'Reuniao'})\n`;
+      ctx += `   Data/Hora: ${ev.data} ${ev.hora_inicio||'sem horario'}${ev.hora_fim?' ate '+ev.hora_fim:''}`;
+      if(ev.local) ctx += ` | Local: ${ev.local}`;
       ctx += '\n';
+      if(mems.length) ctx += `   Participantes: ${mems.map(m=>m.nome).join(', ')}\n`;
+      if(ev.descricao) ctx += `   Pauta/Descricao: ${ev.descricao.slice(0,500)}\n`;
+      const evCmt = data.weekComments.filter(c=>c._key.startsWith('ev_'+ev.id));
+      if(evCmt.length){
+        ctx += `   Registros/Ata da reuniao (${evCmt.length} comentarios):\n`;
+        evCmt.forEach(c=>{
+          const autor = c.user_id?mBI(c.user_id):null;
+          ctx += `     - ${autor?autor.nome.split(' ')[0]+': ':''}${(c.texto||'').slice(0,300)}\n`;
+        });
+      }
+      const evAtt = data.weekAttach.filter(a=>a.evento_id===ev.id);
+      if(evAtt.length){
+        ctx += `   Documentos compartilhados (${evAtt.length}):\n`;
+        evAtt.forEach(a=>{
+          ctx += `     - ${a.nome||a.nome_arquivo||'arquivo'} (${a.mime||'documento'})\n`;
+        });
+      }
     });
     ctx += '\n';
   }
 
-  if(data.taskUpdates.length){
-    ctx += `TAREFAS MOVIMENTADAS (${data.taskUpdates.length}):\n`;
-    const seen = new Set();
-    data.taskUpdates.forEach(a=>{
-      if(seen.has(a.entity_id)) return; seen.add(a.entity_id);
-      const autor = a.user_id ? mBI(a.user_id) : null;
-      const det = a.details ? (typeof a.details==='string'?JSON.parse(a.details):a.details) : {};
-      ctx += `- ${a.summary||'Tarefa'}`;
+  if(data.newTasks&&data.newTasks.length){
+    ctx += `=== NOVAS TAREFAS CRIADAS (${data.newTasks.length}) ===\n`;
+    data.newTasks.forEach(t=>{
+      const membros = gTM(t.id);
+      ctx += `- ${t.titulo}`;
+      if(t.prioridade) ctx += ` [${t.prioridade}]`;
+      ctx += ` | Status: ${t.status||'pendente'}`;
+      if(t.fase) ctx += ` | Fase: ${t.fase}`;
+      if(membros.length) ctx += ` | Responsaveis: ${membros.map(m=>m.nome.split(' ')[0]).join(', ')}`;
+      if(t.data_fim) ctx += ` | Prazo: ${t.data_fim}`;
+      ctx += '\n';
+      if(t.descricao) ctx += `  Descricao: ${t.descricao.slice(0,200)}\n`;
+    });
+    ctx += '\n';
+  }
+
+  if(data.updatedTasks&&data.updatedTasks.length){
+    ctx += `=== TAREFAS ATUALIZADAS/MOVIMENTADAS (${data.updatedTasks.length}) ===\n`;
+    data.updatedTasks.forEach(t=>{
+      const membros = gTM(t.id);
+      const audits = data.weekAud.filter(a=>a.entity_id===t.id&&a.entity_type==='task'&&a.action==='task_update');
+      ctx += `- ${t.titulo} | Status atual: ${t.status||'pendente'}`;
+      if(membros.length) ctx += ` | Responsaveis: ${membros.map(m=>m.nome.split(' ')[0]).join(', ')}`;
+      ctx += '\n';
+      audits.forEach(a=>{
+        const det = a.details?(typeof a.details==='string'?JSON.parse(a.details):a.details):{};
+        const autor = a.user_id?mBI(a.user_id):null;
+        if(det.from||a.summary) ctx += `  Alteracao: ${a.summary||''} ${det.from?'('+det.from+' -> '+det.to+')':''} ${autor?'por '+autor.nome.split(' ')[0]:''}\n`;
+      });
+      const tCmt = data.weekComments.filter(c=>c._key===t.id);
+      if(tCmt.length){
+        ctx += `  Comentarios (${tCmt.length}):\n`;
+        tCmt.slice(0,5).forEach(c=>{
+          const autor = c.user_id?mBI(c.user_id):null;
+          ctx += `    - ${autor?autor.nome.split(' ')[0]+': ':''}${(c.texto||'').slice(0,200)}\n`;
+        });
+      }
+      const tAtt = data.weekAttach.filter(a=>a._key===t.id);
+      if(tAtt.length) ctx += `  Documentos anexados: ${tAtt.map(a=>a.nome||a.nome_arquivo||'arquivo').join(', ')}\n`;
+    });
+    ctx += '\n';
+  }
+
+  if(data.entregaUpdates.length){
+    ctx += `=== ENTREGAS ATUALIZADAS (${data.entregaUpdates.length}) ===\n`;
+    data.entregaUpdates.forEach(a=>{
+      const det = a.details?(typeof a.details==='string'?JSON.parse(a.details):a.details):{};
+      const autor = a.user_id?mBI(a.user_id):null;
+      ctx += `- ${a.summary||'Entrega'} S${a.sprint_id||'?'}`;
       if(det.from) ctx += ` (${det.from} -> ${det.to})`;
       if(autor) ctx += ` por ${autor.nome.split(' ')[0]}`;
       ctx += '\n';
@@ -4423,67 +4484,73 @@ DADOS DA SEMANA:\n\n`;
     ctx += '\n';
   }
 
-  if(data.entregaUpdates.length){
-    ctx += `ENTREGAS ATUALIZADAS (${data.entregaUpdates.length}):\n`;
-    data.entregaUpdates.forEach(a=>{
-      const det = a.details?(typeof a.details==='string'?JSON.parse(a.details):a.details):{};
-      ctx += `- ${a.summary||'Entrega'} S${a.sprint_id||'?'}`;
-      if(det.from) ctx += ` (${det.from} -> ${det.to})`;
-      ctx += '\n';
-    });
-    ctx += '\n';
-  }
-
   if(data.weekComments.length){
-    const nonEvCmt = data.weekComments.filter(c=>!c._key.startsWith('ev_'));
+    const listedIds = new Set([...(data.newTasks||[]).map(t=>t.id),...(data.updatedTasks||[]).map(t=>t.id)]);
+    const nonEvCmt = data.weekComments.filter(c=>!c._key.startsWith('ev_') && !listedIds.has(c._key));
     if(nonEvCmt.length){
-      ctx += `COMENTARIOS EM TAREFAS/ENTREGAS (${nonEvCmt.length}):\n`;
+      ctx += `=== OUTROS COMENTARIOS (${nonEvCmt.length}) ===\n`;
       nonEvCmt.slice(0,15).forEach(c=>{
         const autor = c.user_id?mBI(c.user_id):null;
-        ctx += `- ${autor?autor.nome.split(' ')[0]+': ':''}${(c.texto||'').slice(0,150)}\n`;
+        const task = TSK.find(t=>t.id===c._key);
+        ctx += `- ${autor?autor.nome.split(' ')[0]+': ':''}${(c.texto||'').slice(0,200)}`;
+        if(task) ctx += ` (em: ${task.titulo.slice(0,60)})`;
+        ctx += '\n';
       });
       ctx += '\n';
     }
   }
 
   if(data.weekAttach.length){
-    const nonEvAtt = data.weekAttach.filter(a=>!a.evento_id);
-    if(nonEvAtt.length){
-      ctx += `DOCUMENTOS ANEXADOS (${nonEvAtt.length}):\n`;
-      nonEvAtt.forEach(a=>{
-        ctx += `- ${a.nome||a.nome_arquivo||'arquivo'}\n`;
+    const listedIds = new Set([...(data.newTasks||[]).map(t=>t.id),...(data.updatedTasks||[]).map(t=>t.id)]);
+    const listedEvIds = new Set(data.weekEvents.map(ev=>ev.id));
+    const otherAtt = data.weekAttach.filter(a=>!(a.evento_id && listedEvIds.has(a.evento_id))).filter(a=>!listedIds.has(a._key));
+    if(otherAtt.length){
+      ctx += `=== OUTROS DOCUMENTOS ANEXADOS (${otherAtt.length}) ===\n`;
+      otherAtt.forEach(a=>{
+        const task = TSK.find(t=>t.id===a._key);
+        ctx += `- ${a.nome||a.nome_arquivo||'arquivo'}`;
+        if(task) ctx += ` (em: ${task.titulo.slice(0,60)})`;
+        ctx += '\n';
       });
       ctx += '\n';
     }
   }
 
   if(data.weekIdeias.length){
-    ctx += `IDEIAS NOVAS (${data.weekIdeias.length}):\n`;
+    ctx += `=== IDEIAS E APRENDIZADOS NOVOS (${data.weekIdeias.length}) ===\n`;
     data.weekIdeias.forEach(i=>{
       const tp = IDEA_TIPOS.find(t=>t.k===i.tipo)||IDEA_TIPOS[0];
-      ctx += `- [${tp.l.replace(/^.\s/,'')}] ${i.titulo}${i.descricao?' — '+i.descricao.slice(0,100):''}\n`;
+      ctx += `- [${tp.l.replace(/^.\s/,'')}] ${i.titulo}`;
+      if(i.descricao) ctx += ` — ${i.descricao.slice(0,200)}`;
+      ctx += '\n';
     });
     ctx += '\n';
   }
 
   if(data.reviewActions.length){
-    ctx += `REVIEWS REALIZADAS: ${data.reviewActions.length} review(s) salva(s)/atualizada(s)\n\n`;
+    ctx += `=== REVIEWS REALIZADAS ===\n${data.reviewActions.length} review(s) salva(s)/atualizada(s)\n\n`;
   }
 
   ctx += `INSTRUCOES:
-Gere um resumo executivo para abrir a Weekly do NID/COBEN. O tom deve ser leve, direto e motivador.
+Gere um resumo executivo completo para abrir a Weekly do NID/COBEN. O tom deve ser leve, direto e motivador.
+
+IMPORTANTE:
+- Analise detalhadamente as REUNIOES: quem participou, o que foi discutido (veja comentarios/ata), quais documentos foram compartilhados (atas, apresentacoes, etc.), e quais decisoes foram tomadas.
+- Analise as TAREFAS: quais foram criadas, quais mudaram de status, quem e responsavel, se ha bloqueios ou atrasos.
+- Conecte reunioes com tarefas quando possivel (ex: "na reuniao X decidiu-se Y, que gerou a tarefa Z").
 
 Estruture assim:
-1. ABERTURA (1-2 frases de contexto da semana, tom leve e engajador)
-2. DESTAQUES DA SEMANA (os 3-5 fatos mais relevantes, com nomes de quem fez)
-3. REUNIOES (resumo do que foi discutido, decisoes tomadas, documentos compartilhados)
-4. MOVIMENTACAO DE TAREFAS (o que avancou, o que foi criado, bloqueios)
-5. PONTOS DE ATENCAO (riscos, bloqueios, coisas que precisam de decisao)
-6. FRASE DE FECHAMENTO (motivacional, curta)
+1. **ABERTURA** (1-2 frases de contexto da semana, tom leve e engajador)
+2. **DESTAQUES DA SEMANA** (os 3-5 fatos mais relevantes, com nomes de quem fez)
+3. **REUNIOES E DISCUSSOES** (resumo de cada reuniao: pauta, participantes, o que foi discutido/decidido, documentos compartilhados — se houver comentarios/ata da reuniao, use-os para detalhar)
+4. **MOVIMENTACAO DE TAREFAS** (novas tarefas criadas, tarefas que avancaram de status, responsaveis, prazos)
+5. **ENTREGAS E RESULTADOS** (o que foi entregue ou teve progresso significativo)
+6. **PONTOS DE ATENCAO** (riscos, bloqueios, tarefas paradas, prazos proximos)
+7. **FRASE DE FECHAMENTO** (motivacional, curta)
 
-Se nao houver dados em alguma secao, omita-a.
+Se nao houver dados suficientes em alguma secao, omita-a.
 Responda em portugues brasileiro. Use markdown para formatar.
-Seja conciso mas completo. Maximo 600 palavras.`;
+Seja completo e detalhado. Maximo 1000 palavras.`;
 
   return ctx;
 }
