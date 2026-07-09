@@ -4047,6 +4047,7 @@ function renderIdeias(){
         ${idea.descricao?`<div style="font-size:11px;color:var(--t3);margin-top:2px;max-height:40px;overflow:hidden">${escapeHtml(idea.descricao).slice(0,150)}${idea.descricao.length>150?'...':''}</div>`:''}
         <div class="dmeta">
           <span class="badge" style="background:${st.cor};color:#fff">${st.l}</span>
+          ${(ATT['idea_'+idea.id]||[]).length?`<span style="font-size:10px;color:var(--t2)">📎 ${(ATT['idea_'+idea.id]||[]).length}</span>`:''}
           ${idea.link?`<span style="font-size:10px;color:var(--accent)">🔗 Link</span>`:''}
           ${idea.tags_text?idea.tags_text.split(',').map(t=>`<span style="font-size:10px;background:var(--bg3);color:var(--t2);padding:1px 6px;border-radius:8px">${t.trim()}</span>`).join(''):''}
         </div>
