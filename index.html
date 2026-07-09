@@ -4396,7 +4396,7 @@ function buildGiroPrompt(wk, data){
 Gere o GIRO DA SEMANA (${wk.label}) para abrir a Weekly do time.
 
 Sprint atual: ${sprintInfo}
-Equipe: ${MB.filter(m=>m.ativo!==false).map(m=>m.nome.split(' ')[0]).join(', ')}
+Equipe: ${MB.filter(m=>m.ativo!==false).map(m=>(m.nome||'').split(' ')[0]||'?').join(', ')}
 
 DADOS DA SEMANA:\n\n`;
 
@@ -4408,14 +4408,14 @@ DADOS DA SEMANA:\n\n`;
       ctx += `   Data/Hora: ${ev.data} ${ev.hora_inicio||'sem horario'}${ev.hora_fim?' ate '+ev.hora_fim:''}`;
       if(ev.local) ctx += ` | Local: ${ev.local}`;
       ctx += '\n';
-      if(mems.length) ctx += `   Participantes: ${mems.map(m=>m.nome).join(', ')}\n`;
+      if(mems.length) ctx += `   Participantes: ${mems.map(m=>m.nome||'?').join(', ')}\n`;
       if(ev.descricao) ctx += `   Pauta/Descricao: ${ev.descricao.slice(0,500)}\n`;
       const evCmt = data.weekComments.filter(c=>c._key.startsWith('ev_'+ev.id));
       if(evCmt.length){
         ctx += `   Registros/Ata da reuniao (${evCmt.length} comentarios):\n`;
         evCmt.forEach(c=>{
           const autor = c.user_id?mBI(c.user_id):null;
-          ctx += `     - ${autor?autor.nome.split(' ')[0]+': ':''}${(c.texto||'').slice(0,300)}\n`;
+          ctx += `     - ${autor?(autor.nome||'').split(' ')[0]||'?'+': ':''}${(c.texto||'').slice(0,300)}\n`;
         });
       }
       const evAtt = data.weekAttach.filter(a=>a.evento_id===ev.id);
@@ -4437,7 +4437,7 @@ DADOS DA SEMANA:\n\n`;
       if(t.prioridade) ctx += ` [${t.prioridade}]`;
       ctx += ` | Status: ${t.status||'pendente'}`;
       if(t.fase) ctx += ` | Fase: ${t.fase}`;
-      if(membros.length) ctx += ` | Responsaveis: ${membros.map(m=>m.nome.split(' ')[0]).join(', ')}`;
+      if(membros.length) ctx += ` | Responsaveis: ${membros.map(m=>(m.nome||'').split(' ')[0]||'?').join(', ')}`;
       if(t.data_fim) ctx += ` | Prazo: ${t.data_fim}`;
       ctx += '\n';
       if(t.descricao) ctx += `  Descricao: ${t.descricao.slice(0,200)}\n`;
@@ -4451,19 +4451,19 @@ DADOS DA SEMANA:\n\n`;
       const membros = gTM(t.id);
       const audits = data.weekAud.filter(a=>a.entity_id===t.id&&a.entity_type==='task'&&a.action==='task_update');
       ctx += `- ${t.titulo} | Status atual: ${t.status||'pendente'}`;
-      if(membros.length) ctx += ` | Responsaveis: ${membros.map(m=>m.nome.split(' ')[0]).join(', ')}`;
+      if(membros.length) ctx += ` | Responsaveis: ${membros.map(m=>(m.nome||'').split(' ')[0]||'?').join(', ')}`;
       ctx += '\n';
       audits.forEach(a=>{
         const det = a.details?(typeof a.details==='string'?JSON.parse(a.details):a.details):{};
         const autor = a.user_id?mBI(a.user_id):null;
-        if(det.from||a.summary) ctx += `  Alteracao: ${a.summary||''} ${det.from?'('+det.from+' -> '+det.to+')':''} ${autor?'por '+autor.nome.split(' ')[0]:''}\n`;
+        if(det.from||a.summary) ctx += `  Alteracao: ${a.summary||''} ${det.from?'('+det.from+' -> '+det.to+')':''} ${autor?'por '+(autor.nome||'').split(' ')[0]||'?':''}\n`;
       });
       const tCmt = data.weekComments.filter(c=>c._key===t.id);
       if(tCmt.length){
         ctx += `  Comentarios (${tCmt.length}):\n`;
         tCmt.slice(0,5).forEach(c=>{
           const autor = c.user_id?mBI(c.user_id):null;
-          ctx += `    - ${autor?autor.nome.split(' ')[0]+': ':''}${(c.texto||'').slice(0,200)}\n`;
+          ctx += `    - ${autor?(autor.nome||'').split(' ')[0]||'?'+': ':''}${(c.texto||'').slice(0,200)}\n`;
         });
       }
       const tAtt = data.weekAttach.filter(a=>a._key===t.id);
@@ -4479,7 +4479,7 @@ DADOS DA SEMANA:\n\n`;
       const autor = a.user_id?mBI(a.user_id):null;
       ctx += `- ${a.summary||'Entrega'} S${a.sprint_id||'?'}`;
       if(det.from) ctx += ` (${det.from} -> ${det.to})`;
-      if(autor) ctx += ` por ${autor.nome.split(' ')[0]}`;
+      if(autor) ctx += ` por ${(autor.nome||'').split(' ')[0]||'?'}`;
       ctx += '\n';
     });
     ctx += '\n';
@@ -4493,7 +4493,7 @@ DADOS DA SEMANA:\n\n`;
       nonEvCmt.slice(0,15).forEach(c=>{
         const autor = c.user_id?mBI(c.user_id):null;
         const task = TSK.find(t=>t.id===c._key);
-        ctx += `- ${autor?autor.nome.split(' ')[0]+': ':''}${(c.texto||'').slice(0,200)}`;
+        ctx += `- ${autor?(autor.nome||'').split(' ')[0]||'?'+': ':''}${(c.texto||'').slice(0,200)}`;
         if(task) ctx += ` (em: ${task.titulo.slice(0,60)})`;
         ctx += '\n';
       });
