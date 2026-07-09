@@ -721,7 +721,7 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
       <button class="nb" data-v="giro" onclick="nav('giro',this)"><span class="ic">📰</span>Giro da Semana</button>
       <button class="nb" data-v="audit"    onclick="nav('audit',this)" id="navAudit" style="display:none"><span class="ic">🔍</span>Governança <span style="background:var(--orange);color:#fff;font-size:9px;padding:1px 6px;border-radius:20px;margin-left:auto;font-weight:800">ADMIN</span></button>
       <button class="nb" data-v="users"    onclick="nav('users',this)" id="navUsers" style="display:none"><span class="ic">⚙️</span>Usuários <span style="background:var(--orange);color:#fff;font-size:9px;padding:1px 6px;border-radius:20px;margin-left:auto;font-weight:800">ADMIN</span></button>
-      <button class="nb" data-v="import"  onclick="nav('import',this)" id="navImport" style="display:none"><span class="ic">📥</span>Importar PA <span style="background:var(--orange);color:#fff;font-size:9px;padding:1px 6px;border-radius:20px;margin-left:auto;font-weight:800">ADMIN</span></button>
+      <button class="nb" data-v="import"  onclick="nav('import',this)" id="navImport" style="display:none"><span class="ic">📥</span>Importar <span style="background:var(--orange);color:#fff;font-size:9px;padding:1px 6px;border-radius:20px;margin-left:auto;font-weight:800">ADMIN</span></button>
 
       <div class="sb-sect">Sprints 2026–2027</div>
       <div id="snav"></div>
@@ -1024,24 +1024,9 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
       <!-- IMPORT PLANO DE AÇÃO -->
       <section class="view" id="vImport">
         <div class="vh">
-          <div><h1>📥 Importar Plano de Ação</h1><div class="vh-sub">Atividades de Gestão de Benefício (planilha de monitoramento)</div></div>
-          <div class="vh-grow"></div>
-          <button class="btn primary" onclick="applyImport()" id="impApplyBtn">⚡ Aplicar selecionados</button>
+          <div><h1>📥 Importar</h1><div class="vh-sub">Traga tarefas de planilhas (xlsx/csv), Word, PDF ou e-mail e distribua entre Auditoria, Plano de Ação, Sprints e Backlog</div></div>
         </div>
-        <div class="filtbar">
-          <span class="filt-info">Mostrar:</span>
-          <select class="sel" id="impFilter" onchange="renderImport()">
-            <option value="all">Todos (62)</option>
-            <option value="in-sprint">Apenas dentro do ciclo (Jun/26 → Mai/27)</option>
-            <option value="om">Apenas com OM identificada</option>
-            <option value="pending">Apenas pendentes</option>
-          </select>
-          <span style="font-size:11px;color:var(--t3)">Sugestão automática por palavras-chave. Você pode mudar a ação por item.</span>
-          <div style="flex:1"></div>
-          <button class="btn sm" onclick="impSetAllDecisions('skip')">Pular tudo</button>
-          <button class="btn sm" onclick="impSetAllDecisions('auto')">Reverter para sugestões</button>
-        </div>
-        <div id="importList"></div>
+        <div id="importPanel"></div>
       </section>
 
     </main>
@@ -6056,135 +6041,247 @@ function impSetAllDecisions(mode){
   renderImport();
 }
 
+/* ============================================================
+   IMPORTAR — documentos (xlsx/csv/Word/PDF/e-mail) → tarefas
+============================================================ */
+let _impText = '';      // texto extraído do documento
+let _impFileName = '';
+let _impRows = [];       // itens extraídos pela IA
+
 function renderImport(){
-  if(!isAdmin()){
-    document.getElementById('importList').innerHTML =
-      '<div class="empty"><div class="ic">🔒</div>Acesso restrito a administradores.</div>';
-    return;
-  }
-  initImportDecisions();
-  const filt = document.getElementById('impFilter')?.value || 'all';
-  const items = PA_DATA.itens.map((it, idx)=>({...it, _idx:idx})).filter(it=>{
-    if(filt==='in-sprint' && !it.sprint) return false;
-    if(filt==='om' && !it.om) return false;
-    if(filt==='pending' && (impDecisions[it._idx]?.action||'skip')==='skip') return false;
-    return true;
-  });
-
-  document.getElementById('importList').innerHTML = `
-    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--rlg);padding:.8rem;margin-bottom:1rem;font-size:12px;color:var(--t2)">
-      📊 Total: <strong style="color:var(--text)">${PA_DATA.total}</strong> atividades ·
-      No ciclo: <strong style="color:var(--text)">${PA_DATA.em_sprints}</strong> ·
-      Fonte: <em>${escapeHtml(PA_DATA.fonte)}</em>
+  const el = document.getElementById('importPanel');
+  if(!el) return;
+  if(!isAdmin()){ el.innerHTML = '<div class="empty"><div class="ic">🔒</div>Acesso restrito a administradores.</div>'; return; }
+  const hasKey = !!localStorage.getItem('anthropic_key');
+  el.innerHTML = `
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--rxl);padding:1.3rem;margin-bottom:1rem">
+      <h3 style="margin:0 0 .3rem">1 · Carregar documento</h3>
+      <p style="font-size:12px;color:var(--t2);margin:0 0 1rem">Formatos: Excel (.xlsx/.xls/.csv), Word (.docx), PDF, e-mail (.eml) ou texto. A IA identifica as tarefas automaticamente.</p>
+      <div class="dropzone" onclick="document.getElementById('impFileInput').click()">
+        <div style="font-size:26px">📄</div>
+        <div style="font-weight:700;margin-top:6px">${_impFileName ? '📎 '+escapeHtml(_impFileName) : 'Clique para escolher um arquivo'}</div>
+        <div style="font-size:11px;color:var(--t3);margin-top:4px">xlsx · xls · csv · docx · pdf · eml · txt</div>
+        <input type="file" id="impFileInput" style="display:none" accept=".xlsx,.xls,.csv,.docx,.pdf,.eml,.txt,.md" onchange="impPickFile(event)">
+      </div>
+      <div style="text-align:center;font-size:11px;color:var(--t3);margin:.6rem 0">— ou cole o conteúdo abaixo —</div>
+      <textarea id="impPaste" placeholder="Cole aqui o texto do e-mail, planilha ou documento..." style="width:100%;min-height:110px">${escapeHtml(_impText)}</textarea>
+      ${!hasKey?`<div style="background:var(--a-bg);border:1px solid var(--amber);border-radius:10px;padding:.7rem;margin-top:.8rem;font-size:12px;color:var(--amber)">⚠️ Configure a chave da IA na aba <b>Giro da Semana</b> para extrair as tarefas automaticamente.</div>`:''}
+      <div style="display:flex;gap:.5rem;margin-top:1rem;align-items:center">
+        <button class="btn primary" id="impExtractBtn" onclick="impExtract()" ${!hasKey?'disabled':''}>🤖 Extrair tarefas com IA</button>
+        <button class="btn" onclick="_impText='';_impFileName='';_impRows=[];renderImport()">Limpar</button>
+        <span id="impStatus" style="font-size:12px;color:var(--t2)"></span>
+      </div>
     </div>
-    ${items.map(it=>{
-      const dec = impDecisions[it._idx];
-      const match = bestEntregaMatch(it);
-      const sprint = dec.sprintForTask;
-      return `<div class="userrow" style="flex-direction:column;align-items:stretch;gap:8px">
-        <div style="display:flex;gap:10px;align-items:flex-start">
-          <div style="flex:1;min-width:0">
-            <div style="font-size:10px;font-weight:800;color:var(--accent);text-transform:uppercase;letter-spacing:.05em">${escapeHtml(it.om || '—')}</div>
-            <div style="font-size:13px;font-weight:700;color:var(--text);margin-top:2px">${escapeHtml(it.subacao||'(sem subação)')}</div>
-            <div style="font-size:11px;color:var(--t2);margin-top:3px">📁 ${escapeHtml(it.acao||'')}</div>
-            <div style="font-size:11px;color:var(--t3);margin-top:3px">
-              📅 ${it.inicio ? fmtD(it.inicio) : '—'} → ${it.termino ? fmtD(it.termino) : '—'}
-              ${it.sprint?` · <span style="color:var(--accent);font-weight:700">S${it.sprint}</span>`:' · fora do ciclo'}
-              · 👤 ${escapeHtml(it.resp||'?')} · ${escapeHtml(it.status||'')}
-            </div>
-          </div>
-        </div>
-        ${match?`<div style="background:var(--g-bg);border:1px solid rgba(34,209,114,.25);color:var(--green);padding:.45rem .7rem;border-radius:var(--r);font-size:11.5px;font-weight:600">
-          ✨ Match sugerido (score ${(match.score*100).toFixed(0)}%): <strong>S${match.sid}</strong> · ${escapeHtml(match.desc.slice(0,120))}
-        </div>`:'<div style="font-size:11px;color:var(--t3);font-style:italic">Sem match automático — sugiro criar nova tarefa</div>'}
-        <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
-          <label style="display:flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;cursor:pointer">
-            <input type="radio" name="dec_${it._idx}" ${dec.action==='comment'?'checked':''} ${!match?'disabled':''}
-              onchange="impSet(${it._idx},'comment')"> 💬 Comentar na entrega match
-          </label>
-          <label style="display:flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;cursor:pointer">
-            <input type="radio" name="dec_${it._idx}" ${dec.action==='task'?'checked':''}
-              onchange="impSet(${it._idx},'task')"> 📝 Criar nova tarefa em
-            <select class="ssel" onchange="impSetSprint(${it._idx}, this.value)" style="font-size:11px">
-              ${SP.map(s=>`<option value="${s.id}" ${sprint===s.id?'selected':''}>S${s.id} · ${s.m}</option>`).join('')}
-            </select>
-          </label>
-          <label style="display:flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;cursor:pointer">
-            <input type="radio" name="dec_${it._idx}" ${dec.action==='skip'?'checked':''}
-              onchange="impSet(${it._idx},'skip')"> ⊘ Pular
-          </label>
-        </div>
-      </div>`;
-    }).join('')}
-  `;
+    <div id="impTriage"></div>`;
+  impRenderTriage();
 }
-function impSet(idx, action){
-  impDecisions[idx].action = action;
-  if(action==='comment'){
-    const m = bestEntregaMatch(PA_DATA.itens[idx]);
-    if(m){ impDecisions[idx].target_sid = m.sid; impDecisions[idx].target_idx = m.idx; }
-  }
-}
-function impSetSprint(idx, sid){ impDecisions[idx].sprintForTask = +sid; }
 
-async function applyImport(){
-  if(!isAdmin()){ toast('Apenas admin','err'); return; }
-  const toApply = Object.entries(impDecisions).filter(([_,d])=>d.action!=='skip');
-  if(!toApply.length){ toast('Nada selecionado','err'); return; }
-  if(!confirm(`Aplicar ${toApply.length} item(ns)?\n\nIsso criará comentários ou tarefas no banco.`)) return;
-  ss('loading','Importando...');
-  let okCount=0, errCount=0;
-  for(const [k, d] of toApply){
-    const idx = +k;
-    const it = PA_DATA.itens[idx];
-    try {
-      if(d.action==='comment' && d.target_sid && d.target_idx!=null){
-        const txt = `🔗 **${it.om || 'Plano de Ação'}**\n${it.om_full || ''}\n\n**Ação:** ${it.acao}\n**Subação:** ${it.subacao}\n📅 ${it.inicio||'?'} → ${it.termino||'?'} · Responsável: ${it.resp||'?'} · Status: ${it.status||'?'}`;
-        await db.from('task_comments').insert({
-          sprint_id: d.target_sid, entrega_idx: d.target_idx,
-          profile_id: CP?.id, texto: txt
-        });
-        okCount++;
-      } else if(d.action==='task'){
-        const sid = d.sprintForTask;
-        const titulo = (it.subacao || it.acao || 'Plano de Ação').slice(0,200);
-        const descricao = `${it.om_full || it.om || ''}\n\n**Ação:** ${it.acao || ''}\n**Subação:** ${it.subacao || ''}\n**Responsável original:** ${it.resp || '?'}\n**Origem:** ${it.origem.slice(0,400)}`;
-        const statusMap = {'Concluído':'concluido','Concluido':'concluido','Em andamento':'em_andamento','Em Andamento':'em_andamento','Não iniciado':'pendente','Nao iniciado':'pendente','Bloqueado':'bloqueado'};
-        const payload = {
-          titulo, descricao,
-          status: statusMap[it.status] || 'pendente',
-          prioridade: 'media',
-          fase: 'execucao',
-          sprint_id: sid,
-          progresso: it.status === 'Concluído' ? 100 : 0,
-          data_inicio: it.inicio || null,
-          data_fim: it.termino || null,
-          criado_por: CP?.id,
-        };
-        const {data:ins, error} = await db.from('subtarefas').insert(payload).select().single();
-        if(error) throw error;
-        // Comentário com OM
-        if(it.om){
-          await db.from('task_comments').insert({
-            tarefa_id: ins.id, profile_id: CP?.id,
-            texto: `🔗 Vinculado a: **${it.om_full || it.om}**\nOrigem: ${it.origem.slice(0,200)}`
-          });
-        }
-        okCount++;
-      }
-    } catch(e){
-      console.warn('Falha item', idx, e);
-      errCount++;
-    }
+function loadScriptOnce(url){
+  return new Promise((res, rej)=>{
+    if([...document.scripts].some(s=>s.src===url)) return res();
+    const s = document.createElement('script');
+    s.src = url; s.onload = ()=>res(); s.onerror = ()=>rej(new Error('Falha ao carregar '+url));
+    document.head.appendChild(s);
+  });
+}
+
+async function impReadFile(file){
+  const name = file.name.toLowerCase();
+  if(/\.(txt|csv|eml|md)$/.test(name)) return await file.text();
+  if(/\.(xlsx|xls)$/.test(name)){
+    await loadScriptOnce('https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js');
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, {type:'array'});
+    let out = '';
+    wb.SheetNames.forEach(n=>{ out += `# Planilha: ${n}\n` + XLSX.utils.sheet_to_csv(wb.Sheets[n]) + '\n\n'; });
+    return out;
   }
-  await loadAll();
-  ss('ok','Importado');
-  toast(`✅ ${okCount} criados · ${errCount} falharam`);
-  logAudit({action:'import_pa', entityType:'system', summary:`Importou Plano de Ação: ${okCount} item(ns) aplicados, ${errCount} falhas`});
-  // Reset decisões para os aplicados (pra evitar re-aplicar sem querer)
-  toApply.forEach(([k])=>{ impDecisions[k].action='skip'; });
+  if(/\.docx$/.test(name)){
+    await loadScriptOnce('https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js');
+    const zip = await JSZip.loadAsync(await file.arrayBuffer());
+    const xml = await zip.file('word/document.xml').async('string');
+    return xml.replace(/<\/w:p>/g,'\n').replace(/<[^>]+>/g,'').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>');
+  }
+  if(/\.pdf$/.test(name)){
+    await loadScriptOnce('https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js');
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+    const pdf = await pdfjsLib.getDocument({data: await file.arrayBuffer()}).promise;
+    let out = '';
+    for(let p=1;p<=pdf.numPages;p++){
+      const page = await pdf.getPage(p);
+      const tc = await page.getTextContent();
+      out += tc.items.map(i=>i.str).join(' ') + '\n\n';
+    }
+    return out;
+  }
+  // fallback
+  return await file.text();
+}
+
+async function impPickFile(evt){
+  const file = evt.target.files?.[0];
+  if(!file) return;
+  const st = document.getElementById('impStatus');
+  if(st) st.textContent = 'Lendo arquivo...';
+  try {
+    _impFileName = file.name;
+    _impText = await impReadFile(file);
+    if(st) st.textContent = `✓ ${_impText.length} caracteres extraídos`;
+  } catch(e){
+    toast('Erro ao ler arquivo: '+e.message,'err');
+    if(st) st.textContent = '';
+  }
+  evt.target.value='';
   renderImport();
-  renderAll();
+}
+
+async function impExtract(){
+  const key = localStorage.getItem('anthropic_key');
+  if(!key){ toast('Configure a chave da IA primeiro','err'); return; }
+  const pasted = document.getElementById('impPaste')?.value?.trim();
+  const text = (pasted || _impText || '').trim();
+  if(!text){ toast('Carregue um arquivo ou cole o conteúdo','err'); return; }
+  _impText = text;
+  const btn = document.getElementById('impExtractBtn');
+  const st = document.getElementById('impStatus');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Extraindo...';
+  if(st) st.textContent = 'A IA está analisando o documento...';
+  try {
+    const prompt = `Você é um assistente que extrai TAREFAS/AÇÕES de documentos.
+Analise o conteúdo abaixo (pode ser planilha, ata, e-mail, plano de ação, PDF) e liste TODAS as tarefas ou ações identificadas.
+
+Para cada tarefa, retorne um objeto com:
+- "titulo": título curto e claro da tarefa (obrigatório)
+- "descricao": detalhes/contexto (ou "")
+- "responsavel": área ou pessoa responsável (ou "")
+- "interveniente": área interveniente, se houver (ou "")
+- "prazo": data no formato YYYY-MM-DD se houver, senão null
+- "tipo": um entre "audit" (achado/ação de auditoria), "pa" (plano de ação/melhoria) ou "tarefa" (operacional/genérica) — escolha o mais provável
+
+Responda APENAS com um array JSON válido, sem texto antes ou depois, sem markdown. Exemplo:
+[{"titulo":"...","descricao":"...","responsavel":"...","interveniente":"","prazo":"2026-09-07","tipo":"pa"}]
+
+CONTEÚDO DO DOCUMENTO:
+${text.slice(0, 60000)}`;
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'content-type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body: JSON.stringify({ model:'claude-sonnet-5', max_tokens:16000, thinking:{type:'disabled'}, messages:[{role:'user', content:prompt}] })
+    });
+    if(!resp.ok){ const e = await resp.json().catch(()=>({})); throw new Error(e.error?.message||`HTTP ${resp.status}`); }
+    const result = await resp.json();
+    let raw = (result.content?.find(b=>b.type==='text')?.text || '').trim();
+    raw = raw.replace(/^```(?:json)?/i,'').replace(/```$/,'').trim();
+    const first = raw.indexOf('['), last = raw.lastIndexOf(']');
+    if(first>=0 && last>first) raw = raw.slice(first, last+1);
+    const arr = JSON.parse(raw);
+    _impRows = arr.map(r=>({
+      titulo: r.titulo||'', descricao: r.descricao||'', responsavel: r.responsavel||'',
+      interveniente: r.interveniente||'', prazo: r.prazo||null,
+      dest: r.tipo==='audit'?'audit':r.tipo==='pa'?'pa':'sprint',
+      sprintId: sprintForDate(r.prazo) || (cs()?.id||SP[0].id)
+    }));
+    if(st) st.textContent = `✓ ${_impRows.length} tarefa(s) identificada(s)`;
+    toast(`${_impRows.length} tarefa(s) extraída(s)`);
+  } catch(e){
+    toast('Erro ao extrair: '+e.message,'err');
+    if(st) st.textContent = 'Falha na extração';
+  }
+  btn.disabled = false; btn.innerHTML = '🤖 Extrair tarefas com IA';
+  impRenderTriage();
+}
+
+function impRenderTriage(){
+  const el = document.getElementById('impTriage');
+  if(!el) return;
+  if(!_impRows.length){ el.innerHTML=''; return; }
+  el.innerHTML = `
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--rxl);padding:1.3rem">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:1rem">
+        <h3 style="margin:0;flex:1">2 · Triagem — ${_impRows.length} tarefa(s)</h3>
+        <button class="btn primary" onclick="impImportAll()">⚡ Importar todas</button>
+      </div>
+      ${_impRows.map((r,i)=>`
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--rlg);padding:.9rem;margin-bottom:.6rem">
+          <div class="frow" style="gap:.6rem">
+            <div class="field" style="flex:2"><label style="font-size:10px">Título</label>
+              <input value="${escapeHtml(r.titulo)}" onchange="impEdit(${i},'titulo',this.value)"></div>
+            <div class="field"><label style="font-size:10px">Responsável</label>
+              <input value="${escapeHtml(r.responsavel)}" onchange="impEdit(${i},'responsavel',this.value)"></div>
+            <div class="field"><label style="font-size:10px">Prazo</label>
+              <input type="date" value="${r.prazo||''}" onchange="impEdit(${i},'prazo',this.value)"></div>
+          </div>
+          ${r.descricao?`<div style="font-size:11px;color:var(--t2);margin-top:.5rem">${escapeHtml(r.descricao.slice(0,220))}</div>`:''}
+          <div style="display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin-top:.7rem">
+            <span style="font-size:11px;color:var(--t3);font-weight:700">Destino:</span>
+            <select class="ssel" onchange="impEdit(${i},'dest',this.value)">
+              <option value="audit" ${r.dest==='audit'?'selected':''}>🛡️ Auditoria</option>
+              <option value="pa" ${r.dest==='pa'?'selected':''}>🎯 Plano de Ação</option>
+              <option value="sprint" ${r.dest==='sprint'?'selected':''}>⚡ Sprint</option>
+              <option value="backlog" ${r.dest==='backlog'?'selected':''}>📋 Backlog</option>
+            </select>
+            ${r.dest==='sprint'?`<select class="ssel" onchange="impEdit(${i},'sprintId',+this.value)">
+              ${SP.map(s=>`<option value="${s.id}" ${r.sprintId===s.id?'selected':''}>S${s.id} · ${s.m}</option>`).join('')}
+            </select>`:''}
+            <div style="flex:1"></div>
+            <button class="pa-btn" onclick="impImportOne(${i})">Importar</button>
+            <button class="pa-btn" onclick="impRemove(${i})" style="color:var(--red)">✕</button>
+          </div>
+        </div>`).join('')}
+    </div>`;
+}
+function impEdit(i, field, val){ _impRows[i][field] = val; if(field==='dest'||field==='prazo') impRenderTriage(); }
+function impRemove(i){ _impRows.splice(i,1); impRenderTriage(); }
+
+async function impBuildAndInsert(r){
+  if(r.dest==='audit' || r.dest==='pa'){
+    const payload = {
+      tipo: r.dest, grupo: 'Importado'+(_impFileName?(' · '+_impFileName.slice(0,40)):''),
+      titulo: r.titulo, descricao: r.descricao||null, resp: r.responsavel||null,
+      interv: r.interveniente||null, prazo: r.prazo||null, status:'Não iniciado', criado_por: CP?.id||null
+    };
+    const {data, error} = await db.from('custom_actions').insert(payload).select().single();
+    if(error) throw error;
+    CUS.push(data);
+  } else {
+    const sid = r.dest==='backlog' ? (cs()?.id||SP[0].id) : (r.sprintId||cs()?.id||SP[0].id);
+    const payload = {
+      titulo: r.titulo.slice(0,200),
+      descricao: `${r.descricao||''}${r.responsavel?'\nResponsável: '+r.responsavel:''}${r.interveniente?'\nInterveniente: '+r.interveniente:''}${_impFileName?'\n\nImportado de: '+_impFileName:''}`.trim(),
+      status:'pendente', prioridade:'media',
+      fase: r.dest==='backlog'?'ideacao':'execucao',
+      sprint_id: sid, data_fim: r.prazo||null, criado_por: CP?.id||null
+    };
+    const {error} = await db.from('subtarefas').insert(payload);
+    if(error) throw error;
+  }
+}
+async function impImportOne(i){
+  const r = _impRows[i];
+  if(!r.titulo.trim()){ toast('Título vazio','err'); return; }
+  ss('loading','Importando...');
+  try { await impBuildAndInsert(r); }
+  catch(e){ toast('Erro: '+e.message,'err'); ss('err','Erro'); return; }
+  logAudit({action:'import_pa', entityType:'system', summary:`Importou "${r.titulo.slice(0,50)}" → ${r.dest}`});
+  _impRows.splice(i,1);
+  await loadAll();
+  ss('ok','Importado'); toast('Tarefa importada');
+  impRenderTriage(); renderAll();
+}
+async function impImportAll(){
+  if(!_impRows.length) return;
+  if(!confirm(`Importar ${_impRows.length} tarefa(s) para os destinos escolhidos?`)) return;
+  ss('loading','Importando...');
+  let ok=0, err=0;
+  for(const r of _impRows.slice()){
+    if(!r.titulo.trim()){ err++; continue; }
+    try { await impBuildAndInsert(r); ok++; } catch(e){ console.warn(e); err++; }
+  }
+  logAudit({action:'import_pa', entityType:'system', summary:`Importação: ${ok} tarefa(s) criadas, ${err} falhas`});
+  _impRows = [];
+  await loadAll();
+  ss('ok','Importado'); toast(`✅ ${ok} importada(s)${err?' · '+err+' falha(s)':''}`);
+  renderImport(); renderAll();
 }
 
 
