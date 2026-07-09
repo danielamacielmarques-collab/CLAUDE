@@ -898,6 +898,7 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
             <option value="">Ativas</option>
             <option value="sim">🚫 Ocultas</option>
           </select>
+          <button class="btn primary" onclick="openNewActivity('pa')">+ Nova tarefa</button>
         </div>
         <div class="pa-summary" id="paSummary"></div>
         <div id="paList"></div>
@@ -932,6 +933,7 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
             <option value="">Ativas</option>
             <option value="sim">🚫 Ocultas</option>
           </select>
+          <button class="btn primary" onclick="openNewActivity('audit')">+ Nova atividade</button>
         </div>
         <div class="pa-summary" id="auSummary"></div>
         <div id="auList"></div>
@@ -978,6 +980,7 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
         </div>
         <div id="giroContent"></div>
         <div id="giroIAResult" style="display:none"></div>
+        <div id="giroHistory"></div>
       </section>
 
       <!-- AUDIT / GOVERNANÇA -->
@@ -1900,6 +1903,8 @@ let RVD = {};        // reviews — sprint_id -> array of review objects
 let RVI = {};        // review items — review_id -> array of items
 let PAI = {};        // plano de ação — pa_idx -> item (status/vinculo/sprint)
 let AUI = {};        // auditoria — audit_idx -> item (status/vinculo/sprint)
+let CUS = [];        // atividades customizadas (PA/Auditoria)
+let GIROS = [];      // giros da semana salvos
 let IDB = [];        // ideias & aprendizado
 let AUD = [];        // audit_log entries
 let EV  = [];        // calendar_events
@@ -2161,7 +2166,7 @@ async function loadAll(){
       (CLD[k]=CLD[k]||[]).push(c);
     });
     // Comments + attachments + reviews + audit + eventos em paralelo
-    const [rv, rc, ra, rau, rev, revm, rvi, rpa, rid, rai] = await Promise.all([
+    const [rv, rc, ra, rau, rev, revm, rvi, rpa, rid, rai, rcus, rgir] = await Promise.all([
       db.from('sprint_reviews').select('*').order('data_realizacao',{ascending:false}),
       db.from('task_comments').select('*').order('created_at',{ascending:true}),
       db.from('task_attachments').select('*').order('created_at',{ascending:false}),
@@ -2172,11 +2177,15 @@ async function loadAll(){
       db.from('pa_items').select('*').then(r=>r).catch(()=>({data:[]})),
       db.from('ideias').select('*').order('created_at',{ascending:false}).then(r=>r).catch(()=>({data:[]})),
       db.from('audit_items').select('*').then(r=>r).catch(()=>({data:[]})),
+      db.from('custom_actions').select('*').order('created_at',{ascending:true}).then(r=>r).catch(()=>({data:[]})),
+      db.from('giros').select('*').order('created_at',{ascending:false}).then(r=>r).catch(()=>({data:[]})),
     ]);
     AUD = rau.data || [];
     EV  = rev.data || [];
     PAI = {}; (rpa.data||[]).forEach(p=>{ PAI[p.pa_idx]=p; });
     AUI = {}; (rai.data||[]).forEach(p=>{ AUI[p.audit_idx]=p; });
+    CUS = rcus.data || [];
+    GIROS = rgir.data || [];
     IDB = rid.data || [];
     // Sincroniza CP (perfil atual) com a versão fresca em MB
     if(CP){
@@ -2192,7 +2201,8 @@ async function loadAll(){
     RVI={}; (rvi.data||[]).forEach(i=>{(RVI[i.review_id]=RVI[i.review_id]||[]).push(i)});
     CMT={}; (rc.data||[]).forEach(c=>{
       let k;
-      if(c.pa_idx != null) k = 'pa_'+c.pa_idx;
+      if(c.custom_id) k = 'cust_'+c.custom_id;
+      else if(c.pa_idx != null) k = 'pa_'+c.pa_idx;
       else if(c.audit_idx != null) k = 'aud_'+c.audit_idx;
       else if(c.tarefa_id) k = c.tarefa_id;
       else if(c.evento_id) k = c.evento_data ? `ev_${c.evento_id}_${c.evento_data}` : `ev_${c.evento_id}`;
@@ -2201,7 +2211,8 @@ async function loadAll(){
     });
     ATT={}; (ra.data||[]).forEach(a=>{
       let k;
-      if(a.pa_idx != null) k = 'pa_'+a.pa_idx;
+      if(a.custom_id) k = 'cust_'+a.custom_id;
+      else if(a.pa_idx != null) k = 'pa_'+a.pa_idx;
       else if(a.audit_idx != null) k = 'aud_'+a.audit_idx;
       else if(a.ideia_id) k = 'idea_'+a.ideia_id;
       else if(a.tarefa_id) k = a.tarefa_id;
@@ -3997,7 +4008,8 @@ function renderPlanoAcao(){
     </div>`;
   }).join('');
 
-  document.getElementById('paList').innerHTML = html || `<div class="empty"><div class="ic">🎯</div>${showHidden?'Nenhuma subação oculta':'Nenhuma subação com esses filtros'}</div>`;
+  const customHtml = renderCustomGroup('pa', showHidden);
+  document.getElementById('paList').innerHTML = (html + customHtml) || `<div class="empty"><div class="ic">🎯</div>${showHidden?'Nenhuma subação oculta':'Nenhuma subação com esses filtros'}</div>`;
 }
 
 function togglePaOm(om){ _paOpen[om] = !_paOpen[om]; renderPlanoAcao(); }
@@ -4261,7 +4273,8 @@ function renderAuditoria(){
     </div>`;
   }).join('');
 
-  document.getElementById('auList').innerHTML = html || `<div class="empty"><div class="ic">🛡️</div>${showHidden?'Nenhuma ação oculta':'Nenhuma ação com esses filtros'}</div>`;
+  const customHtml = renderCustomGroup('audit', showHidden);
+  document.getElementById('auList').innerHTML = (html + customHtml) || `<div class="empty"><div class="ic">🛡️</div>${showHidden?'Nenhuma ação oculta':'Nenhuma ação com esses filtros'}</div>`;
 }
 
 function toggleAuAp(ap){ _auOpen[ap] = !_auOpen[ap]; renderAuditoria(); }
@@ -4331,7 +4344,7 @@ function openAuLink(idx){
   renderAuLinkTargets();
   document.getElementById('auLinkModal').classList.add('on');
 }
-function closeAuLink(){ document.getElementById('auLinkModal').classList.remove('on'); _auLinkIdx=null; }
+function closeAuLink(){ document.getElementById('auLinkModal').classList.remove('on'); _auLinkIdx=null; _cusLinkId=null; const b=document.querySelector('#auLinkModal .btn.primary'); if(b) b.setAttribute('onclick','confirmAuLink()'); }
 function renderAuLinkTargets(){
   const sid = +document.getElementById('auLinkSprint').value;
   const s = SP.find(x=>x.id===sid);
@@ -4372,20 +4385,21 @@ async function auUnlink(idx){
    GESTÃO DE AÇÃO (PA/Auditoria): status, ocultar, repactuar
    prazo, observações, comentários e anexos.
 ============================================================ */
-let _mng = null; // {type:'pa'|'audit', idx}
-function mngCat(){ return _mng.type==='pa' ? PA_GB[_mng.idx] : AUDIT_GB[_mng.idx]; }
-function mngItem(){ return _mng.type==='pa' ? paItem(_mng.idx) : auItem(_mng.idx); }
-function mngUpsert(patch){ return _mng.type==='pa' ? paUpsert(_mng.idx, patch) : auUpsert(_mng.idx, patch); }
-function mngEffStatus(){ return _mng.type==='pa' ? paEffStatus(_mng.idx) : auEffStatus(_mng.idx); }
-function mngReRender(){ _mng.type==='pa' ? renderPlanoAcao() : renderAuditoria(); }
-function mngKey(){ return (_mng.type==='pa' ? 'pa_' : 'aud_') + _mng.idx; }
-function mngIdxCol(){ return _mng.type==='pa' ? 'pa_idx' : 'audit_idx'; }
-function mngOrigFim(){ const c=mngCat(); return _mng.type==='pa' ? c.fim : c.fim; }
-function mngTitle(){ const c=mngCat(); return _mng.type==='pa' ? c.sub.replace(/^[\d.]+\s*/,'') : `Ação ${c.num}: ${c.desc}`; }
-function mngSubtitle(){ const c=mngCat(); return _mng.type==='pa' ? `OM${c.om} · ${c.omt.slice(0,80)}` : `${c.apCode} · ${c.apTit}`; }
+let _mng = null; // {type:'pa'|'audit'|'custom', idx?, id?}
+function cusById(id){ return CUS.find(c=>c.id===id) || {}; }
+function mngCat(){ return _mng.type==='pa' ? PA_GB[_mng.idx] : _mng.type==='audit' ? AUDIT_GB[_mng.idx] : cusById(_mng.id); }
+function mngItem(){ return _mng.type==='pa' ? paItem(_mng.idx) : _mng.type==='audit' ? auItem(_mng.idx) : cusById(_mng.id); }
+function mngUpsert(patch){ return _mng.type==='pa' ? paUpsert(_mng.idx, patch) : _mng.type==='audit' ? auUpsert(_mng.idx, patch) : cusUpdate(_mng.id, patch); }
+function mngEffStatus(){ return _mng.type==='pa' ? paEffStatus(_mng.idx) : _mng.type==='audit' ? auEffStatus(_mng.idx) : (cusById(_mng.id).status||'Não iniciado'); }
+function mngReRender(){ if(_mng.type==='pa') renderPlanoAcao(); else if(_mng.type==='audit') renderAuditoria(); else (cusById(_mng.id).tipo==='pa'?renderPlanoAcao():renderAuditoria()); }
+function mngKey(){ return _mng.type==='pa' ? 'pa_'+_mng.idx : _mng.type==='audit' ? 'aud_'+_mng.idx : 'cust_'+_mng.id; }
+function mngIdxCol(){ return _mng.type==='pa' ? {pa_idx:_mng.idx} : _mng.type==='audit' ? {audit_idx:_mng.idx} : {custom_id:_mng.id}; }
+function mngOrigFim(){ const c=mngCat(); return _mng.type==='custom' ? c.prazo : c.fim; }
+function mngTitle(){ const c=mngCat(); return _mng.type==='pa' ? c.sub.replace(/^[\d.]+\s*/,'') : _mng.type==='audit' ? `Ação ${c.num}: ${c.desc}` : c.titulo; }
+function mngSubtitle(){ const c=mngCat(); return _mng.type==='pa' ? `OM${c.om} · ${c.omt.slice(0,80)}` : _mng.type==='audit' ? `${c.apCode} · ${c.apTit}` : (c.grupo?('➕ '+c.grupo):'➕ Atividade adicionada'); }
 
-function openItemMng(type, idx){
-  _mng = {type, idx};
+function openItemMng(type, idxOrId){
+  _mng = type==='custom' ? {type, id:idxOrId} : {type, idx:idxOrId};
   const c = mngCat();
   const pi = mngItem();
   const st = mngEffStatus();
@@ -4458,7 +4472,8 @@ function openItemMng(type, idx){
       <div class="mfoot">
         ${isHidden
           ? `<button class="btn" onclick="mngToggleHide(false)">↩️ Restaurar</button>`
-          : `<button class="btn danger" onclick="mngToggleHide(true)">🚫 Ocultar da lista</button>`}
+          : `<button class="btn danger" onclick="mngToggleHide(true)">🚫 Ocultar</button>`}
+        ${_mng.type==='custom'?`<button class="btn danger" onclick="mngDelete()">🗑️ Excluir</button>`:''}
         <div style="flex:1"></div>
         <button class="btn" onclick="closeItemMng()">Fechar</button>
         <button class="btn primary" onclick="mngSave()">💾 Salvar</button>
@@ -4524,29 +4539,45 @@ async function mngSave(){
   const r = await mngUpsert({status, novo_prazo, prazo_motivo, obs});
   if(!r) return;
   ss('ok','Salvo'); toast('Ação atualizada');
-  const c = mngCat();
-  logAudit({action:'import_pa', entityType:_mng.type==='pa'?'pa':'audit', entityId:String(_mng.idx),
-    summary:`${_mng.type==='pa'?'PA OM'+c.om:'Auditoria '+c.apCode}: atualizada (status "${status}"${novo_prazo?', prazo repactuado p/ '+novo_prazo:''})`});
+  logAudit({action:'import_pa', entityType:mngLogEnt(), entityId:mngLogId(),
+    summary:`${mngLogLbl()}: atualizada (status "${status}"${novo_prazo?', prazo repactuado p/ '+novo_prazo:''})`});
   mngReRender();
   closeItemMng();
 }
+function mngLogEnt(){ return _mng.type==='pa'?'pa':_mng.type==='audit'?'audit':'custom'; }
+function mngLogId(){ return String(_mng.idx ?? _mng.id); }
+function mngLogLbl(){ const c=mngCat(); return _mng.type==='pa'?'PA OM'+c.om : _mng.type==='audit'?'Auditoria '+c.apCode : 'Atividade "'+(c.titulo||'').slice(0,40)+'"'; }
 async function mngToggleHide(hide){
   if(hide && !confirm('Ocultar esta ação da lista? Ela pode ser restaurada depois pelo filtro "Ocultas".')) return;
   ss('loading', hide?'Ocultando...':'Restaurando...');
   const r = await mngUpsert({oculto: hide});
   if(!r) return;
   ss('ok','Salvo'); toast(hide?'Ação ocultada':'Ação restaurada');
-  const c = mngCat();
-  logAudit({action:'import_pa', entityType:_mng.type==='pa'?'pa':'audit', entityId:String(_mng.idx),
-    summary:`${_mng.type==='pa'?'PA OM'+c.om:'Auditoria '+c.apCode}: ${hide?'ocultada':'restaurada'}`});
+  logAudit({action:'import_pa', entityType:mngLogEnt(), entityId:mngLogId(),
+    summary:`${mngLogLbl()}: ${hide?'ocultada':'restaurada'}`});
   mngReRender();
   closeItemMng();
+}
+async function mngDelete(){
+  if(_mng.type!=='custom'){ toast('Itens do catálogo não podem ser excluídos — use Ocultar','err'); return; }
+  if(!confirm('Excluir permanentemente esta atividade? Comentários e anexos também serão removidos.')) return;
+  ss('loading','Excluindo...');
+  const id = _mng.id;
+  const {error} = await db.from('custom_actions').delete().eq('id', id);
+  if(error){ toast('Erro: '+error.message,'err'); ss('err','Erro'); return; }
+  const tipo = cusById(id).tipo;
+  CUS = CUS.filter(c=>c.id!==id);
+  delete CMT['cust_'+id]; delete ATT['cust_'+id];
+  ss('ok','Excluído'); toast('Atividade excluída');
+  logAudit({action:'task_delete', entityType:'custom', entityId:String(id), summary:`Atividade customizada excluída`});
+  closeItemMng();
+  tipo==='pa'?renderPlanoAcao():renderAuditoria();
 }
 async function mngAddComment(){
   const inp = document.getElementById('mngCmInput');
   const txt = inp.value.trim();
   if(!txt) return;
-  const payload = {texto:txt, profile_id:CP?.id||null, [mngIdxCol()]:_mng.idx};
+  const payload = {texto:txt, profile_id:CP?.id||null, ...mngIdxCol()};
   const {data, error} = await db.from('task_comments').insert(payload).select().single();
   if(error){ toast('Erro: '+error.message,'err'); return; }
   (CMT[mngKey()] = CMT[mngKey()]||[]).push(data);
@@ -4568,11 +4599,11 @@ async function mngUpload(evt){
     if(file.size > 50*1024*1024){ toast(`${file.name} maior que 50MB`,'err'); continue; }
     ss('loading',`Enviando ${file.name}...`);
     const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
-    const path = `${_mng.type}/${_mng.idx}/${Date.now()}_${safeName}`;
+    const path = `${_mng.type}/${_mng.idx ?? _mng.id}/${Date.now()}_${safeName}`;
     const up = await db.storage.from('task-files').upload(path, file, { upsert:false, contentType:file.type });
     if(up.error){ toast(explainStorageErr(up.error.message),'err'); continue; }
     const { data:pub } = db.storage.from('task-files').getPublicUrl(path);
-    const payload = {profile_id:CP?.id||null, nome:file.name, storage_path:path, url:pub.publicUrl, mime:file.type, tamanho:file.size, [mngIdxCol()]:_mng.idx};
+    const payload = {profile_id:CP?.id||null, nome:file.name, storage_path:path, url:pub.publicUrl, mime:file.type, tamanho:file.size, ...mngIdxCol()};
     const {data, error} = await db.from('task_attachments').insert(payload).select().single();
     if(error){ await db.storage.from('task-files').remove([path]); toast('Erro: '+error.message,'err'); continue; }
     (ATT[mngKey()] = ATT[mngKey()]||[]).unshift(data);
@@ -4591,6 +4622,262 @@ async function mngDelAttach(id, path){
   if(ATT[key]) ATT[key] = ATT[key].filter(a=>a.id!==id);
   ss('ok','Removido');
   refreshMngLists();
+}
+
+/* ============================================================
+   ATIVIDADES CUSTOMIZADAS (PA/Auditoria): criar, atualizar, anexar
+============================================================ */
+async function cusUpdate(id, patch){
+  const {data, error} = await db.from('custom_actions').update(patch).eq('id', id).select().single();
+  if(error){ toast('Erro: '+error.message,'err'); ss('err','Erro'); return null; }
+  const i = CUS.findIndex(c=>c.id===id);
+  if(i>=0) CUS[i] = data; else CUS.push(data);
+  return data;
+}
+
+let _newActTipo = null, _newActId = null;
+function openNewActivity(tipo){
+  _newActTipo = tipo;
+  _newActId = null;
+  const isAud = tipo==='audit';
+  const html = `<div class="mbg on" id="newActModal" onclick="if(event.target===this)closeNewActivity()">
+    <div class="modal" style="max-width:640px">
+      <div class="mhead">
+        <h2>${isAud?'🛡️ Nova atividade de Auditoria':'🎯 Nova tarefa do Plano de Ação'}</h2>
+        <button class="mclose" onclick="closeNewActivity()">✕</button>
+      </div>
+      <div class="mbody">
+        <div class="field" style="margin-bottom:.85rem"><label>${isAud?'Grupo / Apontamento':'Grupo / Oportunidade'} <span style="color:var(--t3);font-weight:400">(opcional)</span></label>
+          <input id="naGrupo" placeholder="${isAud?'Ex: RA AUDIR_MZ 0003 · #005':'Ex: OM9 · Nova oportunidade'}">
+        </div>
+        <div class="field" style="margin-bottom:.85rem"><label>Título / Ação <span class="req">*</span></label>
+          <input id="naTitulo" placeholder="Descreva a atividade">
+        </div>
+        <div class="field" style="margin-bottom:.85rem"><label>Descrição detalhada</label>
+          <textarea id="naDesc" placeholder="Detalhes da ação..."></textarea>
+        </div>
+        <div class="frow">
+          <div class="field"><label>Responsável</label><input id="naResp" placeholder="Ex: COBEN"></div>
+          <div class="field"><label>Interveniente</label><input id="naInterv" placeholder="Ex: COCAD"></div>
+        </div>
+        <div class="frow" style="margin-top:.85rem">
+          <div class="field"><label>Prazo final</label><input type="date" id="naPrazo"></div>
+          <div class="field"><label>Status inicial</label>
+            <select id="naStatus">${PA_STATUSES.map(s=>`<option>${s}</option>`).join('')}</select>
+          </div>
+        </div>
+        <div class="field" style="margin-top:.85rem">
+          <label>📎 Anexos <span class="tab-ct" id="naAtCt">0</span></label>
+          <div class="dropzone" onclick="if(_newActId)document.getElementById('naFileInput').click();else toast('Salve a atividade primeiro para anexar','err')" style="margin-top:.4rem">
+            <div style="font-size:22px">📂</div>
+            <div style="font-weight:700;margin-top:5px">Clique para anexar arquivo</div>
+            <div style="font-size:11px;color:var(--t3);margin-top:3px">Salve a atividade primeiro · PDF, Word, Excel, imagens — até 50MB</div>
+            <input type="file" id="naFileInput" style="display:none" onchange="naUpload(event)" multiple>
+          </div>
+          <ul class="atlist" id="naAtList" style="margin-top:.5rem"></ul>
+        </div>
+      </div>
+      <div class="mfoot">
+        <div style="flex:1"></div>
+        <button class="btn" onclick="closeNewActivity()">Cancelar</button>
+        <button class="btn primary" onclick="saveNewActivity()">💾 Salvar atividade</button>
+      </div>
+    </div>
+  </div>`;
+  const div = document.createElement('div');
+  div.id = 'newActWrap';
+  div.innerHTML = html;
+  document.body.appendChild(div);
+}
+function closeNewActivity(){ const m=document.getElementById('newActWrap'); if(m) m.remove(); _newActTipo=null; _newActId=null; }
+
+async function saveNewActivity(){
+  const titulo = document.getElementById('naTitulo').value.trim();
+  if(!titulo){ toast('Informe o título/ação','err'); return; }
+  const payload = {
+    tipo: _newActTipo,
+    grupo: document.getElementById('naGrupo').value.trim() || null,
+    titulo,
+    descricao: document.getElementById('naDesc').value.trim() || null,
+    resp: document.getElementById('naResp').value.trim() || null,
+    interv: document.getElementById('naInterv').value.trim() || null,
+    prazo: document.getElementById('naPrazo').value || null,
+    status: document.getElementById('naStatus').value,
+    criado_por: CP?.id || null,
+  };
+  ss('loading','Salvando...');
+  if(_newActId){
+    const r = await cusUpdate(_newActId, payload);
+    if(!r) return;
+  } else {
+    const {data, error} = await db.from('custom_actions').insert(payload).select().single();
+    if(error){ toast('Erro: '+error.message,'err'); ss('err','Erro'); return; }
+    CUS.push(data); _newActId = data.id;
+  }
+  ss('ok','Salvo'); toast('Atividade salva');
+  logAudit({action:'task_create', entityType:'custom', entityId:String(_newActId), summary:`Nova atividade ${_newActTipo==='pa'?'PA':'Auditoria'}: "${titulo.slice(0,60)}"`});
+  const tipo = _newActTipo;
+  closeNewActivity();
+  tipo==='pa'?renderPlanoAcao():renderAuditoria();
+}
+
+async function naUpload(evt){
+  if(!_newActId){ toast('Salve a atividade primeiro','err'); evt.target.value=''; return; }
+  const files = evt.target.files;
+  if(!files||!files.length) return;
+  for(const file of files){
+    if(file.size > 50*1024*1024){ toast(`${file.name} maior que 50MB`,'err'); continue; }
+    ss('loading',`Enviando ${file.name}...`);
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+    const path = `custom/${_newActId}/${Date.now()}_${safeName}`;
+    const up = await db.storage.from('task-files').upload(path, file, { upsert:false, contentType:file.type });
+    if(up.error){ toast(explainStorageErr(up.error.message),'err'); continue; }
+    const { data:pub } = db.storage.from('task-files').getPublicUrl(path);
+    const payload = {profile_id:CP?.id||null, nome:file.name, storage_path:path, url:pub.publicUrl, mime:file.type, tamanho:file.size, custom_id:_newActId};
+    const {data, error} = await db.from('task_attachments').insert(payload).select().single();
+    if(error){ await db.storage.from('task-files').remove([path]); toast('Erro: '+error.message,'err'); continue; }
+    (ATT['cust_'+_newActId] = ATT['cust_'+_newActId]||[]).unshift(data);
+  }
+  evt.target.value='';
+  ss('ok','Anexado'); toast('Arquivo(s) anexado(s)');
+  const list = ATT['cust_'+_newActId]||[];
+  document.getElementById('naAtList').innerHTML = list.map(a=>`<li class="atitem"><span class="ic">${fileIcon(a.mime,a.nome)}</span><div class="info"><div class="nm">${escapeHtml(a.nome||'')}</div><div class="meta">${fmtBytes(a.tamanho)}</div></div></li>`).join('');
+  document.getElementById('naAtCt').textContent = list.length;
+}
+
+// Renderiza o bloco de atividades customizadas de um tipo, anexado ao final da lista
+function renderCustomGroup(tipo, showHidden){
+  const items = CUS.filter(c=>c.tipo===tipo && (showHidden ? c.oculto : !c.oculto));
+  if(!items.length) return '';
+  const cColor = tipo==='audit'?'var(--teal)':'var(--purple)';
+  const cBg = tipo==='audit'?'var(--tl-bg)':'var(--p-bg)';
+  const subs = items.map(c=>{
+    const st = c.status || 'Não iniciado';
+    const effFim = c.novo_prazo || c.prazo;
+    const sugSid = sprintForDate(effFim);
+    const nCmt = (CMT['cust_'+c.id]||[]).length;
+    const nAtt = (ATT['cust_'+c.id]||[]).length;
+    let vinc;
+    if(c.vinculo_tipo==='tarefa'){
+      const t = TSK.find(t=>t.id===c.tarefa_id);
+      vinc = `<span class="pa-vinc on">🔗 Tarefa: ${escapeHtml((t?.titulo||'—').replace(/^\[.*?\]\s*/,'').slice(0,40))} · S${c.sprint_id}</span>`;
+    } else if(c.vinculo_tipo==='entrega'){
+      const [sid,ei] = (c.entrega_ref||'').split('-').map(Number);
+      const e = SP.find(s=>s.id===sid)?.entregas[ei];
+      vinc = `<span class="pa-vinc on">🔗 Entrega: ${escapeHtml((e?.desc||'—').slice(0,40))} · S${sid}</span>`;
+    } else vinc = `<span class="pa-vinc off">Sem vínculo</span>`;
+    return `<div class="pa-sub" ${c.oculto?'style="opacity:.6"':''}>
+      <div class="pa-sub-top">
+        <span class="pa-sub-code">➕</span>
+        <div style="flex:1">
+          <div class="pa-sub-desc">${escapeHtml(c.titulo)}</div>
+          <div class="pa-sub-meta">
+            ${c.grupo?`<span><b>Grupo:</b> ${escapeHtml(c.grupo)}</span>`:''}
+            ${c.resp?`<span><b>Resp.:</b> ${escapeHtml(c.resp)}</span>`:''}
+            ${c.interv?`<span><b>Interv.:</b> ${escapeHtml(c.interv)}</span>`:''}
+            ${c.novo_prazo
+              ? `<span><b>Prazo:</b> <s style="color:var(--t3)">${c.prazo||'—'}</s> → <b style="color:var(--amber)">${c.novo_prazo}</b> → S${sugSid}</span>`
+              : (c.prazo?`<span><b>Prazo:</b> ${c.prazo} → S${sugSid}</span>`:'')}
+            ${nCmt?`<span>💬 ${nCmt}</span>`:''}
+            ${nAtt?`<span>📎 ${nAtt}</span>`:''}
+          </div>
+          ${c.descricao?`<div class="pa-sub-meta"><span style="font-style:italic">${escapeHtml(c.descricao.slice(0,160))}</span></div>`:''}
+          ${c.obs?`<div class="pa-sub-meta"><span style="font-style:italic">📝 ${escapeHtml(c.obs.slice(0,160))}</span></div>`:''}
+        </div>
+        <span class="pa-badge ${paStatusClass(st)}">${escapeHtml(st)}</span>
+      </div>
+      <div class="pa-sub-actions">
+        ${vinc}
+        <div style="flex:1"></div>
+        <button class="pa-btn" onclick="openItemMng('custom','${c.id}')" title="Gerenciar">⚙️ Gerenciar</button>
+        ${c.vinculo_tipo
+          ? `<button class="pa-btn" onclick="cusUnlink('${c.id}')">Desvincular</button>`
+          : `<button class="pa-btn" onclick="openCusLink('${c.id}')">🔗 Vincular</button>
+             <button class="pa-btn primary" onclick="cusCreateTask('${c.id}')">+ Criar tarefa (sug. S${sugSid})</button>`}
+      </div>
+    </div>`;
+  }).join('');
+  return `<div class="pa-om open" style="margin-top:.6rem">
+    <div class="pa-om-head" style="border-left:4px solid ${cColor}">
+      <span class="pa-om-num" style="background:${cBg};color:${cColor}">➕ NOVAS</span>
+      <div class="pa-om-tit">Atividades adicionadas
+        <div class="pa-om-meta">${items.length} atividade(s) criada(s) manualmente</div>
+      </div>
+    </div>
+    <div class="pa-om-body">${subs}</div>
+  </div>`;
+}
+
+async function cusUnlink(id){
+  if(!confirm('Remover o vínculo desta atividade?')) return;
+  ss('loading','Removendo vínculo...');
+  const r = await cusUpdate(id, {vinculo_tipo:null, tarefa_id:null, entrega_ref:null});
+  if(!r) return;
+  ss('ok','Removido'); toast('Vínculo removido');
+  cusById(id).tipo==='pa'?renderPlanoAcao():renderAuditoria();
+}
+function cusCreateTask(id){
+  const c = cusById(id);
+  const sugSid = sprintForDate(c.novo_prazo || c.prazo);
+  openCreateTask({
+    title: c.titulo,
+    info: `${c.grupo||'Atividade adicionada'} · Prazo: ${c.novo_prazo||c.prazo||'—'}`,
+    sugSid,
+    onConfirm: (sid)=>cusCreateTaskDo(id, sid)
+  });
+}
+async function cusCreateTaskDo(id, sid){
+  const c = cusById(id);
+  ss('loading','Criando tarefa...');
+  const tag = c.tipo==='audit'?'AUD':'PA';
+  const desc = `${c.tipo==='audit'?'Auditoria':'Plano de Ação'} (atividade adicionada)\n${c.grupo?c.grupo+'\n':''}${c.descricao||''}\nResponsável: ${c.resp||'—'}${c.interv?'\nInterveniente: '+c.interv:''}\nPrazo: ${c.novo_prazo||c.prazo||'—'}`;
+  const payload = {
+    sprint_id: sid,
+    titulo: `[${tag}+] ${c.titulo.slice(0,90)}`,
+    descricao: desc,
+    status: /concl/i.test(c.status||'') ? 'concluido' : 'pendente',
+    prioridade: 'media', fase:'execucao',
+    data_fim: c.novo_prazo || c.prazo || null,
+    criado_por: CP?.id || null,
+  };
+  const {data, error} = await db.from('subtarefas').insert(payload).select().single();
+  if(error){ toast('Erro ao criar tarefa: '+error.message,'err'); ss('err','Erro'); return; }
+  await cusUpdate(id, {vinculo_tipo:'tarefa', tarefa_id:data.id, sprint_id:sid, entrega_ref:null});
+  await loadAll(); ss('ok','Criada'); toast(`Tarefa criada na Sprint ${sid}`);
+  logAudit({action:'task_create', entityType:'task', entityId:data.id, sprintId:sid, summary:`Atividade adicionada: tarefa criada na S${sid}`});
+  c.tipo==='pa'?renderPlanoAcao():renderAuditoria();
+}
+let _cusLinkId = null;
+function openCusLink(id){
+  _cusLinkId = id;
+  const c = cusById(id);
+  const sugSid = sprintForDate(c.novo_prazo || c.prazo);
+  document.getElementById('auLinkTitle').textContent = c.titulo.slice(0,90);
+  document.getElementById('auLinkInfo').textContent = `${c.grupo||'Atividade adicionada'} · Prazo: ${c.novo_prazo||c.prazo||'—'}`;
+  const sel = document.getElementById('auLinkSprint');
+  sel.innerHTML = SP.map(s=>`<option value="${s.id}" ${s.id===sugSid?'selected':''}>Sprint ${s.id} — ${s.m}</option>`).join('');
+  document.getElementById('auLinkModal').dataset.cus = id;
+  renderAuLinkTargets();
+  // troca o handler de confirmação
+  document.querySelector('#auLinkModal .btn.primary').setAttribute('onclick','confirmCusLink()');
+  document.getElementById('auLinkModal').classList.add('on');
+}
+async function confirmCusLink(){
+  const id = _cusLinkId;
+  const sid = +document.getElementById('auLinkSprint').value;
+  const sel = document.querySelector('input[name="auTarget"]:checked');
+  if(!sel){ toast('Selecione uma entrega ou tarefa','err'); return; }
+  const [kind, ref] = sel.value.split(':');
+  ss('loading','Vinculando...');
+  const patch = kind==='e'
+    ? {vinculo_tipo:'entrega', entrega_ref:ref, tarefa_id:null, sprint_id:sid}
+    : {vinculo_tipo:'tarefa', tarefa_id:ref, entrega_ref:null, sprint_id:sid};
+  const r = await cusUpdate(id, patch);
+  if(!r) return;
+  document.getElementById('auLinkModal').classList.remove('on');
+  document.querySelector('#auLinkModal .btn.primary').setAttribute('onclick','confirmAuLink()');
+  ss('ok','Vinculado'); toast('Atividade vinculada');
+  cusById(id).tipo==='pa'?renderPlanoAcao():renderAuditoria();
 }
 
 /* ============================================================
@@ -5062,6 +5349,82 @@ function renderGiro(){
     html += `<div class="empty"><div class="ic">📭</div>Nenhuma movimentacao registrada nesta semana.<br><span style="font-size:12px;color:var(--t3)">Movimente tarefas, faca reunioes e adicione comentarios para gerar o giro.</span></div>`;
   }
   el.innerHTML = html;
+  renderGiroHistory();
+}
+
+function renderGiroHistory(){
+  const el = document.getElementById('giroHistory');
+  if(!el) return;
+  if(!GIROS.length){ el.innerHTML=''; return; }
+  el.innerHTML = `<div style="margin-top:1.5rem">
+    <h3 style="margin-bottom:.7rem;font-size:14px">🗂️ Giros salvos (${GIROS.length})</h3>
+    <div class="dlist">${GIROS.map(g=>{
+      const autor = g.criado_por?mBI(g.criado_por):null;
+      const dt = g.created_at ? new Date(g.created_at).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '';
+      return `<div class="drow">
+        <span class="echip" style="background:var(--acc-bg);color:var(--accent);font-size:16px">📰</span>
+        <div class="dbody" style="cursor:pointer" onclick="viewGiro('${g.id}')">
+          <div class="dproj">${g.label||''}${g.sprint_id?' · Sprint '+g.sprint_id:''}${autor?' · '+escapeHtml(autor.nome.split(' ')[0]):''}</div>
+          <div class="ddesc">Giro de ${g.periodo_inicio} a ${g.periodo_fim}</div>
+          <div style="font-size:11px;color:var(--t3);margin-top:2px">Gerado em ${dt} · ${(g.texto||'').length} caracteres</div>
+        </div>
+        <div onclick="event.stopPropagation()" style="display:flex;gap:4px">
+          <button class="btn sm" onclick="viewGiro('${g.id}')" title="Ver">👁️</button>
+          <button class="btn sm" onclick="copyGiroSaved('${g.id}')" title="Copiar">📋</button>
+          <button class="btn sm" onclick="deleteGiro('${g.id}')" title="Excluir" style="color:var(--red)">🗑️</button>
+        </div>
+      </div>`;
+    }).join('')}</div>
+  </div>`;
+}
+
+function giroTextToHtml(text){
+  return text
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g,'<em>$1</em>')
+    .replace(/^#{1,3}\s+(.+)$/gm,'<h4 style="margin:1rem 0 .3rem;color:var(--accent)">$1</h4>')
+    .replace(/^- (.+)$/gm,'<div style="padding-left:1rem;margin:.15rem 0">• $1</div>')
+    .replace(/^(\d+)\.\s+(.+)$/gm,'<div style="padding-left:1rem;margin:.15rem 0">$1. $2</div>')
+    .replace(/\n\n/g,'<br><br>').replace(/\n/g,'<br>');
+}
+function viewGiro(id){
+  const g = GIROS.find(x=>x.id===id);
+  if(!g) return;
+  const html = `<div class="mbg on" onclick="if(event.target===this)this.remove()">
+    <div class="modal" style="max-width:760px">
+      <div class="mhead">
+        <h2>📰 Giro — ${g.label||''}</h2>
+        <button class="mclose" onclick="this.closest('.mbg').remove()">✕</button>
+      </div>
+      <div class="mbody">
+        <div style="font-size:13px;line-height:1.75;color:var(--text)">${giroTextToHtml(g.texto||'')}</div>
+      </div>
+      <div class="mfoot">
+        <button class="btn danger" onclick="deleteGiro('${g.id}');this.closest('.mbg').remove()">🗑️ Excluir</button>
+        <div style="flex:1"></div>
+        <button class="btn" onclick="copyGiroSaved('${g.id}')">📋 Copiar</button>
+        <button class="btn primary" onclick="this.closest('.mbg').remove()">Fechar</button>
+      </div>
+    </div>
+  </div>`;
+  const div = document.createElement('div');
+  div.innerHTML = html;
+  document.body.appendChild(div.firstChild);
+}
+function copyGiroSaved(id){
+  const g = GIROS.find(x=>x.id===id);
+  if(!g) return;
+  navigator.clipboard.writeText(g.texto||'').then(()=>toast('Resumo copiado!')).catch(()=>toast('Erro ao copiar','err'));
+}
+async function deleteGiro(id){
+  if(!confirm('Excluir este giro do histórico?')) return;
+  ss('loading','Excluindo...');
+  const {error} = await db.from('giros').delete().eq('id', id);
+  if(error){ toast('Erro: '+error.message,'err'); ss('err','Erro'); return; }
+  GIROS = GIROS.filter(g=>g.id!==id);
+  ss('ok','Excluído'); toast('Giro excluído');
+  renderGiroHistory();
 }
 
 function saveApiKey(){
@@ -5403,6 +5766,16 @@ async function gerarGiroIA(){
     rawEl.style.display = 'none';
     rawEl.textContent = text;
     iaEl.appendChild(rawEl);
+
+    // Grava o giro no histórico
+    try {
+      const payload = {
+        periodo_inicio: wk.start, periodo_fim: wk.end, label: wk.label,
+        sprint_id: cs()?.id || null, texto: text, criado_por: CP?.id || null
+      };
+      const {data:gd, error:ge} = await db.from('giros').insert(payload).select().single();
+      if(!ge && gd){ GIROS.unshift(gd); toast('Giro salvo no histórico'); renderGiroHistory(); }
+    } catch(_){}
 
   } catch(e){
     iaEl.innerHTML = `<div style="background:var(--bg2);border:1px solid var(--red);border-radius:var(--rxl);margin-top:1rem;overflow:hidden;box-shadow:var(--shadow)">
