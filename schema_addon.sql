@@ -35,10 +35,14 @@ alter table task_comments add column if not exists sprint_id   integer;
 alter table task_comments add column if not exists entrega_idx integer;
 alter table task_comments add column if not exists evento_id   uuid references calendar_events(id) on delete cascade;
 alter table task_comments add column if not exists evento_data date;
+alter table task_comments add column if not exists pa_idx      integer;
+alter table task_comments add column if not exists audit_idx   integer;
 create index if not exists idx_task_comments_tarefa      on task_comments(tarefa_id);
 create index if not exists idx_task_comments_entrega     on task_comments(sprint_id, entrega_idx);
 create index if not exists idx_task_comments_evento      on task_comments(evento_id);
 create index if not exists idx_task_comments_evento_data on task_comments(evento_id, evento_data);
+create index if not exists idx_task_comments_pa          on task_comments(pa_idx);
+create index if not exists idx_task_comments_audit       on task_comments(audit_idx);
 
 -- =====================================================
 -- IDEIAS & APRENDIZADO
@@ -88,11 +92,15 @@ alter table task_attachments add column if not exists entrega_idx integer;
 alter table task_attachments add column if not exists evento_id   uuid references calendar_events(id) on delete cascade;
 alter table task_attachments add column if not exists evento_data date;
 alter table task_attachments add column if not exists ideia_id    uuid references ideias(id) on delete cascade;
+alter table task_attachments add column if not exists pa_idx      integer;
+alter table task_attachments add column if not exists audit_idx   integer;
 create index if not exists idx_task_attachments_tarefa      on task_attachments(tarefa_id);
 create index if not exists idx_task_attachments_entrega     on task_attachments(sprint_id, entrega_idx);
 create index if not exists idx_task_attachments_evento      on task_attachments(evento_id);
 create index if not exists idx_task_attachments_evento_data on task_attachments(evento_id, evento_data);
 create index if not exists idx_task_attachments_ideia       on task_attachments(ideia_id);
+create index if not exists idx_task_attachments_pa          on task_attachments(pa_idx);
+create index if not exists idx_task_attachments_audit       on task_attachments(audit_idx);
 
 -- =====================================================
 -- CHECKLIST — tarefa OU entrega
@@ -159,8 +167,14 @@ create table if not exists pa_items (
   entrega_ref  text,
   tarefa_id    uuid references subtarefas(id) on delete set null,
   obs          text,
+  oculto       boolean default false,
+  novo_prazo   date,
+  prazo_motivo text,
   updated_at   timestamptz default now()
 );
+alter table pa_items add column if not exists oculto       boolean default false;
+alter table pa_items add column if not exists novo_prazo   date;
+alter table pa_items add column if not exists prazo_motivo text;
 create index if not exists idx_pa_items_sprint on pa_items(sprint_id);
 drop trigger if exists t_pa_upd on pa_items;
 create trigger t_pa_upd before update on pa_items
@@ -183,8 +197,14 @@ create table if not exists audit_items (
   entrega_ref  text,
   tarefa_id    uuid references subtarefas(id) on delete set null,
   obs          text,
+  oculto       boolean default false,
+  novo_prazo   date,
+  prazo_motivo text,
   updated_at   timestamptz default now()
 );
+alter table audit_items add column if not exists oculto       boolean default false;
+alter table audit_items add column if not exists novo_prazo   date;
+alter table audit_items add column if not exists prazo_motivo text;
 create index if not exists idx_audit_items_sprint on audit_items(sprint_id);
 drop trigger if exists t_audit_upd on audit_items;
 create trigger t_audit_upd before update on audit_items

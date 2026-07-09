@@ -545,6 +545,8 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
 .pa-badge.and{background:var(--a-bg);color:var(--amber)}
 .pa-badge.ok{background:var(--g-bg);color:var(--green)}
 .pa-badge.atraso{background:var(--r-bg);color:var(--red)}
+.pa-badge.cancel{background:var(--bg4);color:var(--t3);text-decoration:line-through}
+.pa-badge.bloq{background:var(--p-bg);color:var(--purple)}
 .pa-btn{font-size:11px;font-weight:600;padding:4px 10px;border-radius:7px;border:1px solid var(--border);background:var(--bg1);color:var(--t1);cursor:pointer;font-family:inherit}
 .pa-btn:hover{border-color:var(--accent);color:var(--accent)}
 .giro-section{margin-bottom:1.2rem}
@@ -883,11 +885,18 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
             <option value="Não iniciado">Não iniciado</option>
             <option value="Em andamento">Em andamento</option>
             <option value="Concluído">Concluído</option>
+            <option value="Atrasado">Atrasado</option>
+            <option value="Bloqueado">Bloqueado</option>
+            <option value="Cancelado">Cancelado</option>
           </select>
           <select class="sel" id="paFilterVinc" onchange="renderPlanoAcao()">
             <option value="">Vínculo: todos</option>
             <option value="sim">Já vinculados</option>
             <option value="nao">Sem vínculo</option>
+          </select>
+          <select class="sel" id="paShowHidden" onchange="renderPlanoAcao()">
+            <option value="">Ativas</option>
+            <option value="sim">🚫 Ocultas</option>
           </select>
         </div>
         <div class="pa-summary" id="paSummary"></div>
@@ -911,11 +920,17 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
             <option value="Em andamento">Em andamento</option>
             <option value="Concluído">Concluído</option>
             <option value="Atrasado">Atrasado</option>
+            <option value="Bloqueado">Bloqueado</option>
+            <option value="Cancelado">Cancelado</option>
           </select>
           <select class="sel" id="auFilterVinc" onchange="renderAuditoria()">
             <option value="">Vínculo: todos</option>
             <option value="sim">Já vinculados</option>
             <option value="nao">Sem vínculo</option>
+          </select>
+          <select class="sel" id="auShowHidden" onchange="renderAuditoria()">
+            <option value="">Ativas</option>
+            <option value="sim">🚫 Ocultas</option>
           </select>
         </div>
         <div class="pa-summary" id="auSummary"></div>
@@ -2177,14 +2192,18 @@ async function loadAll(){
     RVI={}; (rvi.data||[]).forEach(i=>{(RVI[i.review_id]=RVI[i.review_id]||[]).push(i)});
     CMT={}; (rc.data||[]).forEach(c=>{
       let k;
-      if(c.tarefa_id) k = c.tarefa_id;
+      if(c.pa_idx != null) k = 'pa_'+c.pa_idx;
+      else if(c.audit_idx != null) k = 'aud_'+c.audit_idx;
+      else if(c.tarefa_id) k = c.tarefa_id;
       else if(c.evento_id) k = c.evento_data ? `ev_${c.evento_id}_${c.evento_data}` : `ev_${c.evento_id}`;
       else k = `e_${c.sprint_id}_${c.entrega_idx}`;
       (CMT[k]=CMT[k]||[]).push(c);
     });
     ATT={}; (ra.data||[]).forEach(a=>{
       let k;
-      if(a.ideia_id) k = 'idea_'+a.ideia_id;
+      if(a.pa_idx != null) k = 'pa_'+a.pa_idx;
+      else if(a.audit_idx != null) k = 'aud_'+a.audit_idx;
+      else if(a.ideia_id) k = 'idea_'+a.ideia_id;
       else if(a.tarefa_id) k = a.tarefa_id;
       else if(a.evento_id) k = a.evento_data ? `ev_${a.evento_id}_${a.evento_data}` : `ev_${a.evento_id}`;
       else k = `e_${a.sprint_id}_${a.entrega_idx}`;
@@ -3870,12 +3889,16 @@ function paStatusClass(st){
   if(/concl/i.test(st)) return 'ok';
   if(/andamento/i.test(st)) return 'and';
   if(/atras/i.test(st)) return 'atraso';
+  if(/cancel/i.test(st)) return 'cancel';
+  if(/bloque/i.test(st)) return 'bloq';
   return 'nao';
 }
+const PA_STATUSES = ['Não iniciado','Em andamento','Concluído','Atrasado','Bloqueado','Cancelado'];
 
 function renderPlanoAcao(){
   const fStatus = document.getElementById('paFilterStatus')?.value || '';
   const fVinc   = document.getElementById('paFilterVinc')?.value || '';
+  const showHidden = document.getElementById('paShowHidden')?.value === 'sim';
 
   // agrupa por OM preservando ordem
   const oms = [];
@@ -3885,22 +3908,26 @@ function renderPlanoAcao(){
     omMap[it.om].items.push({...it, idx});
   });
 
-  // métricas globais
-  const total = PA_GB.length;
-  const nConcl = PA_GB.filter((_,i)=>/concl/i.test(paEffStatus(i))).length;
-  const nAnd   = PA_GB.filter((_,i)=>/andamento/i.test(paEffStatus(i))).length;
-  const nVinc  = PA_GB.filter((_,i)=>paItem(i).vinculo_tipo).length;
-  const pct    = Math.round(100*nConcl/total);
+  // métricas globais (exclui ocultas)
+  const visIdx = PA_GB.map((_,i)=>i).filter(i=>!paItem(i).oculto);
+  const total = visIdx.length;
+  const nConcl = visIdx.filter(i=>/concl/i.test(paEffStatus(i))).length;
+  const nAnd   = visIdx.filter(i=>/andamento/i.test(paEffStatus(i))).length;
+  const nVinc  = visIdx.filter(i=>paItem(i).vinculo_tipo).length;
+  const nOcult = PA_GB.filter((_,i)=>paItem(i).oculto).length;
+  const pct    = total ? Math.round(100*nConcl/total) : 0;
   document.getElementById('paSummary').innerHTML = `
     <div class="rv-mc"><div class="rv-val">${total}</div><div class="rv-lbl">Subações</div></div>
     <div class="rv-mc"><div class="rv-val">${oms.length}</div><div class="rv-lbl">Oportunidades</div></div>
     <div class="rv-mc"><div class="rv-val" style="color:var(--green)">${nConcl}</div><div class="rv-lbl">Concluídas</div></div>
     <div class="rv-mc"><div class="rv-val" style="color:var(--amber)">${nAnd}</div><div class="rv-lbl">Em andamento</div></div>
     <div class="rv-mc"><div class="rv-val" style="color:var(--accent)">${nVinc}</div><div class="rv-lbl">Vinculadas</div></div>
+    ${nOcult?`<div class="rv-mc"><div class="rv-val" style="color:var(--t3)">${nOcult}</div><div class="rv-lbl">Ocultas</div></div>`:''}
     <div class="rv-mc"><div class="rv-val">${pct}%</div><div class="rv-lbl">Progresso</div></div>`;
 
   const html = oms.map(group=>{
     let items = group.items;
+    items = items.filter(x=> showHidden ? paItem(x.idx).oculto : !paItem(x.idx).oculto);
     if(fStatus) items = items.filter(x=>paEffStatus(x.idx)===fStatus);
     if(fVinc==='sim') items = items.filter(x=>paItem(x.idx).vinculo_tipo);
     if(fVinc==='nao') items = items.filter(x=>!paItem(x.idx).vinculo_tipo);
@@ -3912,8 +3939,11 @@ function renderPlanoAcao(){
     const subs = items.map(x=>{
       const st = paEffStatus(x.idx);
       const pi = paItem(x.idx);
-      const sugSid = sprintForDate(x.fim);
+      const effFim = pi.novo_prazo || x.fim;
+      const sugSid = sprintForDate(effFim);
       const sugS = SP.find(s=>s.id===sugSid);
+      const nCmt = (CMT['pa_'+x.idx]||[]).length;
+      const nAtt = (ATT['pa_'+x.idx]||[]).length;
       let vinc;
       if(pi.vinculo_tipo==='tarefa'){
         const t = TSK.find(t=>t.id===pi.tarefa_id);
@@ -3925,7 +3955,7 @@ function renderPlanoAcao(){
       } else {
         vinc = `<span class="pa-vinc off">Sem vínculo</span>`;
       }
-      return `<div class="pa-sub">
+      return `<div class="pa-sub" ${pi.oculto?'style="opacity:.6"':''}>
         <div class="pa-sub-top">
           <span class="pa-sub-code">${escapeHtml((x.sub.match(/^[\d.]+/)||[''])[0]||'•')}</span>
           <div style="flex:1">
@@ -3933,21 +3963,23 @@ function renderPlanoAcao(){
             <div class="pa-sub-meta">
               ${x.acao?`<span><b>Ação:</b> ${escapeHtml(x.acao)}</span>`:''}
               ${x.resp?`<span><b>Resp.:</b> ${escapeHtml(x.resp)}</span>`:''}
-              ${x.fim?`<span><b>Entrega:</b> ${x.fim} → S${sugSid} (${sugS?.m||''})</span>`:''}
+              ${pi.novo_prazo
+                ? `<span><b>Prazo:</b> <s style="color:var(--t3)">${x.fim||'—'}</s> → <b style="color:var(--amber)">${pi.novo_prazo}</b> (repactuado) → S${sugSid}</span>`
+                : (x.fim?`<span><b>Entrega:</b> ${x.fim} → S${sugSid} (${sugS?.m||''})</span>`:'')}
+              ${nCmt?`<span>💬 ${nCmt}</span>`:''}
+              ${nAtt?`<span>📎 ${nAtt}</span>`:''}
             </div>
-            ${x.obs?`<div class="pa-sub-meta"><span style="font-style:italic">${escapeHtml(x.obs.slice(0,160))}</span></div>`:''}
+            ${pi.obs?`<div class="pa-sub-meta"><span style="font-style:italic">📝 ${escapeHtml(pi.obs.slice(0,160))}</span></div>`:(x.obs?`<div class="pa-sub-meta"><span style="font-style:italic">${escapeHtml(x.obs.slice(0,160))}</span></div>`:'')}
           </div>
           <span class="pa-badge ${paStatusClass(st)}">${escapeHtml(st)}</span>
         </div>
         <div class="pa-sub-actions">
           ${vinc}
           <div style="flex:1"></div>
-          <select onchange="paSetStatus(${x.idx}, this.value)" title="Status">
-            ${['Não iniciado','Em andamento','Concluído','Atrasado'].map(s=>`<option ${st===s?'selected':''}>${s}</option>`).join('')}
-          </select>
+          <button class="pa-btn" onclick="openItemMng('pa',${x.idx})" title="Gerenciar: status, prazo, comentários, anexos">⚙️ Gerenciar</button>
           ${pi.vinculo_tipo
             ? `<button class="pa-btn" onclick="paUnlink(${x.idx})">Desvincular</button>`
-            : `<button class="pa-btn" onclick="openPaLink(${x.idx})">🔗 Vincular a tarefa</button>
+            : `<button class="pa-btn" onclick="openPaLink(${x.idx})">🔗 Vincular</button>
                <button class="pa-btn primary" onclick="paCreateTask(${x.idx})">+ Criar tarefa (sug. S${sugSid})</button>`}
         </div>
       </div>`;
@@ -3965,7 +3997,7 @@ function renderPlanoAcao(){
     </div>`;
   }).join('');
 
-  document.getElementById('paList').innerHTML = html || `<div class="empty"><div class="ic">🎯</div>Nenhuma subação com esses filtros</div>`;
+  document.getElementById('paList').innerHTML = html || `<div class="empty"><div class="ic">🎯</div>${showHidden?'Nenhuma subação oculta':'Nenhuma subação com esses filtros'}</div>`;
 }
 
 function togglePaOm(om){ _paOpen[om] = !_paOpen[om]; renderPlanoAcao(); }
@@ -4114,6 +4146,7 @@ function renderAuditoria(){
   const fCrit   = document.getElementById('auFilterCrit')?.value || '';
   const fStatus = document.getElementById('auFilterStatus')?.value || '';
   const fVinc   = document.getElementById('auFilterVinc')?.value || '';
+  const showHidden = document.getElementById('auShowHidden')?.value === 'sim';
 
   // agrupa por apontamento preservando ordem
   const aps = [];
@@ -4123,13 +4156,15 @@ function renderAuditoria(){
     apMap[it.ap].items.push({...it, idx});
   });
 
-  // métricas globais
-  const total = AUDIT_GB.length;
-  const nConcl = AUDIT_GB.filter((_,i)=>/concl/i.test(auEffStatus(i))).length;
-  const nAnd   = AUDIT_GB.filter((_,i)=>/andamento/i.test(auEffStatus(i))).length;
-  const nVinc  = AUDIT_GB.filter((_,i)=>auItem(i).vinculo_tipo).length;
+  // métricas globais (exclui ocultas)
+  const visIdx = AUDIT_GB.map((_,i)=>i).filter(i=>!auItem(i).oculto);
+  const total = visIdx.length;
+  const nConcl = visIdx.filter(i=>/concl/i.test(auEffStatus(i))).length;
+  const nAnd   = visIdx.filter(i=>/andamento/i.test(auEffStatus(i))).length;
+  const nVinc  = visIdx.filter(i=>auItem(i).vinculo_tipo).length;
   const nAlta  = aps.filter(a=>/alta/i.test(a.crit)).length;
-  const pct    = Math.round(100*nConcl/total);
+  const nOcult = AUDIT_GB.filter((_,i)=>auItem(i).oculto).length;
+  const pct    = total ? Math.round(100*nConcl/total) : 0;
   document.getElementById('auSummary').innerHTML = `
     <div class="rv-mc"><div class="rv-val">${aps.length}</div><div class="rv-lbl">Apontamentos</div></div>
     <div class="rv-mc"><div class="rv-val">${total}</div><div class="rv-lbl">Ações</div></div>
@@ -4137,11 +4172,13 @@ function renderAuditoria(){
     <div class="rv-mc"><div class="rv-val" style="color:var(--green)">${nConcl}</div><div class="rv-lbl">Concluídas</div></div>
     <div class="rv-mc"><div class="rv-val" style="color:var(--amber)">${nAnd}</div><div class="rv-lbl">Em andamento</div></div>
     <div class="rv-mc"><div class="rv-val" style="color:var(--accent)">${nVinc}</div><div class="rv-lbl">Vinculadas</div></div>
+    ${nOcult?`<div class="rv-mc"><div class="rv-val" style="color:var(--t3)">${nOcult}</div><div class="rv-lbl">Ocultas</div></div>`:''}
     <div class="rv-mc"><div class="rv-val">${pct}%</div><div class="rv-lbl">Progresso</div></div>`;
 
   const html = aps.map(group=>{
     if(fCrit && group.crit!==fCrit) return '';
     let items = group.items;
+    items = items.filter(x=> showHidden ? auItem(x.idx).oculto : !auItem(x.idx).oculto);
     if(fStatus) items = items.filter(x=>auEffStatus(x.idx)===fStatus);
     if(fVinc==='sim') items = items.filter(x=>auItem(x.idx).vinculo_tipo);
     if(fVinc==='nao') items = items.filter(x=>!auItem(x.idx).vinculo_tipo);
@@ -4155,8 +4192,11 @@ function renderAuditoria(){
     const subs = items.map(x=>{
       const st = auEffStatus(x.idx);
       const pi = auItem(x.idx);
-      const sugSid = sprintForDate(x.fim);
+      const effFim = pi.novo_prazo || x.fim;
+      const sugSid = sprintForDate(effFim);
       const sugS = SP.find(s=>s.id===sugSid);
+      const nCmt = (CMT['aud_'+x.idx]||[]).length;
+      const nAtt = (ATT['aud_'+x.idx]||[]).length;
       let vinc;
       if(pi.vinculo_tipo==='tarefa'){
         const t = TSK.find(t=>t.id===pi.tarefa_id);
@@ -4168,7 +4208,7 @@ function renderAuditoria(){
       } else {
         vinc = `<span class="pa-vinc off">Sem vínculo</span>`;
       }
-      return `<div class="pa-sub">
+      return `<div class="pa-sub" ${pi.oculto?'style="opacity:.6"':''}>
         <div class="pa-sub-top">
           <span class="pa-sub-code">${escapeHtml(x.num)}</span>
           <div style="flex:1">
@@ -4177,20 +4217,23 @@ function renderAuditoria(){
               ${x.resp?`<span><b>Resp.:</b> ${escapeHtml(x.resp)}</span>`:''}
               ${x.interv?`<span><b>Interveniente:</b> ${escapeHtml(x.interv)}</span>`:''}
               ${x.ini?`<span><b>Início:</b> ${x.ini}</span>`:''}
-              ${x.fim?`<span><b>Prazo final:</b> ${x.fim} → S${sugSid} (${sugS?.m||''})</span>`:''}
+              ${pi.novo_prazo
+                ? `<span><b>Prazo:</b> <s style="color:var(--t3)">${x.fim||'—'}</s> → <b style="color:var(--amber)">${pi.novo_prazo}</b> (repactuado) → S${sugSid}</span>`
+                : (x.fim?`<span><b>Prazo final:</b> ${x.fim} → S${sugSid} (${sugS?.m||''})</span>`:'')}
+              ${nCmt?`<span>💬 ${nCmt}</span>`:''}
+              ${nAtt?`<span>📎 ${nAtt}</span>`:''}
             </div>
+            ${pi.obs?`<div class="pa-sub-meta"><span style="font-style:italic">📝 ${escapeHtml(pi.obs.slice(0,160))}</span></div>`:''}
           </div>
           <span class="pa-badge ${paStatusClass(st)}">${escapeHtml(st)}</span>
         </div>
         <div class="pa-sub-actions">
           ${vinc}
           <div style="flex:1"></div>
-          <select onchange="auSetStatus(${x.idx}, this.value)" title="Status">
-            ${['Não iniciado','Em andamento','Concluído','Atrasado'].map(s=>`<option ${st===s?'selected':''}>${s}</option>`).join('')}
-          </select>
+          <button class="pa-btn" onclick="openItemMng('audit',${x.idx})" title="Gerenciar: status, prazo, comentários, anexos">⚙️ Gerenciar</button>
           ${pi.vinculo_tipo
             ? `<button class="pa-btn" onclick="auUnlink(${x.idx})">Desvincular</button>`
-            : `<button class="pa-btn" onclick="openAuLink(${x.idx})">🔗 Vincular a tarefa</button>
+            : `<button class="pa-btn" onclick="openAuLink(${x.idx})">🔗 Vincular</button>
                <button class="pa-btn primary" onclick="auCreateTask(${x.idx})">+ Criar tarefa (sug. S${sugSid})</button>`}
         </div>
       </div>`;
@@ -4218,7 +4261,7 @@ function renderAuditoria(){
     </div>`;
   }).join('');
 
-  document.getElementById('auList').innerHTML = html || `<div class="empty"><div class="ic">🛡️</div>Nenhuma ação com esses filtros</div>`;
+  document.getElementById('auList').innerHTML = html || `<div class="empty"><div class="ic">🛡️</div>${showHidden?'Nenhuma ação oculta':'Nenhuma ação com esses filtros'}</div>`;
 }
 
 function toggleAuAp(ap){ _auOpen[ap] = !_auOpen[ap]; renderAuditoria(); }
@@ -4323,6 +4366,231 @@ async function auUnlink(idx){
   if(!r) return;
   ss('ok','Removido'); toast('Vínculo removido');
   renderAuditoria();
+}
+
+/* ============================================================
+   GESTÃO DE AÇÃO (PA/Auditoria): status, ocultar, repactuar
+   prazo, observações, comentários e anexos.
+============================================================ */
+let _mng = null; // {type:'pa'|'audit', idx}
+function mngCat(){ return _mng.type==='pa' ? PA_GB[_mng.idx] : AUDIT_GB[_mng.idx]; }
+function mngItem(){ return _mng.type==='pa' ? paItem(_mng.idx) : auItem(_mng.idx); }
+function mngUpsert(patch){ return _mng.type==='pa' ? paUpsert(_mng.idx, patch) : auUpsert(_mng.idx, patch); }
+function mngEffStatus(){ return _mng.type==='pa' ? paEffStatus(_mng.idx) : auEffStatus(_mng.idx); }
+function mngReRender(){ _mng.type==='pa' ? renderPlanoAcao() : renderAuditoria(); }
+function mngKey(){ return (_mng.type==='pa' ? 'pa_' : 'aud_') + _mng.idx; }
+function mngIdxCol(){ return _mng.type==='pa' ? 'pa_idx' : 'audit_idx'; }
+function mngOrigFim(){ const c=mngCat(); return _mng.type==='pa' ? c.fim : c.fim; }
+function mngTitle(){ const c=mngCat(); return _mng.type==='pa' ? c.sub.replace(/^[\d.]+\s*/,'') : `Ação ${c.num}: ${c.desc}`; }
+function mngSubtitle(){ const c=mngCat(); return _mng.type==='pa' ? `OM${c.om} · ${c.omt.slice(0,80)}` : `${c.apCode} · ${c.apTit}`; }
+
+function openItemMng(type, idx){
+  _mng = {type, idx};
+  const c = mngCat();
+  const pi = mngItem();
+  const st = mngEffStatus();
+  const origFim = mngOrigFim();
+  const key = mngKey();
+  const cmts = CMT[key] || [];
+  const atts = ATT[key] || [];
+  const isHidden = !!pi.oculto;
+
+  const html = `<div class="mbg on" onclick="if(event.target===this)closeItemMng()">
+    <div class="modal" style="max-width:720px">
+      <div class="mhead">
+        <h2>${type==='pa'?'🎯 Ação do Plano':'🛡️ Ação de Auditoria'}</h2>
+        <button class="mclose" onclick="closeItemMng()">✕</button>
+      </div>
+      <div class="mbody">
+        <div style="background:var(--bg3);border-radius:10px;padding:.8rem .95rem;margin-bottom:1rem">
+          <div style="font-size:13px;font-weight:700;line-height:1.45">${escapeHtml(mngTitle())}</div>
+          <div style="font-size:11px;color:var(--t3);margin-top:5px">${escapeHtml(mngSubtitle())}</div>
+          ${isHidden?`<div style="margin-top:8px;font-size:11px;color:var(--amber);font-weight:700">⚠️ Esta ação está oculta da lista</div>`:''}
+        </div>
+
+        <div class="frow">
+          <div class="field"><label>Status</label>
+            <select id="mngStatus">
+              ${PA_STATUSES.map(s=>`<option ${st===s?'selected':''}>${s}</option>`).join('')}
+            </select>
+          </div>
+          <div class="field"><label>Prazo original</label>
+            <input value="${origFim||'—'}" disabled style="opacity:.7">
+          </div>
+        </div>
+
+        <div style="background:var(--a-bg);border:1px solid var(--amber);border-radius:10px;padding:.8rem .95rem;margin:.6rem 0 1rem">
+          <div style="font-size:12px;font-weight:700;color:var(--amber);margin-bottom:.5rem">🗓️ Repactuar prazo</div>
+          <div class="frow">
+            <div class="field"><label>Novo prazo</label>
+              <input type="date" id="mngNovoPrazo" value="${pi.novo_prazo||''}">
+            </div>
+          </div>
+          <div class="field" style="margin-top:.5rem"><label>Justificativa da repactuação</label>
+            <textarea id="mngPrazoMotivo" placeholder="Motivo da mudança de prazo...">${pi.prazo_motivo?escapeHtml(pi.prazo_motivo):''}</textarea>
+          </div>
+        </div>
+
+        <div class="field" style="margin-bottom:1rem"><label>Observações</label>
+          <textarea id="mngObs" placeholder="Anotações internas sobre esta ação...">${pi.obs?escapeHtml(pi.obs):''}</textarea>
+        </div>
+
+        <div class="field" style="margin-bottom:1rem">
+          <label>💬 Comentários <span class="tab-ct" id="mngCmCt">${cmts.length}</span></label>
+          <div id="mngCmList" style="margin:.4rem 0">${renderMngComments(cmts)}</div>
+          <div style="display:flex;gap:.5rem;margin-top:.4rem">
+            <input class="inp" id="mngCmInput" placeholder="Escreva um comentário..." style="flex:1" onkeydown="if(event.key==='Enter'&&(event.ctrlKey||event.metaKey))mngAddComment()">
+            <button class="btn primary" onclick="mngAddComment()">Enviar</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>📎 Anexos <span class="tab-ct" id="mngAtCt">${atts.length}</span></label>
+          <div class="dropzone" onclick="document.getElementById('mngFileInput').click()" style="margin-top:.4rem">
+            <div style="font-size:22px">📂</div>
+            <div style="font-weight:700;margin-top:5px">Clique para anexar arquivo</div>
+            <div style="font-size:11px;color:var(--t3);margin-top:3px">PDF, Word, Excel, imagens — até 50MB</div>
+            <input type="file" id="mngFileInput" style="display:none" onchange="mngUpload(event)" multiple>
+          </div>
+          <ul class="atlist" id="mngAtList" style="margin-top:.5rem">${renderMngAttachs(atts)}</ul>
+        </div>
+      </div>
+      <div class="mfoot">
+        ${isHidden
+          ? `<button class="btn" onclick="mngToggleHide(false)">↩️ Restaurar</button>`
+          : `<button class="btn danger" onclick="mngToggleHide(true)">🚫 Ocultar da lista</button>`}
+        <div style="flex:1"></div>
+        <button class="btn" onclick="closeItemMng()">Fechar</button>
+        <button class="btn primary" onclick="mngSave()">💾 Salvar</button>
+      </div>
+    </div>
+  </div>`;
+  const div = document.createElement('div');
+  div.id = 'itemMngModal';
+  div.innerHTML = html;
+  document.body.appendChild(div);
+}
+function closeItemMng(){ const m=document.getElementById('itemMngModal'); if(m) m.remove(); _mng=null; }
+
+function renderMngComments(list){
+  if(!list.length) return '<div style="font-size:11px;color:var(--t3);padding:.3rem 0">Sem comentários ainda.</div>';
+  return list.map(c=>{
+    const m = c.profile_id?mBI(c.profile_id):(c.user_id?mBI(c.user_id):null);
+    const dt = c.created_at ? new Date(c.created_at).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '';
+    return `<div style="background:var(--bg3);border-radius:8px;padding:.5rem .7rem;margin-bottom:.35rem">
+      <div style="display:flex;gap:6px;align-items:center;margin-bottom:2px">
+        <span style="font-size:11px;font-weight:700">${m?escapeHtml(m.nome):'—'}</span>
+        <span style="font-size:10px;color:var(--t3)">${dt}</span>
+        <div style="flex:1"></div>
+        <button onclick="mngDelComment('${c.id}')" title="Excluir" style="background:none;border:none;color:var(--t3);cursor:pointer;font-size:12px">✕</button>
+      </div>
+      <div style="font-size:12px;line-height:1.5">${escapeHtml(c.texto||'')}</div>
+    </div>`;
+  }).join('');
+}
+function renderMngAttachs(list){
+  if(!list.length) return '<li style="color:var(--t3);font-size:11px;padding:.3rem 0;text-align:center">Sem anexos ainda.</li>';
+  return list.map(a=>{
+    const dt = a.created_at ? new Date(a.created_at).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '';
+    return `<li class="atitem">
+      <span class="ic">${fileIcon(a.mime, a.nome)}</span>
+      <div class="info">
+        <div class="nm" title="${escapeHtml(a.nome||'Arquivo')}">${escapeHtml(a.nome||'Arquivo')}</div>
+        <div class="meta">${fmtBytes(a.tamanho)}${dt?' • '+dt:''}</div>
+      </div>
+      <div class="acts">
+        <a href="${a.url}" target="_blank" title="Baixar/Abrir">↓</a>
+        <button onclick="mngDelAttach('${a.id}','${a.storage_path}')" title="Excluir">✕</button>
+      </div>
+    </li>`;
+  }).join('');
+}
+function refreshMngLists(){
+  const key = mngKey();
+  const cmts = CMT[key]||[], atts = ATT[key]||[];
+  const cl = document.getElementById('mngCmList'); if(cl) cl.innerHTML = renderMngComments(cmts);
+  const al = document.getElementById('mngAtList'); if(al) al.innerHTML = renderMngAttachs(atts);
+  const cc = document.getElementById('mngCmCt'); if(cc) cc.textContent = cmts.length;
+  const ac = document.getElementById('mngAtCt'); if(ac) ac.textContent = atts.length;
+}
+
+async function mngSave(){
+  const status = document.getElementById('mngStatus').value;
+  const novo_prazo = document.getElementById('mngNovoPrazo').value || null;
+  const prazo_motivo = document.getElementById('mngPrazoMotivo').value.trim() || null;
+  const obs = document.getElementById('mngObs').value.trim() || null;
+  if(novo_prazo && !prazo_motivo){ toast('Informe a justificativa da repactuação de prazo','err'); return; }
+  ss('loading','Salvando...');
+  const r = await mngUpsert({status, novo_prazo, prazo_motivo, obs});
+  if(!r) return;
+  ss('ok','Salvo'); toast('Ação atualizada');
+  const c = mngCat();
+  logAudit({action:'import_pa', entityType:_mng.type==='pa'?'pa':'audit', entityId:String(_mng.idx),
+    summary:`${_mng.type==='pa'?'PA OM'+c.om:'Auditoria '+c.apCode}: atualizada (status "${status}"${novo_prazo?', prazo repactuado p/ '+novo_prazo:''})`});
+  mngReRender();
+  closeItemMng();
+}
+async function mngToggleHide(hide){
+  if(hide && !confirm('Ocultar esta ação da lista? Ela pode ser restaurada depois pelo filtro "Ocultas".')) return;
+  ss('loading', hide?'Ocultando...':'Restaurando...');
+  const r = await mngUpsert({oculto: hide});
+  if(!r) return;
+  ss('ok','Salvo'); toast(hide?'Ação ocultada':'Ação restaurada');
+  const c = mngCat();
+  logAudit({action:'import_pa', entityType:_mng.type==='pa'?'pa':'audit', entityId:String(_mng.idx),
+    summary:`${_mng.type==='pa'?'PA OM'+c.om:'Auditoria '+c.apCode}: ${hide?'ocultada':'restaurada'}`});
+  mngReRender();
+  closeItemMng();
+}
+async function mngAddComment(){
+  const inp = document.getElementById('mngCmInput');
+  const txt = inp.value.trim();
+  if(!txt) return;
+  const payload = {texto:txt, profile_id:CP?.id||null, [mngIdxCol()]:_mng.idx};
+  const {data, error} = await db.from('task_comments').insert(payload).select().single();
+  if(error){ toast('Erro: '+error.message,'err'); return; }
+  (CMT[mngKey()] = CMT[mngKey()]||[]).push(data);
+  inp.value='';
+  refreshMngLists();
+}
+async function mngDelComment(id){
+  if(!confirm('Excluir este comentário?')) return;
+  const {error} = await db.from('task_comments').delete().eq('id', id);
+  if(error){ toast('Erro: '+error.message,'err'); return; }
+  const key = mngKey();
+  if(CMT[key]) CMT[key] = CMT[key].filter(c=>c.id!==id);
+  refreshMngLists();
+}
+async function mngUpload(evt){
+  const files = evt.target.files;
+  if(!files || !files.length) return;
+  for(const file of files){
+    if(file.size > 50*1024*1024){ toast(`${file.name} maior que 50MB`,'err'); continue; }
+    ss('loading',`Enviando ${file.name}...`);
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+    const path = `${_mng.type}/${_mng.idx}/${Date.now()}_${safeName}`;
+    const up = await db.storage.from('task-files').upload(path, file, { upsert:false, contentType:file.type });
+    if(up.error){ toast(explainStorageErr(up.error.message),'err'); continue; }
+    const { data:pub } = db.storage.from('task-files').getPublicUrl(path);
+    const payload = {profile_id:CP?.id||null, nome:file.name, storage_path:path, url:pub.publicUrl, mime:file.type, tamanho:file.size, [mngIdxCol()]:_mng.idx};
+    const {data, error} = await db.from('task_attachments').insert(payload).select().single();
+    if(error){ await db.storage.from('task-files').remove([path]); toast('Erro: '+error.message,'err'); continue; }
+    (ATT[mngKey()] = ATT[mngKey()]||[]).unshift(data);
+  }
+  evt.target.value='';
+  ss('ok','Anexado'); toast('Arquivo(s) anexado(s)');
+  refreshMngLists();
+}
+async function mngDelAttach(id, path){
+  if(!confirm('Excluir este anexo?')) return;
+  ss('loading','Excluindo...');
+  await db.storage.from('task-files').remove([path]);
+  const {error} = await db.from('task_attachments').delete().eq('id', id);
+  if(error){ toast('Erro: '+error.message,'err'); ss('err','Erro'); return; }
+  const key = mngKey();
+  if(ATT[key]) ATT[key] = ATT[key].filter(a=>a.id!==id);
+  ss('ok','Removido');
+  refreshMngLists();
 }
 
 /* ============================================================
