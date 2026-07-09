@@ -4065,10 +4065,10 @@ function openIdeia(id){
   _editingIdeia = found ? {...found, _existed: true} : null;
   const idea = _editingIdeia;
   const attachs = idea ? (ATT['idea_'+idea.id]||[]) : [];
-  const html = `<div class="modal-overlay on" onclick="if(event.target===this)closeIdeia()">
+  const html = `<div class="mbg on" onclick="if(event.target===this)closeIdeia()">
     <div class="modal" style="max-width:640px">
-      <div class="mh"><h2>${idea?'Editar':'Nova'} Ideia</h2><button class="mx" onclick="closeIdeia()">×</button></div>
-      <div class="mb" style="padding:1.2rem">
+      <div class="mhead"><h2>${idea?'Editar':'Nova'} Ideia</h2><button class="mclose" onclick="closeIdeia()">✕</button></div>
+      <div class="mbody" style="padding:1.2rem">
         <label class="fl">Tipo</label>
         <select class="sel" id="ideaTipo" style="width:100%;margin-bottom:.8rem">
           ${IDEA_TIPOS.map(t=>`<option value="${t.k}" ${idea?.tipo===t.k?'selected':''}>${t.l}</option>`).join('')}
