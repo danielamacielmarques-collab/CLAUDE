@@ -4086,7 +4086,7 @@ function openIdeia(id){
           ${IDEA_STATUS.map(s=>`<option value="${s.k}" ${(idea?.status||'rascunho')===s.k?'selected':''}>${s.l}</option>`).join('')}
         </select>
 
-        ${idea ? `<div style="border-top:1px solid var(--border);padding-top:.8rem;margin-top:.3rem">
+        <div style="border-top:1px solid var(--border);padding-top:.8rem;margin-top:.3rem">
           <label class="fl">📎 Anexos</label>
           <div class="dropzone" onclick="document.getElementById('ideaFileInput').click()" style="margin-bottom:.6rem">
             <div style="font-size:24px">📁</div>
@@ -4099,7 +4099,7 @@ function openIdeia(id){
             <span style="font-size:10px;color:var(--t3)">${a.tamanho?Math.round(a.tamanho/1024)+'KB':''}</span>
             <button class="btn sm danger" onclick="delIdeiaAttach('${a.id}','${a.storage_path}')">🗑️</button>
           </div>`).join('') : '<div style="font-size:12px;color:var(--t3)">Sem anexos ainda.</div>'}</div>
-        </div>` : `<div style="font-size:11px;color:var(--t3);font-style:italic;margin-bottom:.5rem">💡 Salve a ideia primeiro para poder anexar arquivos.</div>`}
+        </div>
 
         <div style="display:flex;gap:.5rem;justify-content:flex-end;align-items:center;margin-top:.5rem">
           ${idea?`<button class="btn danger" onclick="deleteIdeia('${idea.id}')" style="margin-right:auto">🗑️ Excluir</button>`:''}
@@ -4156,7 +4156,25 @@ async function saveIdeia(){
 }
 
 async function uploadIdeiaAttach(evt){
-  if(!_editingIdeia){ toast('Salve a ideia primeiro','err'); return; }
+  if(!_editingIdeia){
+    const titulo = document.getElementById('ideaTitulo')?.value?.trim();
+    if(!titulo){ toast('Informe o título antes de anexar','err'); evt.target.value=''; return; }
+    const payload = {
+      tipo: document.getElementById('ideaTipo').value,
+      titulo,
+      descricao: document.getElementById('ideaDesc')?.value?.trim() || null,
+      link: document.getElementById('ideaLink')?.value?.trim() || null,
+      tags_text: document.getElementById('ideaTags')?.value?.trim() || null,
+      status: document.getElementById('ideaStatus')?.value || 'rascunho',
+      autor_id: CP?.id || null
+    };
+    ss('loading','Salvando ideia...');
+    const {data, error} = await db.from('ideias').insert(payload).select().single();
+    if(error){ toast('Erro ao salvar: '+error.message,'err'); ss('err','Erro'); evt.target.value=''; return; }
+    _editingIdeia = data;
+    await loadAll();
+    toast('Ideia salva automaticamente');
+  }
   const files = evt.target.files;
   if(!files || !files.length) return;
   for(const file of files){
