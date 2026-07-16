@@ -5519,7 +5519,7 @@ DADOS DA SEMANA:\n\n`;
       if(evCmt.length){
         ctx += `   Registros/Ata da reuniao (${evCmt.length} comentarios):\n`;
         evCmt.forEach(c=>{
-          const autor = c.user_id?mBI(c.user_id):null;
+          const autor = c.profile_id?mBI(c.profile_id):(c.user_id?mBI(c.user_id):null);
           ctx += `     - ${autor?(autor.nome||'').split(' ')[0]||'?'+': ':''}${(c.texto||'').slice(0,300)}\n`;
         });
       }
@@ -5560,14 +5560,14 @@ DADOS DA SEMANA:\n\n`;
       ctx += '\n';
       audits.forEach(a=>{
         const det = a.details?(typeof a.details==='string'?JSON.parse(a.details):a.details):{};
-        const autor = a.user_id?mBI(a.user_id):null;
+        const autor = a.profile_id?mBI(a.profile_id):(a.user_id?mBI(a.user_id):null);
         if(det.from||a.summary) ctx += `  Alteracao: ${a.summary||''} ${det.from?'('+det.from+' -> '+det.to+')':''} ${autor?'por '+(autor.nome||'').split(' ')[0]||'?':''}\n`;
       });
       const tCmt = data.weekComments.filter(c=>c._key===t.id);
       if(tCmt.length){
         ctx += `  Comentarios (${tCmt.length}):\n`;
         tCmt.slice(0,5).forEach(c=>{
-          const autor = c.user_id?mBI(c.user_id):null;
+          const autor = c.profile_id?mBI(c.profile_id):(c.user_id?mBI(c.user_id):null);
           ctx += `    - ${autor?(autor.nome||'').split(' ')[0]||'?'+': ':''}${(c.texto||'').slice(0,200)}\n`;
         });
       }
@@ -5581,7 +5581,7 @@ DADOS DA SEMANA:\n\n`;
     ctx += `=== ENTREGAS ATUALIZADAS (${data.entregaUpdates.length}) ===\n`;
     data.entregaUpdates.forEach(a=>{
       const det = a.details?(typeof a.details==='string'?JSON.parse(a.details):a.details):{};
-      const autor = a.user_id?mBI(a.user_id):null;
+      const autor = a.profile_id?mBI(a.profile_id):(a.user_id?mBI(a.user_id):null);
       ctx += `- ${a.summary||'Entrega'} S${a.sprint_id||'?'}`;
       if(det.from) ctx += ` (${det.from} -> ${det.to})`;
       if(autor) ctx += ` por ${(autor.nome||'').split(' ')[0]||'?'}`;
@@ -5596,7 +5596,7 @@ DADOS DA SEMANA:\n\n`;
     if(nonEvCmt.length){
       ctx += `=== OUTROS COMENTARIOS (${nonEvCmt.length}) ===\n`;
       nonEvCmt.slice(0,15).forEach(c=>{
-        const autor = c.user_id?mBI(c.user_id):null;
+        const autor = c.profile_id?mBI(c.profile_id):(c.user_id?mBI(c.user_id):null);
         const task = TSK.find(t=>t.id===c._key);
         ctx += `- ${autor?(autor.nome||'').split(' ')[0]||'?'+': ':''}${(c.texto||'').slice(0,200)}`;
         if(task) ctx += ` (em: ${task.titulo.slice(0,60)})`;
@@ -5637,29 +5637,29 @@ DADOS DA SEMANA:\n\n`;
     ctx += `=== REVIEWS REALIZADAS ===\n${data.reviewActions.length} review(s) salva(s)/atualizada(s)\n\n`;
   }
 
-  if(data.paActions&&data.paActions.length){
-    ctx += `=== PLANO DE ACAO — MOVIMENTACOES (${data.paActions.length}) ===\n`;
-    data.paActions.slice(0,30).forEach(a=>{ ctx += `- ${a.summary||'atualizacao'}\n`; });
-    ctx += '\n';
-  }
-  if(data.auditActions&&data.auditActions.length){
-    ctx += `=== AUDITORIA — MOVIMENTACOES (${data.auditActions.length}) ===\n`;
-    data.auditActions.slice(0,30).forEach(a=>{ ctx += `- ${a.summary||'atualizacao'}\n`; });
-    ctx += '\n';
-  }
-  if(data.customCreated&&data.customCreated.length){
-    ctx += `=== NOVAS ATIVIDADES CRIADAS (PA/Auditoria) (${data.customCreated.length}) ===\n`;
-    data.customCreated.forEach(c=>{
-      ctx += `- [${c.tipo==='audit'?'Auditoria':'Plano de Acao'}] ${c.titulo}${c.resp?' | Resp.: '+c.resp:''}${c.prazo?' | Prazo: '+c.prazo:''}\n`;
-    });
-    ctx += '\n';
+  // Auditoria e Plano de Acao: NAO detalhar item a item. Apenas sinalizar
+  // que houve priorizacao/organizacao das demandas nas sprints.
+  const orgPA = (data.paActions?.length||0) + (data.customCreated||[]).filter(c=>c.tipo==='pa').length;
+  const orgAUD = (data.auditActions?.length||0) + (data.customCreated||[]).filter(c=>c.tipo==='audit').length;
+  if(orgPA || orgAUD){
+    ctx += `=== ORGANIZACAO DE DEMANDAS (nao detalhar item a item) ===\n`;
+    ctx += `Houve trabalho de PRIORIZACAO E ORGANIZACAO das demandas de Auditoria e do Plano de Acao (COBEN/COPEP) dentro das sprints`;
+    ctx += ` (${orgAUD} movimentacao(oes) de auditoria, ${orgPA} de plano de acao).\n`;
+    ctx += `IMPORTANTE: trate isso como UMA UNICA nota geral de "priorizacao e organizacao das demandas de auditoria e plano de acao COBEN/COPEP nas sprints". NAO liste cada acao individualmente.\n\n`;
   }
 
   ctx += `====================================================
 SUA TAREFA:
-Voce e o analista do Nucleo de Inovacao e Dados (NID) da COBEN/FUNCEF. Faca uma AVALIACAO INTELIGENTE dos dados da semana acima e produza um RESUMO simples, claro e acessivel para o time ler antes da Weekly.
+Voce e o(a) reporter animado(a) do Nucleo de Inovacao e Dados (NID) da COBEN/FUNCEF. Faca uma AVALIACAO INTELIGENTE dos dados da semana acima e produza um RESUMO leve, criativo e divertido para o time ler antes da Weekly — que coloque todos na mesma pagina com um sorriso.
 
-Linguagem: direta e objetiva, frases curtas, sem jargao e sem tom de jornal/marketing. Ordene as informacoes de forma logica. Use SOMENTE os dados acima — nao invente nada. Cite o primeiro nome de quem fez, quando houver.
+Linguagem: criativa, bem-humorada e cativante, MAS clara e facil de entender. Pode usar emojis com moderacao, trocadilhos leves e um tom energetico. Frases curtas. Nada de jargao chato nem tom de relatorio formal. Ordene as informacoes de forma logica.
+
+FOCO (muito importante):
+- Priorize o que e RELEVANTE PARA A SPRINT ATUAL ou para o BACKLOG: tarefas criadas/movidas, entregas, reunioes e ideias/projetos que impactam o trabalho do time.
+- Atividades de AUDITORIA e PLANO DE ACAO (COBEN/COPEP): NAO detalhe item a item. Cite no MAXIMO uma linha dizendo que houve "priorizacao e organizacao das demandas de auditoria e plano de acao COBEN/COPEP nas sprints" (coloque isso preferencialmente em "movido" ou "atencao", de forma resumida).
+- So cite tarefas/atividades ligadas a sprint atual ou ao backlog nas secoes de tarefas e feito.
+
+Use SOMENTE os dados acima — nao invente nada. Cite o primeiro nome de quem fez, quando houver (o nome do responsavel/autor ja vem nos dados).
 
 FORMATO DE SAIDA — responda APENAS com um objeto JSON valido (sem markdown, sem crase, sem texto antes/depois) com esta estrutura exata:
 {
