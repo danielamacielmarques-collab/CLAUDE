@@ -547,6 +547,52 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
 .pa-badge.atraso{background:var(--r-bg);color:var(--red)}
 .pa-badge.cancel{background:var(--bg4);color:var(--t3);text-decoration:line-through}
 .pa-badge.bloq{background:var(--p-bg);color:var(--purple)}
+
+/* ============ GIRO DA SEMANA — JORNAL ============ */
+.giro-news{margin-top:1rem}
+.giro-toolbar{display:flex;gap:6px;justify-content:flex-end;margin-bottom:.6rem;flex-wrap:wrap}
+.giro-paper{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rxl);box-shadow:var(--shadow-lg);padding:2rem 2.2rem;font-family:Georgia,'Times New Roman',serif;color:var(--text)}
+html[data-theme="light"] .giro-paper{background:#fcfbf7}
+.giro-masthead{text-align:center;border-bottom:3px double var(--text);padding-bottom:.7rem;margin-bottom:1rem}
+.giro-kicker{font-family:'Inter',sans-serif;font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:var(--t2);font-weight:700}
+.giro-title{font-size:clamp(30px,6vw,52px);font-weight:900;letter-spacing:-.5px;line-height:1;margin:.2rem 0}
+.giro-dateline{display:flex;justify-content:center;gap:1.2rem;flex-wrap:wrap;font-family:'Inter',sans-serif;font-size:10.5px;color:var(--t2);text-transform:uppercase;letter-spacing:.08em;border-top:1px solid var(--border);padding-top:.5rem;margin-top:.4rem}
+.giro-manchete{font-size:clamp(22px,4vw,34px);font-weight:800;line-height:1.12;text-align:center;margin:1rem 0 .3rem}
+.giro-linhafina{text-align:center;font-size:15px;font-style:italic;color:var(--t2);margin-bottom:1rem;padding-bottom:1rem;border-bottom:1px solid var(--border)}
+.giro-stats{display:flex;flex-wrap:wrap;justify-content:center;gap:0;border:1px solid var(--border);border-radius:8px;overflow:hidden;margin:0 0 1.1rem}
+.giro-stat{flex:1;min-width:80px;text-align:center;padding:.6rem .4rem;border-right:1px solid var(--border);font-family:'Inter',sans-serif}
+.giro-stat:last-child{border-right:none}
+.giro-stat .v{font-size:22px;font-weight:900;color:var(--accent);line-height:1}
+.giro-stat .l{font-size:9.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--t2);margin-top:2px}
+.giro-lede{font-size:16px;line-height:1.55;font-weight:600;margin:0 0 1.1rem;padding-left:1rem;border-left:3px solid var(--accent)}
+.giro-lede::first-letter{font-size:2.6em;font-weight:900;float:left;line-height:.8;margin:.05em .12em 0 0;color:var(--accent)}
+.giro-body{display:grid;grid-template-columns:1fr;gap:1.4rem}
+@media(min-width:760px){.giro-body{grid-template-columns:2fr 1fr}}
+.giro-editoria{display:inline-block;font-family:'Inter',sans-serif;font-size:9.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);border-bottom:2px solid var(--accent);padding-bottom:1px;margin-bottom:.35rem}
+.giro-lead{border-bottom:1px solid var(--border);padding-bottom:1rem;margin-bottom:1rem}
+.giro-lead-tit{font-size:24px;font-weight:800;line-height:1.15;margin:.15rem 0 .5rem}
+.giro-lead-txt{font-size:14.5px;line-height:1.65;margin:0}
+.giro-cols{columns:2;column-gap:1.4rem}
+@media(max-width:560px){.giro-cols{columns:1}}
+.giro-art{break-inside:avoid;margin-bottom:1rem;border-top:1px solid var(--border);padding-top:.7rem}
+.giro-art:first-child{border-top:none;padding-top:0}
+.giro-art-tit{font-size:16px;font-weight:800;line-height:1.2;margin:.15rem 0 .35rem}
+.giro-art-txt{font-size:13px;line-height:1.6;margin:0;color:var(--text)}
+.giro-side{font-family:'Inter',sans-serif}
+.giro-quote{margin:0 0 1rem;padding:1rem;background:var(--acc-bg);border-radius:10px;font-family:Georgia,serif;font-size:16px;font-style:italic;line-height:1.4;color:var(--text)}
+.giro-quote cite{display:block;margin-top:.5rem;font-size:11px;font-style:normal;font-weight:700;color:var(--accent)}
+.giro-box{border:1px solid var(--border);border-radius:10px;padding:.8rem .9rem;margin-bottom:.8rem;background:var(--bg3)}
+.giro-box.alert{background:var(--a-bg);border-color:var(--amber)}
+.giro-box-tit{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);margin-bottom:.4rem}
+.giro-box.alert .giro-box-tit{color:var(--amber)}
+.giro-box ul{margin:0;padding-left:1.1rem}
+.giro-box li{font-size:12px;line-height:1.5;margin-bottom:.3rem;color:var(--text)}
+.giro-fecho{margin-top:1.4rem;padding:1rem 1.2rem;text-align:center;font-size:15px;font-weight:700;font-style:italic;background:linear-gradient(135deg,var(--acc-bg),var(--g-bg));border-radius:10px}
+.giro-foot{display:flex;justify-content:space-between;flex-wrap:wrap;gap:.4rem;font-family:'Inter',sans-serif;font-size:9.5px;color:var(--t3);border-top:2px solid var(--text);margin-top:1.4rem;padding-top:.6rem;text-transform:uppercase;letter-spacing:.05em}
+@media print{
+  .sidebar,.topbar,.giro-toolbar,.nb{display:none!important}
+  .giro-paper{box-shadow:none;border:none}
+}
 .pa-btn{font-size:11px;font-weight:600;padding:4px 10px;border-radius:7px;border:1px solid var(--border);background:var(--bg1);color:var(--t1);cursor:pointer;font-family:inherit}
 .pa-btn:hover{border-color:var(--accent);color:var(--accent)}
 .giro-section{margin-bottom:1.2rem}
@@ -5286,7 +5332,12 @@ function collectWeekData(wk){
   const newTasks = TSK.filter(t=>newTaskIds.has(t.id));
   const updatedTaskIds = new Set(taskUpdates.map(a=>a.entity_id));
   const updatedTasks = TSK.filter(t=>updatedTaskIds.has(t.id) && !newTaskIds.has(t.id));
-  return {weekAud,weekEvents,taskCreates,taskUpdates:weekAud.filter(a=>a.entity_type==='task'&&(a.action==='task_update'||a.action==='task_create')),entregaUpdates,reviewActions,weekComments,weekAttach,weekIdeias,newTasks,updatedTasks};
+  // Ações de governança de PA / Auditoria / atividades customizadas
+  const paActions = weekAud.filter(a=>a.entity_type==='pa');
+  const auditActions = weekAud.filter(a=>a.entity_type==='audit');
+  const customActions = weekAud.filter(a=>a.entity_type==='custom');
+  const customCreated = (CUS||[]).filter(c=>{ const d=c.created_at?.slice(0,10); return d&&d>=wk.start&&d<=wk.end; });
+  return {weekAud,weekEvents,taskCreates,taskUpdates:weekAud.filter(a=>a.entity_type==='task'&&(a.action==='task_update'||a.action==='task_create')),entregaUpdates,reviewActions,weekComments,weekAttach,weekIdeias,newTasks,updatedTasks,paActions,auditActions,customActions,customCreated};
 }
 
 function renderGiro(){
@@ -5376,19 +5427,24 @@ function giroTextToHtml(text){
 function viewGiro(id){
   const g = GIROS.find(x=>x.id===id);
   if(!g) return;
+  let dados = g.dados;
+  if(dados && typeof dados==='string'){ try{ dados = JSON.parse(dados); }catch(_){ dados=null; } }
+  const meta = { label: g.label||'', sprint: g.sprint_id||'—' };
+  const bodyHtml = dados
+    ? renderGiroNews(dados, meta, {toolbar:false})
+    : `<div style="font-size:13px;line-height:1.75;color:var(--text)">${giroTextToHtml(g.texto||'')}</div>`;
   const html = `<div class="mbg on" onclick="if(event.target===this)this.remove()">
-    <div class="modal" style="max-width:760px">
+    <div class="modal" style="max-width:900px">
       <div class="mhead">
         <h2>📰 Giro — ${g.label||''}</h2>
         <button class="mclose" onclick="this.closest('.mbg').remove()">✕</button>
       </div>
-      <div class="mbody">
-        <div style="font-size:13px;line-height:1.75;color:var(--text)">${giroTextToHtml(g.texto||'')}</div>
-      </div>
+      <div class="mbody">${bodyHtml}</div>
       <div class="mfoot">
         <button class="btn danger" onclick="deleteGiro('${g.id}');this.closest('.mbg').remove()">🗑️ Excluir</button>
         <div style="flex:1"></div>
         <button class="btn" onclick="copyGiroSaved('${g.id}')">📋 Copiar</button>
+        <button class="btn" onclick="sendGiroSavedTeams('${g.id}')">📤 Teams</button>
         <button class="btn primary" onclick="this.closest('.mbg').remove()">Fechar</button>
       </div>
     </div>
@@ -5396,6 +5452,21 @@ function viewGiro(id){
   const div = document.createElement('div');
   div.innerHTML = html;
   document.body.appendChild(div.firstChild);
+}
+async function sendGiroSavedTeams(id){
+  const g = GIROS.find(x=>x.id===id);
+  if(!g) return;
+  const hook = localStorage.getItem('teams_webhook');
+  if(!hook){ if(confirm('Nenhum webhook do Teams configurado. Configurar agora?')) configTeams(); return; }
+  ss('loading','Enviando ao Teams...');
+  try {
+    await fetch(hook, { method:'POST', headers:{'Content-Type':'text/plain'}, body: JSON.stringify({ text: g.texto||'' }) });
+    ss('ok','Enviado'); toast('📤 Giro enviado ao Teams!');
+  } catch(e){
+    ss('err','Falha'); try{ await navigator.clipboard.writeText(g.texto||''); }catch(_){}
+    toast('Não foi possível enviar direto (CORS). Texto copiado.','err');
+    window.open('https://teams.microsoft.com/','_blank');
+  }
 }
 function copyGiroSaved(id){
   const g = GIROS.find(x=>x.id===id);
@@ -5564,26 +5635,55 @@ DADOS DA SEMANA:\n\n`;
     ctx += `=== REVIEWS REALIZADAS ===\n${data.reviewActions.length} review(s) salva(s)/atualizada(s)\n\n`;
   }
 
-  ctx += `INSTRUCOES:
-Gere um resumo executivo completo para abrir a Weekly do NID/COBEN. O tom deve ser leve, direto e motivador.
+  if(data.paActions&&data.paActions.length){
+    ctx += `=== PLANO DE ACAO — MOVIMENTACOES (${data.paActions.length}) ===\n`;
+    data.paActions.slice(0,30).forEach(a=>{ ctx += `- ${a.summary||'atualizacao'}\n`; });
+    ctx += '\n';
+  }
+  if(data.auditActions&&data.auditActions.length){
+    ctx += `=== AUDITORIA — MOVIMENTACOES (${data.auditActions.length}) ===\n`;
+    data.auditActions.slice(0,30).forEach(a=>{ ctx += `- ${a.summary||'atualizacao'}\n`; });
+    ctx += '\n';
+  }
+  if(data.customCreated&&data.customCreated.length){
+    ctx += `=== NOVAS ATIVIDADES CRIADAS (PA/Auditoria) (${data.customCreated.length}) ===\n`;
+    data.customCreated.forEach(c=>{
+      ctx += `- [${c.tipo==='audit'?'Auditoria':'Plano de Acao'}] ${c.titulo}${c.resp?' | Resp.: '+c.resp:''}${c.prazo?' | Prazo: '+c.prazo:''}\n`;
+    });
+    ctx += '\n';
+  }
 
-IMPORTANTE:
-- Analise detalhadamente as REUNIOES: quem participou, o que foi discutido (veja comentarios/ata), quais documentos foram compartilhados (atas, apresentacoes, etc.), e quais decisoes foram tomadas.
-- Analise as TAREFAS: quais foram criadas, quais mudaram de status, quem e responsavel, se ha bloqueios ou atrasos.
-- Conecte reunioes com tarefas quando possivel (ex: "na reuniao X decidiu-se Y, que gerou a tarefa Z").
+  ctx += `====================================================
+SUA MISSAO (PERSONA):
+Voce e a EDITORA-CHEFE do "GIRO DA SEMANA", o jornal interno do Nucleo de Inovacao e Dados (NID) da COBEN/FUNCEF.
+Sua funcao editorial e transformar as movimentacoes da semana em uma EDICAO DE JORNAL que coloca todo o time na mesma pagina antes da Weekly.
+Escreva com voz jornalistica profissional, clara e envolvente: manchetes fortes, ledes que respondem "o que aconteceu e por que importa", e materias que conectam os fatos (reunioes -> decisoes -> tarefas -> entregas). Cite nomes (primeiro nome) como fontes/protagonistas. Tom informativo, positivo e mobilizador, sem inventar dados: use SOMENTE o que esta nos DADOS DA SEMANA acima.
 
-Estruture assim:
-1. **ABERTURA** (1-2 frases de contexto da semana, tom leve e engajador)
-2. **DESTAQUES DA SEMANA** (os 3-5 fatos mais relevantes, com nomes de quem fez)
-3. **REUNIOES E DISCUSSOES** (resumo de cada reuniao: pauta, participantes, o que foi discutido/decidido, documentos compartilhados — se houver comentarios/ata da reuniao, use-os para detalhar)
-4. **MOVIMENTACAO DE TAREFAS** (novas tarefas criadas, tarefas que avancaram de status, responsaveis, prazos)
-5. **ENTREGAS E RESULTADOS** (o que foi entregue ou teve progresso significativo)
-6. **PONTOS DE ATENCAO** (riscos, bloqueios, tarefas paradas, prazos proximos)
-7. **FRASE DE FECHAMENTO** (motivacional, curta)
+FORMATO DE SAIDA — responda APENAS com um objeto JSON valido (sem markdown, sem crase, sem texto antes/depois) com esta estrutura exata:
+{
+  "manchete": "manchete principal da edicao, forte e especifica",
+  "linha_fina": "subtitulo/deck de 1 linha que complementa a manchete",
+  "lede": "paragrafo de abertura (2-4 frases) resumindo a semana e por que importa",
+  "numeros": [{"valor":"3","rotulo":"reunioes"}, {"valor":"5","rotulo":"tarefas"}],
+  "materias": [
+    {"editoria":"REUNIOES","titulo":"titulo da materia","texto":"2-4 frases jornalisticas com nomes e fatos","destaque":true}
+  ],
+  "colunas": [
+    {"titulo":"Radar de Prazos","itens":["item curto 1","item curto 2"]}
+  ],
+  "citacao": {"texto":"frase de destaque/pull-quote curta baseada nos fatos","autor":"Equipe NID"},
+  "atencao": ["ponto de atencao 1 (risco/bloqueio/prazo)", "..."],
+  "fechamento": "chamada final curta e motivadora para a Weekly"
+}
 
-Se nao houver dados suficientes em alguma secao, omita-a.
-Responda em portugues brasileiro. Use markdown para formatar.
-Seja completo e detalhado. Maximo 1000 palavras.`;
+REGRAS:
+- "editoria" de cada materia: uma entre REUNIOES, TAREFAS, ENTREGAS, AUDITORIA, PLANO DE ACAO, IDEIAS, PESSOAS.
+- Gere de 3 a 6 materias, priorizando o que e mais relevante. Marque "destaque":true na materia principal (so uma).
+- "numeros": 3 a 5 metricas reais dos dados.
+- "colunas": 1 a 3 boxes curtos (ex: proximos prazos, quem fez o que, documentos compartilhados).
+- "atencao": omita ou deixe [] se nao houver riscos.
+- Se a semana teve pouca movimentacao, faca uma edicao enxuta porem elegante, sem inventar.
+- Portugues brasileiro. Retorne SOMENTE o JSON.`;
 
   return ctx;
 }
@@ -5644,107 +5744,19 @@ async function gerarGiroIA(){
 
     const result = await resp.json();
     const textBlock = result.content?.find(b => b.type === 'text');
-    const text = textBlock?.text || 'Sem resposta da IA';
+    let raw = (textBlock?.text || '').trim();
+    // Extrai o JSON da edição
+    raw = raw.replace(/^```(?:json)?/i,'').replace(/```$/,'').trim();
+    const fi = raw.indexOf('{'), li = raw.lastIndexOf('}');
+    let dados = null;
+    if(fi>=0 && li>fi){ try { dados = JSON.parse(raw.slice(fi, li+1)); } catch(_){} }
+    if(!dados){ throw new Error('A IA não retornou uma edição válida. Tente novamente.'); }
 
-    const sectionIcons = {'abertura':'','destaques':'','reunio':'','movimenta':'','tarefa':'','entrega':'','resultado':'','ponto':'','atenc':'','fechamento':'','frase':''};
-    function getSectionIcon(title){
-      const t = title.toLowerCase();
-      if(/abertura/.test(t)) return '👋';
-      if(/destaque/.test(t)) return '⭐';
-      if(/reuni|discuss/.test(t)) return '🗓️';
-      if(/tarefa|movimenta/.test(t)) return '📋';
-      if(/entrega|resultado/.test(t)) return '🎯';
-      if(/ponto|atenc|risco|bloqueio/.test(t)) return '⚠️';
-      if(/fecha|motiva|frase/.test(t)) return '🚀';
-      if(/ideia|aprendiz/.test(t)) return '💡';
-      if(/review/.test(t)) return '📈';
-      return '📌';
-    }
+    const meta = { label: wk.label, sprint: cs()?.id||'—',
+      stats: { reunioes:data.weekEvents.length, tarefas:(data.newTasks||[]).length+(data.updatedTasks||[]).length, anexos:data.weekAttach.length, comentarios:data.weekComments.length } };
+    const text = giroNewsToText(dados, meta);
 
-    const sections = [];
-    let currentSection = null;
-    text.split('\n').forEach(line => {
-      const h2 = line.match(/^##\s+(.+)/);
-      const h3 = line.match(/^###\s+(.+)/);
-      const h1 = line.match(/^#\s+(.+)/);
-      if(h1 || h2 || h3){
-        const title = (h1||h2||h3)[1].replace(/\*\*/g,'').trim();
-        currentSection = { title, lines: [], level: h1?1:(h2?2:3) };
-        sections.push(currentSection);
-      } else if(currentSection){
-        currentSection.lines.push(line);
-      } else {
-        if(!sections.length) sections.push({ title:'', lines:[], level:0 });
-        sections[sections.length-1].lines.push(line);
-      }
-    });
-
-    function fmtLines(lines){
-      return lines.join('\n')
-        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-        .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
-        .replace(/\*(.+?)\*/g,'<em>$1</em>')
-        .replace(/^- (.+)$/gm,'<div style="display:flex;gap:8px;margin:4px 0 4px 4px;align-items:baseline"><span style="color:var(--accent);font-weight:700;flex-shrink:0">›</span><span>$1</span></div>')
-        .replace(/^(\d+)\.\s+(.+)$/gm,'<div style="display:flex;gap:8px;margin:4px 0 4px 4px;align-items:baseline"><span style="color:var(--accent);font-weight:800;min-width:18px;flex-shrink:0">$1.</span><span>$2</span></div>')
-        .replace(/\n\n/g,'<div style="height:8px"></div>')
-        .replace(/\n/g,'<br>');
-    }
-
-    let cardsHtml = '';
-    sections.forEach((sec, i) => {
-      const body = fmtLines(sec.lines);
-      if(!body.trim() && !sec.title) return;
-      if(!sec.title){
-        cardsHtml += `<div style="font-size:13.5px;line-height:1.75;color:var(--text);margin-bottom:8px">${body}</div>`;
-        return;
-      }
-      const icon = getSectionIcon(sec.title);
-      const isAlert = /ponto|atenc|risco|bloqueio/i.test(sec.title);
-      const isClosing = /fecha|motiva|frase/i.test(sec.title);
-      let cardStyle = 'background:var(--bg3);border:1px solid var(--border);border-radius:var(--rlg);padding:1.1rem 1.3rem;margin-bottom:10px;';
-      if(isAlert) cardStyle = 'background:var(--a-bg);border:1px solid var(--amber);border-radius:var(--rlg);padding:1.1rem 1.3rem;margin-bottom:10px;';
-      if(isClosing) cardStyle = 'background:linear-gradient(135deg,var(--acc-bg),var(--g-bg));border:1px solid var(--green);border-radius:var(--rlg);padding:1.1rem 1.3rem;margin-bottom:10px;';
-      if(i===0) cardStyle += 'border-left:4px solid var(--accent);';
-      cardsHtml += `<div style="${cardStyle}">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-          <span style="font-size:16px">${icon}</span>
-          <h4 style="margin:0;font-size:13.5px;font-weight:800;color:var(--text);letter-spacing:.3px;text-transform:uppercase">${sec.title.replace(/\*\*/g,'')}</h4>
-        </div>
-        <div style="font-size:13px;line-height:1.75;color:var(--text)">${body}</div>
-      </div>`;
-    });
-
-    const now = new Date();
-    const genTime = now.toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
-
-    iaEl.innerHTML = `<div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--rxl);padding:0;margin-top:1rem;overflow:hidden;box-shadow:var(--shadow-lg)">
-      <div style="background:linear-gradient(135deg,var(--accent),var(--acc2));padding:1.2rem 1.5rem;display:flex;align-items:center;gap:12px">
-        <div style="width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">📰</div>
-        <div style="flex:1;min-width:0">
-          <h3 style="margin:0;color:#fff;font-size:16px;font-weight:800;letter-spacing:.3px">Giro da Semana</h3>
-          <div style="color:rgba(255,255,255,.8);font-size:12px;margin-top:2px">${wk.label} · Sprint ${cs()?.id||'—'}</div>
-        </div>
-        <div style="display:flex;gap:6px">
-          <button class="btn sm" onclick="copyGiro()" style="background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.3);backdrop-filter:blur(4px)" title="Copiar texto">📋 Copiar</button>
-          <button class="btn sm" onclick="window.print()" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.2)" title="Imprimir">🖨️</button>
-        </div>
-      </div>
-      <div style="padding:1.3rem 1.5rem">
-        <div style="display:flex;gap:10px;margin-bottom:1rem;flex-wrap:wrap">
-          <div style="background:var(--acc-bg);color:var(--accent);padding:6px 14px;border-radius:20px;font-size:11px;font-weight:700">📅 ${data.weekEvents.length} Reuniões</div>
-          <div style="background:var(--g-bg);color:var(--green);padding:6px 14px;border-radius:20px;font-size:11px;font-weight:700">📋 ${(data.newTasks||[]).length+(data.updatedTasks||[]).length} Tarefas</div>
-          <div style="background:var(--org-bg);color:var(--orange);padding:6px 14px;border-radius:20px;font-size:11px;font-weight:700">📎 ${data.weekAttach.length} Anexos</div>
-          <div style="background:var(--p-bg);color:var(--purple);padding:6px 14px;border-radius:20px;font-size:11px;font-weight:700">💬 ${data.weekComments.length} Comentários</div>
-        </div>
-        ${cardsHtml}
-      </div>
-      <div style="border-top:1px solid var(--border);padding:.8rem 1.5rem;display:flex;align-items:center;justify-content:space-between;background:var(--bg3)">
-        <div style="display:flex;align-items:center;gap:6px;font-size:10px;color:var(--t3)">
-          <span style="font-size:12px">🤖</span> Gerado por Claude (Anthropic)
-        </div>
-        <div style="font-size:10px;color:var(--t3)">${genTime}</div>
-      </div>
-    </div>`;
+    iaEl.innerHTML = renderGiroNews(dados, meta, {toolbar:true});
     document.getElementById('giroRawText')?.remove();
     const rawEl = document.createElement('div');
     rawEl.id = 'giroRawText';
@@ -5752,11 +5764,11 @@ async function gerarGiroIA(){
     rawEl.textContent = text;
     iaEl.appendChild(rawEl);
 
-    // Grava o giro no histórico
+    // Grava o giro no histórico (JSON + texto)
     try {
       const payload = {
         periodo_inicio: wk.start, periodo_fim: wk.end, label: wk.label,
-        sprint_id: cs()?.id || null, texto: text, criado_por: CP?.id || null
+        sprint_id: cs()?.id || null, texto: text, dados, criado_por: CP?.id || null
       };
       const {data:gd, error:ge} = await db.from('giros').insert(payload).select().single();
       if(!ge && gd){ GIROS.unshift(gd); toast('Giro salvo no histórico'); renderGiroHistory(); }
@@ -5786,6 +5798,136 @@ function copyGiro(){
   if(!raw) return;
   const text = raw.textContent;
   navigator.clipboard.writeText(text).then(()=>toast('Resumo copiado!')).catch(()=>toast('Erro ao copiar','err'));
+}
+
+/* ---------- GIRO: layout de jornal ---------- */
+const GIRO_EDITORIAS = {
+  'REUNIOES':'🗓️','REUNIÃO':'🗓️','REUNIÕES':'🗓️','TAREFAS':'📋','ENTREGAS':'🎯',
+  'AUDITORIA':'🛡️','PLANO DE ACAO':'🎯','PLANO DE AÇÃO':'🎯','IDEIAS':'💡','PESSOAS':'👥','GERAL':'📌'
+};
+function giroInline(s){
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+}
+function renderGiroNews(d, meta, opts={}){
+  const today = new Date();
+  const dstr = today.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+  const mats = Array.isArray(d.materias)?d.materias:[];
+  const destaque = mats.find(m=>m.destaque) || mats[0];
+  const resto = mats.filter(m=>m!==destaque);
+  const nums = Array.isArray(d.numeros)?d.numeros:[];
+  const colunas = Array.isArray(d.colunas)?d.colunas:[];
+  const atencao = Array.isArray(d.atencao)?d.atencao.filter(Boolean):[];
+
+  const toolbar = opts.toolbar ? `<div class="giro-toolbar">
+    <button class="btn sm" onclick="copyGiro()" title="Copiar">📋 Copiar</button>
+    <button class="btn sm" onclick="window.print()" title="Imprimir/PDF">🖨️ PDF</button>
+    <button class="btn sm primary" onclick="sendGiroTeams()" title="Enviar ao Teams">📤 Enviar ao Teams</button>
+    <button class="btn sm" onclick="configTeams()" title="Configurar Teams">⚙️</button>
+  </div>` : '';
+
+  const numsHtml = nums.length ? `<div class="giro-stats">${nums.map(n=>`<div class="giro-stat"><div class="v">${giroInline(n.valor)}</div><div class="l">${giroInline(n.rotulo)}</div></div>`).join('')}</div>` : '';
+
+  const editoriaChip = m => { const key=(m.editoria||'GERAL').toUpperCase(); const ic=GIRO_EDITORIAS[key]||'📌'; return `<span class="giro-editoria">${ic} ${giroInline(m.editoria||'Geral')}</span>`; };
+
+  const leadHtml = destaque ? `<article class="giro-lead">
+    ${editoriaChip(destaque)}
+    <h2 class="giro-lead-tit">${giroInline(destaque.titulo||'')}</h2>
+    <p class="giro-lead-txt">${giroInline(destaque.texto||'')}</p>
+  </article>` : '';
+
+  const artsHtml = resto.length ? `<div class="giro-cols">${resto.map(m=>`
+    <article class="giro-art">
+      ${editoriaChip(m)}
+      <h3 class="giro-art-tit">${giroInline(m.titulo||'')}</h3>
+      <p class="giro-art-txt">${giroInline(m.texto||'')}</p>
+    </article>`).join('')}</div>` : '';
+
+  const sideHtml = (colunas.length || d.citacao || atencao.length) ? `<aside class="giro-side">
+    ${d.citacao&&d.citacao.texto?`<blockquote class="giro-quote">“${giroInline(d.citacao.texto)}”<cite>— ${giroInline(d.citacao.autor||'Equipe NID')}</cite></blockquote>`:''}
+    ${colunas.map(c=>`<div class="giro-box">
+      <div class="giro-box-tit">${giroInline(c.titulo||'')}</div>
+      <ul>${(c.itens||[]).map(i=>`<li>${giroInline(i)}</li>`).join('')}</ul>
+    </div>`).join('')}
+    ${atencao.length?`<div class="giro-box alert">
+      <div class="giro-box-tit">⚠️ Pontos de atenção</div>
+      <ul>${atencao.map(i=>`<li>${giroInline(i)}</li>`).join('')}</ul>
+    </div>`:''}
+  </aside>` : '';
+
+  return `<div class="giro-news" id="giroNews">
+    ${toolbar}
+    <div class="giro-paper">
+      <header class="giro-masthead">
+        <div class="giro-kicker">NÚCLEO DE INOVAÇÃO E DADOS · COBEN/FUNCEF</div>
+        <div class="giro-title">Giro da Semana</div>
+        <div class="giro-dateline"><span>${dstr}</span><span>Edição · ${giroInline(meta.label||'')}</span><span>Sprint ${giroInline(meta.sprint||'—')}</span></div>
+      </header>
+      <h1 class="giro-manchete">${giroInline(d.manchete||'Giro da Semana')}</h1>
+      ${d.linha_fina?`<div class="giro-linhafina">${giroInline(d.linha_fina)}</div>`:''}
+      ${numsHtml}
+      ${d.lede?`<p class="giro-lede">${giroInline(d.lede)}</p>`:''}
+      <div class="giro-body">
+        <div class="giro-main">
+          ${leadHtml}
+          ${artsHtml}
+        </div>
+        ${sideHtml}
+      </div>
+      ${d.fechamento?`<div class="giro-fecho">${giroInline(d.fechamento)}</div>`:''}
+      <footer class="giro-foot">
+        <span>🤖 Edição gerada por Claude (Anthropic)</span>
+        <span>${today.toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}</span>
+      </footer>
+    </div>
+  </div>`;
+}
+function giroNewsToText(d, meta){
+  let t = `📰 GIRO DA SEMANA — ${meta.label||''} · Sprint ${meta.sprint||'—'}\n\n`;
+  t += `**${d.manchete||''}**\n`;
+  if(d.linha_fina) t += `${d.linha_fina}\n`;
+  t += `\n${d.lede||''}\n`;
+  if(Array.isArray(d.numeros)&&d.numeros.length) t += `\n📊 ${d.numeros.map(n=>`${n.valor} ${n.rotulo}`).join(' · ')}\n`;
+  (d.materias||[]).forEach(m=>{ t += `\n▸ [${(m.editoria||'').toUpperCase()}] ${m.titulo||''}\n${m.texto||''}\n`; });
+  (d.colunas||[]).forEach(c=>{ t += `\n📌 ${c.titulo||''}: ${(c.itens||[]).join('; ')}\n`; });
+  if(d.citacao&&d.citacao.texto) t += `\n💬 "${d.citacao.texto}" — ${d.citacao.autor||'Equipe NID'}\n`;
+  if(Array.isArray(d.atencao)&&d.atencao.length) t += `\n⚠️ Atenção: ${d.atencao.join('; ')}\n`;
+  if(d.fechamento) t += `\n${d.fechamento}\n`;
+  return t;
+}
+
+/* ---------- GIRO: envio ao Teams ---------- */
+function configTeams(){
+  const cur = localStorage.getItem('teams_webhook') || '';
+  const url = prompt('Cole a URL do webhook do Teams (Incoming Webhook ou fluxo do Power Automate) para enviar o Giro ao canal.\n\nDeixe em branco e confirme para remover.', cur);
+  if(url===null) return;
+  const u = url.trim();
+  if(!u){ localStorage.removeItem('teams_webhook'); toast('Webhook do Teams removido'); return; }
+  if(!/^https:\/\//i.test(u)){ toast('URL inválida','err'); return; }
+  localStorage.setItem('teams_webhook', u);
+  toast('Webhook do Teams salvo!');
+}
+async function sendGiroTeams(){
+  const raw = document.getElementById('giroRawText');
+  const text = raw ? raw.textContent : '';
+  if(!text){ toast('Gere o Giro primeiro','err'); return; }
+  const hook = localStorage.getItem('teams_webhook');
+  if(!hook){
+    if(confirm('Nenhum webhook do Teams configurado.\n\nDeseja configurar agora? (Teams › canal › ⋯ › Conectores/Workflows › Incoming Webhook)')) configTeams();
+    return;
+  }
+  ss('loading','Enviando ao Teams...');
+  try {
+    // text/plain evita preflight CORS; Teams lê o corpo JSON mesmo assim
+    await fetch(hook, { method:'POST', headers:{'Content-Type':'text/plain'}, body: JSON.stringify({ text }) });
+    ss('ok','Enviado'); toast('📤 Giro enviado ao Teams!');
+  } catch(e){
+    ss('err','Falha');
+    // Fallback: copia e abre o Teams
+    try { await navigator.clipboard.writeText(text); } catch(_){}
+    toast('Não foi possível enviar direto (CORS). Texto copiado — cole no Teams.','err');
+    window.open('https://teams.microsoft.com/', '_blank');
+  }
 }
 
 function renderAudit(){
