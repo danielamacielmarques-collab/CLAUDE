@@ -556,7 +556,11 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
 .gi-kicker{font-size:10px;letter-spacing:.2em;text-transform:uppercase;font-weight:700;opacity:.85}
 .gi-title{font-size:clamp(22px,4vw,30px);font-weight:900;letter-spacing:-.3px;margin:.15rem 0}
 .gi-sub{font-size:13px;opacity:.9;font-weight:600}
-.gi-resumo{font-size:15px;line-height:1.6;font-weight:500;color:var(--text);padding:1.2rem 1.7rem .3rem}
+.gi-abertura{font-size:15.5px;line-height:1.6;font-weight:600;color:var(--text);padding:1.2rem 1.7rem .2rem}
+.gi-resumo{font-size:14px;line-height:1.6;font-weight:400;color:var(--t2);padding:.5rem 1.7rem .3rem}
+.gi-meet-parts{font-size:11.5px;color:var(--teal);font-weight:600;margin-top:3px}
+.gi-meet-docs{font-size:11px;color:var(--t2);margin-top:4px;font-style:italic}
+.gi-fechamento{margin:1rem 1.7rem;padding:1rem 1.2rem;text-align:center;font-size:15px;font-weight:700;background:linear-gradient(135deg,#00995D22,var(--acc-bg));border-radius:var(--rlg);color:var(--text)}
 .gi-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:.7rem;padding:1rem 1.7rem}
 .gi-tile{border:1.5px solid;border-radius:var(--rlg);padding:.9rem;text-align:center}
 .gi-tile-v{font-size:30px;font-weight:900;line-height:1}
@@ -5538,11 +5542,13 @@ DADOS DA SEMANA:\n\n`;
     ctx += `=== NOVAS TAREFAS CRIADAS (${data.newTasks.length}) ===\n`;
     data.newTasks.forEach(t=>{
       const membros = gTM(t.id);
+      const criador = t.criado_por ? mBI(t.criado_por) : null;
       ctx += `- ${t.titulo}`;
       if(t.prioridade) ctx += ` [${t.prioridade}]`;
       ctx += ` | Status: ${t.status||'pendente'}`;
       if(t.fase) ctx += ` | Fase: ${t.fase}`;
       if(membros.length) ctx += ` | Responsaveis: ${membros.map(m=>(m.nome||'').split(' ')[0]||'?').join(', ')}`;
+      else if(criador) ctx += ` | Criada por: ${(criador.nome||'').split(' ')[0]||'?'}`;
       if(t.data_fim) ctx += ` | Prazo: ${t.data_fim}`;
       ctx += '\n';
       if(t.descricao) ctx += `  Descricao: ${t.descricao.slice(0,200)}\n`;
@@ -5554,9 +5560,11 @@ DADOS DA SEMANA:\n\n`;
     ctx += `=== TAREFAS ATUALIZADAS/MOVIMENTADAS (${data.updatedTasks.length}) ===\n`;
     data.updatedTasks.forEach(t=>{
       const membros = gTM(t.id);
+      const criador = t.criado_por ? mBI(t.criado_por) : null;
       const audits = data.weekAud.filter(a=>a.entity_id===t.id&&a.entity_type==='task'&&a.action==='task_update');
       ctx += `- ${t.titulo} | Status atual: ${t.status||'pendente'}`;
       if(membros.length) ctx += ` | Responsaveis: ${membros.map(m=>(m.nome||'').split(' ')[0]||'?').join(', ')}`;
+      else if(criador) ctx += ` | Criada por: ${(criador.nome||'').split(' ')[0]||'?'}`;
       ctx += '\n';
       audits.forEach(a=>{
         const det = a.details?(typeof a.details==='string'?JSON.parse(a.details):a.details):{};
@@ -5663,26 +5671,30 @@ Use SOMENTE os dados acima — nao invente nada. Cite o primeiro nome de quem fe
 
 FORMATO DE SAIDA — responda APENAS com um objeto JSON valido (sem markdown, sem crase, sem texto antes/depois) com esta estrutura exata:
 {
-  "resumo": "2 a 3 frases simples com o panorama geral da semana",
+  "abertura": "1 a 2 frases de abertura, com energia e bom humor, chamando o time para a Weekly",
+  "resumo": "2 a 3 frases com o panorama geral da semana",
   "numeros": [{"valor":"5","rotulo":"tarefas movidas","cor":"blue"}, {"valor":"3","rotulo":"reunioes","cor":"green"}],
+  "destaques": ["3 a 6 destaques da semana, cada um curto e citando nomes (ex: 'Daniela conduziu o discovery do Peculio')"],
+  "reunioes": [{"titulo":"nome","data":"07/07","horario":"14h-15h","participantes":["Ademar","Daniela"],"resumo":"o que foi tratado/decidido, 1-2 frases","docs":["arquivo.pdf"]}],
   "tarefas_principais": [{"titulo":"nome da tarefa","status":"Em andamento","resp":"Ana"}],
   "feito": ["o que foi concluido/entregue nesta semana, 1 item por linha, curto"],
   "movido": ["o que mudou de status ou avancou (ex: 'Tarefa X: pendente -> em andamento (Bruno)')"],
-  "reunioes": [{"titulo":"nome","data":"07/07","resumo":"1 frase do que foi tratado/decidido"}],
   "novidades": [{"tipo":"ideia","titulo":"nome","desc":"1 frase"}],
   "atencao": ["riscos, bloqueios ou prazos proximos, se houver"],
-  "destaque": "1 frase com o ponto mais importante da semana"
+  "destaque": "1 frase com o ponto mais importante da semana",
+  "fechamento": "1 frase de fechamento motivadora e divertida para encerrar o giro"
 }
 
 REGRAS:
 - "numeros": 3 a 5 metricas reais. "cor" e uma entre: blue, green, orange, purple, teal, amber, red.
-- "tarefas_principais": as 3 a 6 tarefas mais relevantes (novas ou movidas), com status e responsavel.
+- "destaques": 3 a 6 fatos mais legais da semana, sempre citando o primeiro nome de quem fez.
+- "reunioes": UMA entrada por reuniao, com participantes (lista de primeiros nomes), horario, o que foi tratado/decidido e documentos compartilhados. Seja descritivo aqui (2 frases ok).
+- "tarefas_principais": 3 a 6 tarefas mais relevantes da SPRINT ATUAL ou BACKLOG (novas ou movidas), com status e responsavel (use o responsavel OU quem criou, se vier nos dados).
 - "feito": o que efetivamente foi concluido/entregue. Se nada, use [].
-- "movido": mudancas de status e avancos (tarefas, plano de acao, auditoria).
-- "reunioes": uma entrada por reuniao da semana, com o que foi tratado/decidido.
-- "novidades": ideias e projetos novos que entraram. "tipo" e "ideia" ou "projeto". Se nada, use [].
-- "atencao": [] se nao houver.
-- Se a semana teve pouca movimentacao, faca um resumo curto e honesto, sem inventar.
+- "movido": mudancas de status e avancos. Inclua aqui, em UMA linha resumida, a "priorizacao e organizacao das demandas de auditoria e plano de acao COBEN/COPEP nas sprints" (sem detalhar item a item).
+- "novidades": ideias e projetos novos. "tipo" e "ideia" ou "projeto". Se nada, use [].
+- "atencao": [] se nao houver. Aponte responsaveis nao definidos, prazos estranhos, bloqueios.
+- Sempre que um nome aparecer nos dados (responsavel, criador, autor, participante), USE-O. Nao escreva "sem responsavel" se houver um criador informado.
 - Portugues brasileiro. Retorne SOMENTE o JSON.`;
 
   return ctx;
@@ -5854,6 +5866,10 @@ function renderGiroNews(d, meta, opts={}){
         </div>
       </div>`).join('')}</div>`) : '';
 
+  const destaques = Array.isArray(d.destaques)?d.destaques.filter(Boolean):[];
+  const destaquesHtml = destaques.length ? block('⭐','Destaques da semana','orange',
+    `<ul class="gi-list orange">${destaques.map(i=>`<li>${giroInline(i)}</li>`).join('')}</ul>`) : '';
+
   const feitoHtml = feito.length ? block('✅','O que foi feito','green',
     `<ul class="gi-list green">${feito.map(i=>`<li>${giroInline(i)}</li>`).join('')}</ul>`) : '';
 
@@ -5861,11 +5877,16 @@ function renderGiroNews(d, meta, opts={}){
     `<ul class="gi-list amber">${movido.map(i=>`<li>${giroInline(i)}</li>`).join('')}</ul>`) : '';
 
   const reunioesHtml = reunioes.length ? block('🗓️','Reuniões da semana','teal',
-    `<div class="gi-meets">${reunioes.map(r=>`
-      <div class="gi-meet">
-        <div class="gi-meet-top"><span class="gi-meet-tit">${giroInline(r.titulo||'')}</span>${r.data?`<span class="gi-meet-date">${giroInline(r.data)}</span>`:''}</div>
+    `<div class="gi-meets">${reunioes.map(r=>{
+      const parts = Array.isArray(r.participantes)?r.participantes.filter(Boolean):[];
+      const docs = Array.isArray(r.docs)?r.docs.filter(Boolean):[];
+      return `<div class="gi-meet">
+        <div class="gi-meet-top"><span class="gi-meet-tit">${giroInline(r.titulo||'')}</span>${(r.data||r.horario)?`<span class="gi-meet-date">${giroInline([r.data,r.horario].filter(Boolean).join(' · '))}</span>`:''}</div>
+        ${parts.length?`<div class="gi-meet-parts">👥 ${parts.map(p=>giroInline(p)).join(', ')}</div>`:''}
         ${r.resumo?`<div class="gi-meet-res">${giroInline(r.resumo)}</div>`:''}
-      </div>`).join('')}</div>`) : '';
+        ${docs.length?`<div class="gi-meet-docs">📎 ${docs.map(x=>giroInline(x)).join(' · ')}</div>`:''}
+      </div>`;
+    }).join('')}</div>`) : '';
 
   const novHtml = novidades.length ? block('💡','Ideias e projetos novos','purple',
     `<div class="gi-novs">${novidades.map(n=>`
@@ -5887,15 +5908,18 @@ function renderGiroNews(d, meta, opts={}){
           <div class="gi-sub">${giroInline(meta.label||'')} · Sprint ${giroInline(meta.sprint||'—')}</div>
         </div>
       </header>
+      ${d.abertura?`<div class="gi-abertura">${giroInline(d.abertura)}</div>`:''}
       ${d.resumo?`<div class="gi-resumo">${giroInline(d.resumo)}</div>`:''}
       ${numsHtml}
       ${d.destaque?`<div class="gi-destaque"><span>⭐ Destaque</span> ${giroInline(d.destaque)}</div>`:''}
+      ${destaquesHtml}
       ${feitoHtml}
       ${movidoHtml}
       ${tarefasHtml}
       ${reunioesHtml}
       ${novHtml}
       ${atencaoHtml}
+      ${d.fechamento?`<div class="gi-fechamento">${giroInline(d.fechamento)}</div>`:''}
       <footer class="gi-foot">
         <span>🤖 Resumo gerado por Claude (Anthropic)</span>
         <span>${today.toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}</span>
@@ -5905,15 +5929,18 @@ function renderGiroNews(d, meta, opts={}){
 }
 function giroNewsToText(d, meta){
   let t = `📊 GIRO DA SEMANA — ${meta.label||''} · Sprint ${meta.sprint||'—'}\n\n`;
+  if(d.abertura) t += `${d.abertura}\n\n`;
   if(d.resumo) t += `${d.resumo}\n`;
   if(Array.isArray(d.numeros)&&d.numeros.length) t += `\n📈 ${d.numeros.map(n=>`${n.valor} ${n.rotulo}`).join(' · ')}\n`;
   if(d.destaque) t += `\n⭐ Destaque: ${d.destaque}\n`;
+  if(Array.isArray(d.destaques)&&d.destaques.length){ t += `\n⭐ Destaques da semana:\n`; d.destaques.forEach(i=>t+=`• ${i}\n`); }
   if(Array.isArray(d.feito)&&d.feito.length){ t += `\n✅ O que foi feito:\n`; d.feito.forEach(i=>t+=`• ${i}\n`); }
   if(Array.isArray(d.movido)&&d.movido.length){ t += `\n🔄 O que foi movido:\n`; d.movido.forEach(i=>t+=`• ${i}\n`); }
   if(Array.isArray(d.tarefas_principais)&&d.tarefas_principais.length){ t += `\n📋 Principais tarefas:\n`; d.tarefas_principais.forEach(x=>t+=`• ${x.titulo||''} — ${x.status||''}${x.resp?' ('+x.resp+')':''}\n`); }
-  if(Array.isArray(d.reunioes)&&d.reunioes.length){ t += `\n🗓️ Reuniões:\n`; d.reunioes.forEach(r=>t+=`• ${r.titulo||''}${r.data?' ('+r.data+')':''}: ${r.resumo||''}\n`); }
+  if(Array.isArray(d.reunioes)&&d.reunioes.length){ t += `\n🗓️ Reuniões:\n`; d.reunioes.forEach(r=>{ const p=Array.isArray(r.participantes)?r.participantes.join(', '):''; t+=`• ${r.titulo||''}${r.data?' ('+r.data+')':''}${p?' — '+p:''}: ${r.resumo||''}\n`; }); }
   if(Array.isArray(d.novidades)&&d.novidades.length){ t += `\n💡 Ideias e projetos novos:\n`; d.novidades.forEach(n=>t+=`• ${n.tipo==='projeto'?'🚀':'💡'} ${n.titulo||''}${n.desc?' — '+n.desc:''}\n`); }
   if(Array.isArray(d.atencao)&&d.atencao.length){ t += `\n⚠️ Pontos de atenção:\n`; d.atencao.forEach(i=>t+=`• ${i}\n`); }
+  if(d.fechamento) t += `\n${d.fechamento}\n`;
   return t;
 }
 
