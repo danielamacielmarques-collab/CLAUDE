@@ -67,7 +67,9 @@ visual FUNCEF, com login real (Supabase Auth) e modo claro/escuro.
 14. (Ideias & Aprendizado) Execute `schema_addon_v17.sql`.
    - Cria tabela `ideias` (projetos embrionários, cursos, workshops).
    - O Giro da Semana não precisa de tabela nova (usa dados existentes).
-15. Em **Authentication → Providers → Email** desabilite "Confirm email".
+15. (Descontinuação de OM) Execute `schema_addon_v18.sql`.
+   - Cria tabela `pa_om_status` (estado de descontinuação das OMs com justificativa).
+16. Em **Authentication → Providers → Email** desabilite "Confirm email".
 
 ### 2) Rodar localmente
 Abra `index.html` direto no navegador, ou:

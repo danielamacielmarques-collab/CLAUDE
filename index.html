@@ -549,6 +549,42 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
 .pa-btn:hover{border-color:var(--accent);color:var(--accent)}
 .giro-section{margin-bottom:1.2rem}
 .giro-section h4{font-size:14px;font-weight:700;color:var(--t1);margin:0 0 .5rem 0;padding-bottom:.3rem;border-bottom:1px solid var(--border)}
+/* NID NEWS — newspaper layout */
+.news-wrap{background:var(--bg1);border:2px solid var(--border);border-radius:16px;overflow:hidden;margin-top:1rem}
+.news-mast{background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460);color:#fff;padding:1.5rem 2rem;text-align:center;position:relative;overflow:hidden}
+.news-mast::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:repeating-linear-gradient(90deg,transparent,transparent 49.5%,rgba(255,255,255,.06) 49.5%,rgba(255,255,255,.06) 50.5%,transparent 50.5%);pointer-events:none}
+.news-mast h1{font-family:Georgia,'Times New Roman',serif;font-size:36px;font-weight:900;letter-spacing:3px;margin:0;text-shadow:0 2px 4px rgba(0,0,0,.3)}
+.news-mast .news-sub{font-size:11px;letter-spacing:2px;text-transform:uppercase;opacity:.8;margin-top:4px;font-weight:600}
+.news-mast .news-ed{display:flex;justify-content:center;gap:2rem;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.2);font-size:10.5px;opacity:.7}
+.news-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:.6rem 1.5rem;background:var(--accent);color:#fff;font-size:11px;font-weight:700}
+.news-bar .news-flash{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.news-actions{display:flex;gap:6px;flex-shrink:0}
+.news-actions button{font-size:11px;font-weight:700;padding:5px 12px;border-radius:8px;border:1.5px solid rgba(255,255,255,.5);background:transparent;color:#fff;cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap}
+.news-actions button:hover{background:rgba(255,255,255,.15);border-color:#fff}
+.news-body{padding:1.5rem 2rem}
+.news-headline{font-family:Georgia,'Times New Roman',serif;font-size:24px;font-weight:900;line-height:1.3;color:var(--t1);margin:0 0 1rem;padding-bottom:.8rem;border-bottom:3px double var(--border)}
+.news-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+.news-col{font-size:13px;line-height:1.7;color:var(--t1)}
+.news-col h3{font-family:Georgia,serif;font-size:16px;font-weight:800;color:var(--accent);margin:1rem 0 .5rem;padding-bottom:.3rem;border-bottom:2px solid var(--accent)}
+.news-col h3:first-child{margin-top:0}
+.news-col h4{font-size:14px;font-weight:700;color:var(--t1);margin:.8rem 0 .3rem}
+.news-col strong{color:var(--t1)}
+.news-col .news-bullet{padding-left:1rem;margin:.15rem 0}
+.news-col .news-num{padding-left:1rem;margin:.15rem 0}
+.news-sidebar{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1rem;font-size:12px}
+.news-sidebar h4{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--accent);margin:0 0 .6rem}
+.news-sidebar .ns-item{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dotted var(--border)}
+.news-sidebar .ns-item:last-child{border:none}
+.news-sidebar .ns-val{font-weight:800;font-size:14px;color:var(--t1)}
+.news-quote{font-family:Georgia,serif;font-size:16px;font-style:italic;text-align:center;color:var(--accent);padding:1.2rem 2rem;margin:1rem 0;border-top:2px solid var(--accent);border-bottom:2px solid var(--accent);line-height:1.5}
+.news-foot{text-align:center;padding:.8rem;font-size:10px;color:var(--t3);border-top:2px solid var(--border);margin-top:1rem}
+@media (max-width:768px){.news-grid{grid-template-columns:1fr}.news-mast h1{font-size:24px}.news-body{padding:1rem}.news-headline{font-size:18px}}
+/* OM discontinuation */
+.pa-badge.desc{background:#fce4ec;color:#c62828}
+.pa-om.discontinued{opacity:.7}
+.pa-om.discontinued .pa-om-head{background:repeating-linear-gradient(135deg,transparent,transparent 10px,rgba(0,0,0,.02) 10px,rgba(0,0,0,.02) 20px)}
+.pa-om-disc{font-size:11px;color:#c62828;font-weight:600;margin-top:4px;font-style:italic}
+.pa-om-actions{display:flex;gap:6px;margin-left:auto;flex-shrink:0}
 .pa-btn.primary{background:var(--accent);color:#fff;border-color:transparent}
 .pa-link-targets{max-height:280px;overflow-y:auto;border:1px solid var(--border);border-radius:10px;padding:.5rem}
 .pa-link-grouplbl{font-size:10px;font-weight:800;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin:2px 0 4px}
@@ -882,6 +918,8 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
             <option value="Não iniciado">Não iniciado</option>
             <option value="Em andamento">Em andamento</option>
             <option value="Concluído">Concluído</option>
+            <option value="Atrasado">Atrasado</option>
+            <option value="Descontinuado">Descontinuado</option>
           </select>
           <select class="sel" id="paFilterVinc" onchange="renderPlanoAcao()">
             <option value="">Vínculo: todos</option>
@@ -921,11 +959,12 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
       <!-- GIRO DA SEMANA -->
       <section class="view" id="vGiro">
         <div class="vh">
-          <div><h1>📰 Giro da Semana</h1><div class="vh-sub">Resumo inteligente para a Weekly — gerado por IA</div></div>
+          <div><h1>📰 Giro da Semana</h1><div class="vh-sub">NID NEWS — Informativo semanal gerado por IA com persona jornalística</div></div>
           <div class="vh-grow"></div>
           <label style="font-size:12px;color:var(--t2);margin-right:.3rem">Semana de:</label>
           <input type="date" class="sel" id="giroDate" onchange="renderGiro()">
-          <button class="btn primary" onclick="gerarGiroIA()" id="btnGiroIA">🤖 Gerar com IA</button>
+          <button class="btn" onclick="configTeamsWebhook()" title="Configurar envio via Microsoft Teams" style="font-size:12px">⚙️ Teams</button>
+          <button class="btn primary" onclick="gerarGiroIA()" id="btnGiroIA">🤖 Gerar NID NEWS</button>
         </div>
         <div id="giroContent"></div>
         <div id="giroIAResult" style="display:none"></div>
@@ -1770,6 +1809,7 @@ let ATT = {};        // task_attachments — chave: tarefa_id -> array
 let RVD = {};        // reviews — sprint_id -> array of review objects
 let RVI = {};        // review items — review_id -> array of items
 let PAI = {};        // plano de ação — pa_idx -> item (status/vinculo/sprint)
+let OMST = {};       // pa_om_status — om_id -> {descontinuado, justificativa, ...}
 let IDB = [];        // ideias & aprendizado
 let AUD = [];        // audit_log entries
 let EV  = [];        // calendar_events
@@ -2031,7 +2071,7 @@ async function loadAll(){
       (CLD[k]=CLD[k]||[]).push(c);
     });
     // Comments + attachments + reviews + audit + eventos em paralelo
-    const [rv, rc, ra, rau, rev, revm, rvi, rpa, rid] = await Promise.all([
+    const [rv, rc, ra, rau, rev, revm, rvi, rpa, rid, romst] = await Promise.all([
       db.from('sprint_reviews').select('*').order('data_realizacao',{ascending:false}),
       db.from('task_comments').select('*').order('created_at',{ascending:true}),
       db.from('task_attachments').select('*').order('created_at',{ascending:false}),
@@ -2041,10 +2081,12 @@ async function loadAll(){
       db.from('sprint_review_items').select('*').then(r=>r).catch(()=>({data:[]})),
       db.from('pa_items').select('*').then(r=>r).catch(()=>({data:[]})),
       db.from('ideias').select('*').order('created_at',{ascending:false}).then(r=>r).catch(()=>({data:[]})),
+      db.from('pa_om_status').select('*').then(r=>r).catch(()=>({data:[]})),
     ]);
     AUD = rau.data || [];
     EV  = rev.data || [];
     PAI = {}; (rpa.data||[]).forEach(p=>{ PAI[p.pa_idx]=p; });
+    OMST = {}; (romst.data||[]).forEach(o=>{ OMST[o.om_id]=o; });
     IDB = rid.data || [];
     // Sincroniza CP (perfil atual) com a versão fresca em MB
     if(CP){
@@ -3773,25 +3815,36 @@ function renderPlanoAcao(){
   const nAnd   = PA_GB.filter((_,i)=>/andamento/i.test(paEffStatus(i))).length;
   const nVinc  = PA_GB.filter((_,i)=>paItem(i).vinculo_tipo).length;
   const pct    = Math.round(100*nConcl/total);
+  const nDiscOms = Object.values(OMST).filter(o=>o.descontinuado).length;
   document.getElementById('paSummary').innerHTML = `
     <div class="rv-mc"><div class="rv-val">${total}</div><div class="rv-lbl">Subações</div></div>
     <div class="rv-mc"><div class="rv-val">${oms.length}</div><div class="rv-lbl">Oportunidades</div></div>
     <div class="rv-mc"><div class="rv-val" style="color:var(--green)">${nConcl}</div><div class="rv-lbl">Concluídas</div></div>
     <div class="rv-mc"><div class="rv-val" style="color:var(--amber)">${nAnd}</div><div class="rv-lbl">Em andamento</div></div>
     <div class="rv-mc"><div class="rv-val" style="color:var(--accent)">${nVinc}</div><div class="rv-lbl">Vinculadas</div></div>
+    ${nDiscOms?`<div class="rv-mc"><div class="rv-val" style="color:var(--red)">${nDiscOms}</div><div class="rv-lbl">Descontinuadas</div></div>`:''}
     <div class="rv-mc"><div class="rv-val">${pct}%</div><div class="rv-lbl">Progresso</div></div>`;
 
+  const fDisc = document.getElementById('paFilterStatus')?.value;
+  const nDisc = Object.values(OMST).filter(o=>o.descontinuado).length;
+
   const html = oms.map(group=>{
+    const omStatus = OMST[group.om];
+    const isDiscontinued = omStatus?.descontinuado;
+
+    if(fDisc==='Descontinuado' && !isDiscontinued) return '';
+    if(fStatus && fStatus!=='Descontinuado' && isDiscontinued) return '';
+
     let items = group.items;
-    if(fStatus) items = items.filter(x=>paEffStatus(x.idx)===fStatus);
+    if(fStatus && fStatus!=='Descontinuado') items = items.filter(x=>paEffStatus(x.idx)===fStatus);
     if(fVinc==='sim') items = items.filter(x=>paItem(x.idx).vinculo_tipo);
     if(fVinc==='nao') items = items.filter(x=>!paItem(x.idx).vinculo_tipo);
-    if(!items.length) return '';
+    if(!items.length && !isDiscontinued) return '';
 
     const done = group.items.filter(x=>/concl/i.test(paEffStatus(x.idx))).length;
     const isOpen = _paOpen[group.om];
 
-    const subs = items.map(x=>{
+    const subs = isDiscontinued ? '' : items.map(x=>{
       const st = paEffStatus(x.idx);
       const pi = paItem(x.idx);
       const sugSid = sprintForDate(x.fim);
@@ -3835,15 +3888,28 @@ function renderPlanoAcao(){
       </div>`;
     }).join('');
 
-    return `<div class="pa-om ${isOpen?'open':''}">
+    const discInfo = isDiscontinued ? `<div class="pa-om-disc">⛔ Descontinuada${omStatus.justificativa ? ': '+escapeHtml(omStatus.justificativa.slice(0,200)) : ''}</div>` : '';
+    const discBtn = isDiscontinued
+      ? `<button class="pa-btn" onclick="event.stopPropagation();reativarOm(${group.om})" title="Reativar esta OM" style="font-size:10px;color:var(--green)">↩ Reativar</button>`
+      : `<button class="pa-btn" onclick="event.stopPropagation();openDescontinuarOm(${group.om})" title="Descontinuar esta OM" style="font-size:10px;color:var(--red)">⛔ Descontinuar</button>`;
+
+    return `<div class="pa-om ${isOpen?'open':''} ${isDiscontinued?'discontinued':''}">
       <div class="pa-om-head" onclick="togglePaOm(${group.om})">
-        <span class="pa-om-num">OM${group.om}</span>
+        <span class="pa-om-num">${isDiscontinued?'⛔':'OM'+group.om}</span>
         <div class="pa-om-tit">${escapeHtml(group.titulo)}
-          <div class="pa-om-meta">${group.items.length} subações · ${done} concluída(s)</div>
+          <div class="pa-om-meta">${group.items.length} subações · ${done} concluída(s)${isDiscontinued?' · DESCONTINUADA':''}</div>
+          ${discInfo}
         </div>
+        <div class="pa-om-actions">${discBtn}</div>
         <span class="pa-caret">▶</span>
       </div>
-      <div class="pa-om-body">${subs}</div>
+      <div class="pa-om-body">${isDiscontinued
+        ? `<div style="padding:1rem;text-align:center;color:var(--t3);font-size:12px">
+            <p style="margin:0 0 .5rem">Esta Oportunidade de Melhoria foi descontinuada.</p>
+            ${omStatus.justificativa?`<div style="background:var(--bg4);border-radius:8px;padding:.8rem;margin:.5rem 0;font-style:italic;color:var(--t2);text-align:left">"${escapeHtml(omStatus.justificativa)}"</div>`:''}
+            ${omStatus.descontinuado_em?`<p style="font-size:10px;margin:.3rem 0 0">Em: ${new Date(omStatus.descontinuado_em).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}</p>`:''}
+          </div>`
+        : subs}</div>
     </div>`;
   }).join('');
 
@@ -3944,6 +4010,67 @@ async function paUnlink(idx){
   const r = await paUpsert(idx, {vinculo_tipo:null, tarefa_id:null, entrega_ref:null});
   if(!r) return;
   ss('ok','Removido'); toast('Vínculo removido');
+  renderPlanoAcao();
+}
+
+function openDescontinuarOm(omId){
+  const omItems = PA_GB.filter(x=>x.om===omId);
+  const omTitulo = omItems[0]?.omt||'OM '+omId;
+  const html = `<div class="mbg on" onclick="if(event.target===this)this.remove()">
+    <div class="modal" style="max-width:560px">
+      <div class="mhead"><h2>Descontinuar OM${omId}</h2><button class="mclose" onclick="this.closest('.mbg').remove()">&#10005;</button></div>
+      <div class="mbody" style="padding:1.2rem">
+        <div style="background:var(--r-bg);border:1px solid var(--red);border-radius:10px;padding:.8rem;margin-bottom:1rem">
+          <div style="font-size:12px;font-weight:700;color:var(--red);margin-bottom:4px">Atenção</div>
+          <div style="font-size:11px;color:var(--t1);line-height:1.5">Ao descontinuar esta Oportunidade de Melhoria, todas as ${omItems.length} subações serão marcadas como descontinuadas. Vínculos existentes com tarefas não serão removidos.</div>
+        </div>
+        <div style="font-size:13px;font-weight:600;margin-bottom:.8rem;color:var(--t1)">${escapeHtml(omTitulo)}</div>
+        <div class="field"><label>Justificativa <span style="color:var(--red)">*</span></label><textarea class="inp" id="omDiscJustificativa" rows="4" placeholder="Explique o motivo da descontinuação desta OM..." style="resize:vertical"></textarea></div>
+      </div>
+      <div class="mfoot">
+        <button class="btn" onclick="this.closest('.mbg').remove()">Cancelar</button>
+        <div style="flex:1"></div>
+        <button class="btn" style="background:var(--red);color:#fff;border-color:var(--red)" onclick="confirmDescontinuarOm(${omId})">⛔ Descontinuar OM${omId}</button>
+      </div>
+    </div>
+  </div>`;
+  const div = document.createElement('div'); div.innerHTML = html; document.body.appendChild(div.firstElementChild);
+}
+
+async function confirmDescontinuarOm(omId){
+  const justificativa = document.getElementById('omDiscJustificativa')?.value?.trim();
+  if(!justificativa){ toast('Informe a justificativa para descontinuar','err'); return; }
+  ss('loading','Descontinuando OM...');
+  const payload = {
+    om_id: omId,
+    descontinuado: true,
+    justificativa,
+    descontinuado_por: CP?.id||null,
+    descontinuado_em: new Date().toISOString()
+  };
+  const existing = OMST[omId];
+  if(existing?.id) payload.id = existing.id;
+  const {data,error} = await db.from('pa_om_status').upsert(payload, {onConflict:'om_id'}).select().single();
+  if(error){ toast('Erro: '+error.message,'err'); ss('err','Erro'); return; }
+  OMST[omId] = data;
+  document.querySelector('.mbg.on')?.remove();
+  ss('ok','Descontinuada'); toast(`OM${omId} descontinuada`);
+  logAudit({action:'om_descontinuar', entityType:'pa', entityId:String(omId),
+    summary:`OM${omId} descontinuada: "${justificativa.slice(0,100)}"`});
+  renderPlanoAcao();
+}
+
+async function reativarOm(omId){
+  if(!confirm(`Reativar a OM${omId}? Todas as subações voltarão a ficar visíveis.`)) return;
+  ss('loading','Reativando OM...');
+  const existing = OMST[omId];
+  if(!existing?.id){ toast('Erro: status não encontrado','err'); return; }
+  const {data,error} = await db.from('pa_om_status').update({descontinuado:false, justificativa:null, descontinuado_por:null, descontinuado_em:null}).eq('id',existing.id).select().single();
+  if(error){ toast('Erro: '+error.message,'err'); ss('err','Erro'); return; }
+  OMST[omId] = data;
+  ss('ok','Reativada'); toast(`OM${omId} reativada`);
+  logAudit({action:'om_reativar', entityType:'pa', entityId:String(omId),
+    summary:`OM${omId} reativada`});
   renderPlanoAcao();
 }
 
@@ -4323,7 +4450,36 @@ function collectWeekData(wk){
   const weekAttach = [];
   Object.entries(ATT).forEach(([k,arr])=>{ arr.forEach(a=>{ const d=a.created_at?.slice(0,10); if(d&&d>=wk.start&&d<=wk.end) weekAttach.push({...a,_key:k}); }); });
   const weekIdeias = IDB.filter(i=>{ const d=i.created_at?.slice(0,10); return d&&d>=wk.start&&d<=wk.end; });
-  return {weekAud,weekEvents,taskUpdates,entregaUpdates,reviewActions,weekComments,weekAttach,weekIdeias};
+
+  const s = cs();
+  const sprintTasks = s ? spT(s.id) : [];
+  const sprintDone = sprintTasks.filter(t=>t.status==='concluido').length;
+  const sprintEntregas = s ? (s.entregas||[]) : [];
+  const entregasDone = sprintEntregas.filter(e=>e.status==='concluida').length;
+
+  const paTotal = PA_GB.length;
+  const paConcl = PA_GB.filter((_,i)=>/concl/i.test(paEffStatus(i))).length;
+  const paAnd = PA_GB.filter((_,i)=>/andamento/i.test(paEffStatus(i))).length;
+
+  let checkTotal=0, checkDone=0;
+  Object.values(CLD).forEach(items=>{ items.forEach(c=>{ checkTotal++; if(c.checked) checkDone++; }); });
+
+  const memberActivity = {};
+  weekAud.forEach(a=>{
+    if(!a.profile_id) return;
+    const m = mBI(a.profile_id);
+    if(!m) return;
+    const name = m.nome.split(' ')[0];
+    if(!memberActivity[name]) memberActivity[name]={actions:0,types:new Set()};
+    memberActivity[name].actions++;
+    memberActivity[name].types.add(a.action);
+  });
+
+  return {weekAud,weekEvents,taskUpdates,entregaUpdates,reviewActions,weekComments,weekAttach,weekIdeias,
+    sprintProgress:{tasks:sprintTasks.length,done:sprintDone,entregas:sprintEntregas.length,entregasDone},
+    planoAcao:{total:paTotal,concluido:paConcl,andamento:paAnd},
+    checklist:{total:checkTotal,done:checkDone},
+    memberActivity};
 }
 
 function renderGiro(){
@@ -4336,23 +4492,28 @@ function renderGiro(){
   iaEl.style.display = 'none';
 
   const hasKey = !!localStorage.getItem('anthropic_key');
+  const s = cs();
+  const spPct = data.sprintProgress.tasks ? Math.round(100*data.sprintProgress.done/data.sprintProgress.tasks) : 0;
+  const paPct = data.planoAcao.total ? Math.round(100*data.planoAcao.concluido/data.planoAcao.total) : 0;
+  const ckPct = data.checklist.total ? Math.round(100*data.checklist.done/data.checklist.total) : 0;
 
   let html = `<div class="rv-section" style="margin-bottom:1.2rem">
-    <h3 style="margin-bottom:.5rem">Semana: ${wk.label}</h3>
+    <h3 style="margin-bottom:.5rem">📰 Dados da Semana: ${wk.label}${s?` · Sprint ${s.id}`:''}</h3>
     <div class="rv-summary">
-      <div class="rv-mc"><div class="rv-val">${data.weekEvents.length}</div><div class="rv-lbl">Reunioes</div></div>
-      <div class="rv-mc"><div class="rv-val">${data.taskUpdates.length}</div><div class="rv-lbl">Tarefas</div></div>
+      <div class="rv-mc"><div class="rv-val">${data.weekEvents.length}</div><div class="rv-lbl">Reuniões</div></div>
+      <div class="rv-mc"><div class="rv-val">${data.taskUpdates.length}</div><div class="rv-lbl">Tarefas Mov.</div></div>
       <div class="rv-mc"><div class="rv-val">${data.entregaUpdates.length}</div><div class="rv-lbl">Entregas</div></div>
-      <div class="rv-mc"><div class="rv-val">${data.weekComments.length}</div><div class="rv-lbl">Comentarios</div></div>
-      <div class="rv-mc"><div class="rv-val">${data.weekAttach.length}</div><div class="rv-lbl">Anexos</div></div>
+      <div class="rv-mc"><div class="rv-val">${data.weekComments.length}</div><div class="rv-lbl">Comentários</div></div>
       <div class="rv-mc"><div class="rv-val">${data.weekIdeias.length}</div><div class="rv-lbl">Ideias</div></div>
+      <div class="rv-mc"><div class="rv-val" style="color:var(--accent)">${spPct}%</div><div class="rv-lbl">Sprint</div></div>
+      <div class="rv-mc"><div class="rv-val" style="color:var(--green)">${paPct}%</div><div class="rv-lbl">Plano Ação</div></div>
     </div>
   </div>`;
 
   if(!hasKey){
     html += `<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.2rem;margin-bottom:1rem">
       <h4 style="margin:0 0 .5rem 0">🔑 Configurar chave da IA</h4>
-      <p style="font-size:12px;color:var(--t2);margin:0 0 .8rem 0">Para gerar o resumo inteligente, configure sua chave da API Anthropic (Claude). A chave fica salva apenas no seu navegador.</p>
+      <p style="font-size:12px;color:var(--t2);margin:0 0 .8rem 0">Para gerar o NID NEWS, configure sua chave da API Anthropic (Claude). A chave fica salva apenas no seu navegador.</p>
       <div style="display:flex;gap:.5rem;align-items:center">
         <input class="inp" id="apiKeyInput" type="password" placeholder="sk-ant-api03-..." style="flex:1">
         <button class="btn primary" onclick="saveApiKey()">Salvar chave</button>
@@ -4360,15 +4521,16 @@ function renderGiro(){
       <p style="font-size:10px;color:var(--t3);margin:.5rem 0 0 0">Obtenha sua chave em <strong>console.anthropic.com</strong> > API Keys</p>
     </div>`;
   } else {
-    html += `<div style="display:flex;gap:.5rem;align-items:center;margin-bottom:1rem">
+    html += `<div style="display:flex;gap:.5rem;align-items:center;margin-bottom:1rem;flex-wrap:wrap">
       <span style="font-size:12px;color:var(--green)">🔑 Chave configurada</span>
       <button class="btn sm" onclick="if(confirm('Remover chave da IA?')){localStorage.removeItem('anthropic_key');renderGiro()}" style="font-size:10px">Remover chave</button>
+      ${localStorage.getItem('teams_webhook')?'<span style="font-size:12px;color:var(--accent);margin-left:8px">📤 Teams configurado</span>':''}
     </div>`;
   }
 
   const total = data.weekEvents.length+data.taskUpdates.length+data.entregaUpdates.length+data.weekComments.length+data.weekAttach.length+data.weekIdeias.length+data.reviewActions.length;
   if(!total){
-    html += `<div class="empty"><div class="ic">📭</div>Nenhuma movimentacao registrada nesta semana.<br><span style="font-size:12px;color:var(--t3)">Movimente tarefas, faca reunioes e adicione comentarios para gerar o giro.</span></div>`;
+    html += `<div class="empty"><div class="ic">📭</div>Nenhuma movimentação registrada nesta semana.<br><span style="font-size:12px;color:var(--t3)">Movimente tarefas, faça reuniões e adicione comentários para gerar o NID NEWS.</span></div>`;
   }
   el.innerHTML = html;
 }
@@ -4384,14 +4546,25 @@ function saveApiKey(){
 function buildGiroPrompt(wk, data){
   const s = cs();
   const sprintInfo = s ? `Sprint ${s.id} — ${s.m} (foco: ${s.foco})` : 'Todas as sprints';
+  const spPct = data.sprintProgress.tasks ? Math.round(100*data.sprintProgress.done/data.sprintProgress.tasks) : 0;
+  const paPct = data.planoAcao.total ? Math.round(100*data.planoAcao.concluido/data.planoAcao.total) : 0;
 
-  let ctx = `Voce e a assistente do Nucleo de Inovacao e Dados (NID) da COBEN/FUNCEF.
-Gere o GIRO DA SEMANA (${wk.label}) para abrir a Weekly do time.
+  let ctx = `Voce e o EDITOR-CHEFE do "NID NEWS" — o informativo semanal interno do Nucleo de Inovacao e Dados (NID) da COBEN/FUNCEF.
+Seu papel e o de um jornalista corporativo moderno: transforma dados operacionais em narrativa envolvente, informativa e que coloca toda a equipe na mesma pagina.
 
+EDICAO: Giro da Semana — ${wk.label}
 Sprint atual: ${sprintInfo}
 Equipe: ${MB.filter(m=>m.ativo!==false).map(m=>m.nome.split(' ')[0]).join(', ')}
 
-DADOS DA SEMANA:\n\n`;
+DADOS COLETADOS PARA ESTA EDICAO:
+
+PANORAMA DA SPRINT:
+- Tarefas: ${data.sprintProgress.done}/${data.sprintProgress.tasks} concluidas (${spPct}%)
+- Entregas da sprint: ${data.sprintProgress.entregasDone}/${data.sprintProgress.entregas} finalizadas
+${data.checklist.total?`- Checklist geral: ${data.checklist.done}/${data.checklist.total} itens marcados (${Math.round(100*data.checklist.done/data.checklist.total)}%)`:''}
+- Plano de Acao: ${data.planoAcao.concluido}/${data.planoAcao.total} subacoes concluidas (${paPct}%), ${data.planoAcao.andamento} em andamento
+
+`;
 
   if(data.weekEvents.length){
     ctx += `REUNIOES E EVENTOS (${data.weekEvents.length}):\n`;
@@ -4400,7 +4573,7 @@ DADOS DA SEMANA:\n\n`;
       ctx += `- ${ev.titulo} (${ev.tipo||'Reuniao'}, ${ev.hora_inicio||'sem horario'})`;
       if(mems.length) ctx += ` | Participantes: ${mems.map(m=>m.nome.split(' ')[0]).join(', ')}`;
       const evCmt = data.weekComments.filter(c=>c._key.startsWith('ev_'+ev.id));
-      if(evCmt.length) ctx += ` | Comentarios: ${evCmt.map(c=>`"${(c.texto||'').slice(0,100)}"`).join('; ')}`;
+      if(evCmt.length) ctx += ` | Notas: ${evCmt.map(c=>`"${(c.texto||'').slice(0,120)}"`).join('; ')}`;
       const evAtt = data.weekAttach.filter(a=>a.evento_id===ev.id);
       if(evAtt.length) ctx += ` | Documentos: ${evAtt.map(a=>a.nome||a.nome_arquivo||'arquivo').join(', ')}`;
       ctx += '\n';
@@ -4438,9 +4611,9 @@ DADOS DA SEMANA:\n\n`;
     const nonEvCmt = data.weekComments.filter(c=>!c._key.startsWith('ev_'));
     if(nonEvCmt.length){
       ctx += `COMENTARIOS EM TAREFAS/ENTREGAS (${nonEvCmt.length}):\n`;
-      nonEvCmt.slice(0,15).forEach(c=>{
+      nonEvCmt.slice(0,20).forEach(c=>{
         const autor = c.user_id?mBI(c.user_id):null;
-        ctx += `- ${autor?autor.nome.split(' ')[0]+': ':''}${(c.texto||'').slice(0,150)}\n`;
+        ctx += `- ${autor?autor.nome.split(' ')[0]+': ':''}${(c.texto||'').slice(0,180)}\n`;
       });
       ctx += '\n';
     }
@@ -4450,40 +4623,71 @@ DADOS DA SEMANA:\n\n`;
     const nonEvAtt = data.weekAttach.filter(a=>!a.evento_id);
     if(nonEvAtt.length){
       ctx += `DOCUMENTOS ANEXADOS (${nonEvAtt.length}):\n`;
-      nonEvAtt.forEach(a=>{
-        ctx += `- ${a.nome||a.nome_arquivo||'arquivo'}\n`;
-      });
+      nonEvAtt.forEach(a=>{ ctx += `- ${a.nome||a.nome_arquivo||'arquivo'}\n`; });
       ctx += '\n';
     }
   }
 
   if(data.weekIdeias.length){
-    ctx += `IDEIAS NOVAS (${data.weekIdeias.length}):\n`;
+    ctx += `IDEIAS REGISTRADAS (${data.weekIdeias.length}):\n`;
     data.weekIdeias.forEach(i=>{
       const tp = IDEA_TIPOS.find(t=>t.k===i.tipo)||IDEA_TIPOS[0];
-      ctx += `- [${tp.l.replace(/^.\s/,'')}] ${i.titulo}${i.descricao?' — '+i.descricao.slice(0,100):''}\n`;
+      ctx += `- [${tp.l.replace(/^.\s/,'')}] ${i.titulo}${i.descricao?' — '+i.descricao.slice(0,120):''}\n`;
     });
     ctx += '\n';
   }
 
   if(data.reviewActions.length){
-    ctx += `REVIEWS REALIZADAS: ${data.reviewActions.length} review(s) salva(s)/atualizada(s)\n\n`;
+    ctx += `REVIEWS: ${data.reviewActions.length} review(s) salva(s)/atualizada(s)\n\n`;
   }
 
-  ctx += `INSTRUCOES:
-Gere um resumo executivo para abrir a Weekly do NID/COBEN. O tom deve ser leve, direto e motivador.
+  const actEntries = Object.entries(data.memberActivity);
+  if(actEntries.length){
+    ctx += `ATIVIDADE POR MEMBRO:\n`;
+    actEntries.sort((a,b)=>b[1].actions-a[1].actions);
+    actEntries.forEach(([name, info])=>{
+      ctx += `- ${name}: ${info.actions} acoes (${[...info.types].slice(0,5).join(', ')})\n`;
+    });
+    ctx += '\n';
+  }
 
-Estruture assim:
-1. ABERTURA (1-2 frases de contexto da semana, tom leve e engajador)
-2. DESTAQUES DA SEMANA (os 3-5 fatos mais relevantes, com nomes de quem fez)
-3. REUNIOES (resumo do que foi discutido, decisoes tomadas, documentos compartilhados)
-4. MOVIMENTACAO DE TAREFAS (o que avancou, o que foi criado, bloqueios)
-5. PONTOS DE ATENCAO (riscos, bloqueios, coisas que precisam de decisao)
-6. FRASE DE FECHAMENTO (motivacional, curta)
+  ctx += `INSTRUCOES EDITORIAIS:
 
-Se nao houver dados em alguma secao, omita-a.
-Responda em portugues brasileiro. Use markdown para formatar.
-Seja conciso mas completo. Maximo 600 palavras.`;
+Voce e o editor-chefe do NID NEWS. Escreva como um jornalista corporativo moderno e envolvente.
+
+ESTRUTURE SUA EDICAO assim (use exatamente estes titulos com ##):
+
+## MANCHETE
+Uma frase de impacto que resume o principal destaque da semana.
+
+## EDITORIAL
+2-3 paragrafos de contexto editorial: o que aconteceu, por que importa, o impacto para o time. Use tom envolvente de jornalista. Cite nomes da equipe. Comece com a noticia mais relevante.
+
+## PAINEL DE INDICADORES
+Sprint progress, tarefas, entregas — apresente os numeros-chave de forma clara e comparativa. Use bullet points.
+
+## DESPACHOS
+Os fatos individuais da semana (reunioes, tarefas concluidas, documentos, comentarios relevantes). Cada item em uma linha. Agrupe por tema quando fizer sentido.
+
+## INOVACAO E IDEIAS
+Se houver ideias novas, projetos embrionarios ou aprendizados, destaque-os aqui.
+
+## RADAR
+Riscos, bloqueios, itens atrasados, decisoes pendentes. Seja direto e objetivo.
+
+## PERSPECTIVA
+O que esta por vir, o que esperar, no que focar na proxima semana.
+
+## FRASE DA SEMANA
+Uma frase motivacional ou reflexao que conecte com o momento da equipe. Pode ser de um autor famoso ou criada por voce.
+
+REGRAS:
+- Tom: profissional, mas leve e engajador. Imagine-se como ancora de um telejornal corporativo moderno.
+- Cite NOMES dos membros que se destacaram (use apenas o primeiro nome).
+- Se uma secao nao tiver dados, OMITA-A completamente (nao invente dados).
+- Escreva em portugues brasileiro.
+- Use markdown para formatar (##, **, -, etc.).
+- Maximo 1200 palavras. Seja denso e informativo, nao prolixo.`;
 
   return ctx;
 }
@@ -4498,21 +4702,22 @@ async function gerarGiroIA(){
   const data = collectWeekData(wk);
 
   const total = data.weekEvents.length+data.taskUpdates.length+data.entregaUpdates.length+data.weekComments.length+data.weekAttach.length+data.weekIdeias.length+data.reviewActions.length;
-  if(!total){ toast('Nenhuma movimentacao nesta semana para gerar o resumo','err'); return; }
+  if(!total){ toast('Nenhuma movimentacao nesta semana para gerar o NID NEWS','err'); return; }
 
   const btn = document.getElementById('btnGiroIA');
   btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span> Gerando...';
+  btn.innerHTML = '<span class="spinner"></span> Gerando NID NEWS...';
 
   const iaEl = document.getElementById('giroIAResult');
   iaEl.style.display = '';
-  iaEl.innerHTML = `<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-top:1rem">
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:1rem">
-      <span style="font-size:20px">🤖</span>
-      <h3 style="margin:0">Gerando resumo inteligente...</h3>
+  iaEl.innerHTML = `<div class="news-wrap" style="margin-top:1rem">
+    <div class="news-mast">
+      <h1>NID NEWS</h1>
+      <div class="news-sub">Informativo Semanal do Nucleo de Inovacao e Dados</div>
     </div>
-    <div id="giroIAText" style="font-size:13px;line-height:1.7;color:var(--t1)">
-      <div class="spinner" style="margin:1rem auto"></div>
+    <div class="news-body" style="text-align:center;padding:3rem">
+      <div class="spinner" style="margin:0 auto 1rem"></div>
+      <p style="color:var(--t2);font-size:13px">O editor-chefe esta preparando a edicao da semana...</p>
     </div>
   </div>`;
 
@@ -4528,7 +4733,7 @@ async function gerarGiroIA(){
       },
       body: JSON.stringify({
         model: 'claude-sonnet-5',
-        max_tokens: 1500,
+        max_tokens: 4096,
         messages: [{ role: 'user', content: prompt }]
       })
     });
@@ -4539,46 +4744,234 @@ async function gerarGiroIA(){
     }
 
     const result = await resp.json();
-    const text = result.content?.[0]?.text || 'Sem resposta da IA';
+    const text = result.content?.[0]?.text || '';
+    if(!text){ throw new Error('Sem resposta da IA. Verifique seus creditos em console.anthropic.com'); }
 
-    const htmlText = text
-      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-      .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
-      .replace(/^### (.+)$/gm,'<h4 style="margin:1rem 0 .3rem;color:var(--accent)">$1</h4>')
-      .replace(/^## (.+)$/gm,'<h3 style="margin:1.2rem 0 .4rem;color:var(--accent)">$1</h3>')
-      .replace(/^# (.+)$/gm,'<h2 style="margin:1.2rem 0 .5rem;color:var(--accent)">$1</h2>')
-      .replace(/^- (.+)$/gm,'<div style="padding-left:1rem;margin:.15rem 0">• $1</div>')
-      .replace(/^(\d+)\. (.+)$/gm,'<div style="padding-left:1rem;margin:.15rem 0">$1. $2</div>')
-      .replace(/\n\n/g,'<br><br>')
-      .replace(/\n/g,'<br>');
-
-    document.getElementById('giroIAText').innerHTML = htmlText;
-
-    iaEl.innerHTML = `<div style="background:linear-gradient(135deg, var(--bg2), var(--acc-bg));border:1px solid var(--accent);border-radius:12px;padding:1.5rem;margin-top:1rem">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:.8rem">
-        <span style="font-size:20px">🤖</span>
-        <h3 style="margin:0;flex:1">Giro da Semana — ${wk.label}</h3>
-        <button class="btn sm" onclick="copyGiro()" title="Copiar para area de transferencia">📋 Copiar</button>
-      </div>
-      <div id="giroIAText" style="font-size:13px;line-height:1.7;color:var(--t1)">${htmlText}</div>
-      <div id="giroRawText" style="display:none">${escapeHtml(text)}</div>
-      <div style="margin-top:1rem;font-size:10px;color:var(--t3);text-align:right">Gerado por Claude (Anthropic) com base nos dados do app</div>
-    </div>`;
+    _lastGiroRaw = text;
+    _lastGiroWk = wk;
+    _lastGiroData = data;
+    renderGiroNewspaper(iaEl, text, wk, data);
 
   } catch(e){
-    document.getElementById('giroIAText').innerHTML = `<div style="color:var(--red)">Erro ao gerar: ${escapeHtml(e.message)}</div>
-      <div style="font-size:11px;color:var(--t3);margin-top:.5rem">Verifique se a chave esta correta e tente novamente.</div>`;
+    iaEl.innerHTML = `<div style="background:var(--bg2);border:1px solid var(--red);border-radius:12px;padding:1.5rem;margin-top:1rem">
+      <div style="color:var(--red);font-weight:700;margin-bottom:.5rem">Erro ao gerar o NID NEWS</div>
+      <div style="font-size:13px;color:var(--t2)">${escapeHtml(e.message)}</div>
+      <div style="font-size:11px;color:var(--t3);margin-top:.5rem">Verifique se a chave esta correta e se ha creditos disponiveis em console.anthropic.com.</div>
+    </div>`;
   }
 
   btn.disabled = false;
-  btn.innerHTML = '🤖 Gerar com IA';
+  btn.innerHTML = '🤖 Gerar NID NEWS';
+}
+
+let _lastGiroRaw = '', _lastGiroWk = null, _lastGiroData = null;
+
+function parseGiroSections(text){
+  const sections = {};
+  const lines = text.split('\n');
+  let currentKey = '_intro';
+  sections[currentKey] = [];
+  const sectionMap = {
+    'MANCHETE':'manchete','EDITORIAL':'editorial','PAINEL DE INDICADORES':'painel',
+    'DESPACHOS':'despachos','INOVACAO E IDEIAS':'inovacao','INOVACAO':'inovacao',
+    'RADAR':'radar','PERSPECTIVA':'perspectiva','FRASE DA SEMANA':'frase'
+  };
+  for(const line of lines){
+    const hm = line.match(/^##\s+(?:[\u{1F300}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]\s*)?(.+)/u);
+    if(hm){
+      const title = hm[1].replace(/[^\w\sÀ-ſ]/g,'').trim().toUpperCase();
+      let key = '_unknown';
+      for(const [pat, k] of Object.entries(sectionMap)){
+        if(title.includes(pat)){ key=k; break; }
+      }
+      if(key==='_unknown') key = title.toLowerCase().replace(/\s+/g,'_').slice(0,20);
+      currentKey = key;
+      sections[currentKey] = [];
+    } else {
+      if(!sections[currentKey]) sections[currentKey]=[];
+      sections[currentKey].push(line);
+    }
+  }
+  for(const k of Object.keys(sections)) sections[k] = sections[k].join('\n').trim();
+  return sections;
+}
+
+function mdToHtml(md){
+  return md
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g,'<em>$1</em>')
+    .replace(/^### (.+)$/gm,'<h4 style="margin:.8rem 0 .3rem;font-size:13px">$1</h4>')
+    .replace(/^- (.+)$/gm,'<div class="news-bullet">$1</div>')
+    .replace(/^(\d+)\. (.+)$/gm,'<div class="news-num">$1. $2</div>')
+    .replace(/\n\n/g,'</p><p>').replace(/\n/g,'<br>');
+}
+
+function renderGiroNewspaper(container, text, wk, data){
+  const sec = parseGiroSections(text);
+  const s = cs();
+  const spPct = data.sprintProgress.tasks ? Math.round(100*data.sprintProgress.done/data.sprintProgress.tasks) : 0;
+  const paPct = data.planoAcao.total ? Math.round(100*data.planoAcao.concluido/data.planoAcao.total) : 0;
+  const edNum = Math.ceil((new Date(wk.start)-new Date('2025-01-01'))/(7*864e5))+1;
+
+  const manchete = sec.manchete || '';
+  const editorial = sec.editorial || '';
+  const painel = sec.painel || '';
+  const despachos = sec.despachos || '';
+  const inovacao = sec.inovacao || '';
+  const radar = sec.radar || '';
+  const perspectiva = sec.perspectiva || '';
+  const frase = sec.frase || '';
+
+  const hasTeams = !!localStorage.getItem('teams_webhook');
+
+  container.innerHTML = `<div class="news-wrap">
+    <div class="news-mast">
+      <h1>NID NEWS</h1>
+      <div class="news-sub">Informativo Semanal do Nucleo de Inovacao e Dados — COBEN/FUNCEF</div>
+      <div class="news-ed">
+        <span>Edicao #${edNum}</span>
+        <span>${wk.label}</span>
+        <span>${s?'Sprint '+s.id+' — '+s.m:''}</span>
+      </div>
+    </div>
+
+    <div class="news-bar">
+      <div class="news-flash">${data.taskUpdates.length} tarefas movimentadas | ${data.weekEvents.length} reunioes | ${data.weekIdeias.length} ideias | Sprint ${spPct}% completa</div>
+      <div class="news-actions">
+        <button onclick="copyGiro()">📋 Copiar</button>
+        <button onclick="copyGiroTeams()">📤 Teams</button>
+        ${hasTeams?'<button onclick="sendGiroTeams()">🚀 Enviar Teams</button>':''}
+        <button onclick="printGiro()">🖨️ Imprimir</button>
+      </div>
+    </div>
+
+    <div class="news-body">
+      ${manchete?`<div class="news-headline">${mdToHtml(manchete)}</div>`:''}
+
+      <div class="news-grid">
+        <div class="news-col">
+          ${editorial?`<h3>Editorial</h3><p>${mdToHtml(editorial)}</p>`:''}
+          ${despachos?`<h3>Despachos</h3><p>${mdToHtml(despachos)}</p>`:''}
+          ${inovacao?`<h3>Inovacao & Ideias</h3><p>${mdToHtml(inovacao)}</p>`:''}
+        </div>
+
+        <div class="news-col">
+          <div class="news-sidebar">
+            <h4>Painel da Sprint</h4>
+            <div class="ns-item"><span>Tarefas</span><span class="ns-val">${data.sprintProgress.done}/${data.sprintProgress.tasks}</span></div>
+            <div class="ns-item"><span>Entregas</span><span class="ns-val">${data.sprintProgress.entregasDone}/${data.sprintProgress.entregas}</span></div>
+            <div class="ns-item"><span>Progresso</span><span class="ns-val" style="color:var(--accent)">${spPct}%</span></div>
+            <div class="ns-item"><span>Plano de Acao</span><span class="ns-val" style="color:var(--green)">${paPct}%</span></div>
+            <div class="ns-item"><span>Comentarios</span><span class="ns-val">${data.weekComments.length}</span></div>
+            <div class="ns-item"><span>Anexos</span><span class="ns-val">${data.weekAttach.length}</span></div>
+          </div>
+          ${painel?`<h3>Indicadores</h3><p>${mdToHtml(painel)}</p>`:''}
+          ${radar?`<h3>Radar — Pontos de Atencao</h3><p>${mdToHtml(radar)}</p>`:''}
+          ${perspectiva?`<h3>Perspectiva</h3><p>${mdToHtml(perspectiva)}</p>`:''}
+        </div>
+      </div>
+
+      ${frase?`<div class="news-quote">${mdToHtml(frase)}</div>`:''}
+
+      <div class="news-foot">
+        NID NEWS — Gerado por IA (Claude/Anthropic) com base nos dados do app | ${new Date().toLocaleString('pt-BR')}
+      </div>
+    </div>
+  </div>
+  <div id="giroRawText" style="display:none">${escapeHtml(text)}</div>`;
 }
 
 function copyGiro(){
-  const raw = document.getElementById('giroRawText');
-  if(!raw) return;
-  const text = raw.textContent;
-  navigator.clipboard.writeText(text).then(()=>toast('Resumo copiado!')).catch(()=>toast('Erro ao copiar','err'));
+  if(!_lastGiroRaw){ toast('Gere o NID NEWS primeiro','err'); return; }
+  navigator.clipboard.writeText(_lastGiroRaw).then(()=>toast('Conteudo copiado!')).catch(()=>toast('Erro ao copiar','err'));
+}
+
+function copyGiroTeams(){
+  if(!_lastGiroRaw){ toast('Gere o NID NEWS primeiro','err'); return; }
+  const wk = _lastGiroWk;
+  const teamsMsg = `📰 **NID NEWS — ${wk?.label||''}**\n\n${_lastGiroRaw}\n\n---\n_Gerado automaticamente pelo NID Agile Board_`;
+  navigator.clipboard.writeText(teamsMsg).then(()=>toast('Copiado para colar no Teams!')).catch(()=>toast('Erro ao copiar','err'));
+}
+
+async function sendGiroTeams(){
+  if(!_lastGiroRaw){ toast('Gere o NID NEWS primeiro','err'); return; }
+  const webhook = localStorage.getItem('teams_webhook');
+  if(!webhook){ toast('Configure o webhook do Teams primeiro','err'); configTeamsWebhook(); return; }
+  const wk = _lastGiroWk;
+  const card = {
+    type: 'message',
+    attachments: [{
+      contentType: 'application/vnd.microsoft.card.adaptive',
+      contentUrl: null,
+      content: {
+        '$schema': 'http://adaptivecards.io/schemas/adaptive-card.json',
+        type: 'AdaptiveCard',
+        version: '1.4',
+        body: [
+          {type:'TextBlock', text:'📰 NID NEWS', size:'ExtraLarge', weight:'Bolder', color:'Accent'},
+          {type:'TextBlock', text:wk?.label||'', size:'Medium', isSubtle:true},
+          {type:'TextBlock', text:_lastGiroRaw.replace(/##\s/g,'**').replace(/\n/g,'\n\n'), wrap:true}
+        ]
+      }
+    }]
+  };
+  try {
+    const resp = await fetch(webhook, {method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify(card)});
+    if(!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    toast('NID NEWS enviado para o Teams!');
+    logAudit({action:'giro_teams', entityType:'giro', summary:`NID NEWS ${wk?.label||''} enviado via Teams`});
+  } catch(e){
+    toast('Erro ao enviar para o Teams: '+e.message,'err');
+  }
+}
+
+function configTeamsWebhook(){
+  const current = localStorage.getItem('teams_webhook')||'';
+  const html = `<div class="mbg on" onclick="if(event.target===this)this.remove()">
+    <div class="modal" style="max-width:520px">
+      <div class="mhead"><h2>Configurar Microsoft Teams</h2><button class="mclose" onclick="this.closest('.mbg').remove()">&#10005;</button></div>
+      <div class="mbody" style="padding:1.2rem">
+        <p style="font-size:12px;color:var(--t2);margin:0 0 1rem">Para enviar o NID NEWS diretamente para um canal do Teams, configure a URL do webhook de entrada (Incoming Webhook) do canal desejado.</p>
+        <div class="field"><label>URL do Webhook</label><input class="inp" id="teamsWebhookInput" value="${escapeHtml(current)}" placeholder="https://outlook.office.com/webhook/..." style="font-size:12px"></div>
+        <details style="margin-top:.8rem"><summary style="font-size:11px;color:var(--accent);cursor:pointer;font-weight:600">Como obter o webhook?</summary>
+          <ol style="font-size:11px;color:var(--t2);margin:.5rem 0 0 1rem;line-height:1.6">
+            <li>Abra o Microsoft Teams e va ao canal desejado</li>
+            <li>Clique nos tres pontos (...) do canal</li>
+            <li>Selecione "Conectores" ou "Workflows"</li>
+            <li>Adicione "Incoming Webhook"</li>
+            <li>De um nome (ex: "NID NEWS") e copie a URL gerada</li>
+          </ol>
+        </details>
+      </div>
+      <div class="mfoot">
+        ${current?'<button class="btn" onclick="localStorage.removeItem(\'teams_webhook\');this.closest(\'.mbg\').remove();toast(\'Webhook removido\');renderGiro()">Remover</button>':''}
+        <div style="flex:1"></div>
+        <button class="btn" onclick="this.closest('.mbg').remove()">Cancelar</button>
+        <button class="btn primary" onclick="saveTeamsWebhook()">Salvar</button>
+      </div>
+    </div>
+  </div>`;
+  const div = document.createElement('div'); div.innerHTML = html; document.body.appendChild(div.firstElementChild);
+}
+function saveTeamsWebhook(){
+  const url = document.getElementById('teamsWebhookInput')?.value?.trim();
+  if(!url){ toast('Informe a URL do webhook','err'); return; }
+  localStorage.setItem('teams_webhook', url);
+  document.querySelector('.mbg.on')?.remove();
+  toast('Webhook do Teams configurado!');
+  renderGiro();
+}
+
+function printGiro(){
+  const content = document.querySelector('.news-wrap');
+  if(!content){ toast('Gere o NID NEWS primeiro','err'); return; }
+  const w = window.open('','_blank');
+  w.document.write('<html><head><title>NID NEWS</title><style>body{font-family:Georgia,serif;max-width:900px;margin:0 auto;padding:2rem}h1{text-align:center;font-size:36px;letter-spacing:3px;border-bottom:3px double #333;padding-bottom:10px}h3{color:#2563eb;border-bottom:2px solid #2563eb;padding-bottom:4px;margin-top:1.5rem}.news-grid{display:grid;grid-template-columns:1fr 1fr;gap:2rem}.news-bullet{padding-left:1rem}.news-quote{font-style:italic;text-align:center;padding:1rem 2rem;border-top:2px solid #2563eb;border-bottom:2px solid #2563eb;margin:1rem 0;font-size:16px}.news-sidebar{background:#f8f9fa;border:1px solid #ddd;border-radius:8px;padding:1rem;margin-bottom:1rem}.ns-item{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px dotted #ddd}.ns-val{font-weight:800}.news-foot{text-align:center;font-size:10px;color:#888;margin-top:2rem;border-top:2px solid #333;padding-top:8px}@media print{body{padding:0}}</style></head><body>');
+  w.document.write(content.innerHTML);
+  w.document.write('</body></html>');
+  w.document.close();
+  w.print();
 }
 
 function renderAudit(){
