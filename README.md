@@ -69,7 +69,11 @@ visual FUNCEF, com login real (Supabase Auth) e modo claro/escuro.
    - O Giro da Semana não precisa de tabela nova (usa dados existentes).
 15. (Descontinuação de OM) Execute `schema_addon_v18.sql`.
    - Cria tabela `pa_om_status` (estado de descontinuação das OMs com justificativa).
-16. Em **Authentication → Providers → Email** desabilite "Confirm email".
+16. (Lembretes automáticos) Execute `schema_addon_v19.sql`.
+   - Cria tabela `reminder_log` (histórico de envios).
+   - Para automação total, habilite pg_cron + pg_net e siga as instruções no arquivo SQL.
+   - Para deploy da Edge Function, veja `supabase-edge-function-reminders.js`.
+17. Em **Authentication → Providers → Email** desabilite "Confirm email".
 
 ### 2) Rodar localmente
 Abra `index.html` direto no navegador, ou:

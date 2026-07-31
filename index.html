@@ -579,6 +579,33 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
 .news-quote{font-family:Georgia,serif;font-size:16px;font-style:italic;text-align:center;color:var(--accent);padding:1.2rem 2rem;margin:1rem 0;border-top:2px solid var(--accent);border-bottom:2px solid var(--accent);line-height:1.5}
 .news-foot{text-align:center;padding:.8rem;font-size:10px;color:var(--t3);border-top:2px solid var(--border);margin-top:1rem}
 @media (max-width:768px){.news-grid{grid-template-columns:1fr}.news-mast h1{font-size:24px}.news-body{padding:1rem}.news-headline{font-size:18px}}
+/* Lembretes */
+.lem-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.2rem}
+.lem-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1rem}
+.lem-card h4{font-size:13px;font-weight:700;margin:0 0 .8rem;display:flex;align-items:center;gap:6px}
+.lem-card h4 .lem-status{width:8px;height:8px;border-radius:50%;margin-left:auto}
+.lem-card h4 .lem-status.on{background:var(--green)}
+.lem-card h4 .lem-status.off{background:var(--t3)}
+.lem-field{margin-bottom:.7rem}
+.lem-field label{display:block;font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px}
+.lem-field .inp{width:100%;box-sizing:border-box}
+.lem-toggle{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;font-weight:600}
+.lem-toggle input{accent-color:var(--accent);width:16px;height:16px}
+.lem-rules{margin:.8rem 0}
+.lem-rule{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px}
+.lem-rule:last-child{border:none}
+.lem-rule input[type="checkbox"]{accent-color:var(--accent)}
+.lem-rule select{font-size:11px;padding:3px 6px;border-radius:6px;border:1px solid var(--border);background:var(--bg1);color:var(--t1);font-family:inherit}
+.lem-preview{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:1rem;font-size:12px;line-height:1.6;color:var(--t2);max-height:300px;overflow-y:auto;white-space:pre-wrap}
+.lem-log{font-size:11px}
+.lem-log-item{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)}
+.lem-log-item:last-child{border:none}
+.lem-log-item .lem-log-ico{font-size:16px}
+.lem-log-item .lem-log-dt{color:var(--t3);font-size:10px;margin-left:auto;white-space:nowrap}
+.lem-log-item .lem-log-st{font-size:9px;font-weight:700;padding:2px 6px;border-radius:10px}
+.lem-log-item .lem-log-st.ok{background:var(--g-bg);color:var(--green)}
+.lem-log-item .lem-log-st.err{background:var(--r-bg);color:var(--red)}
+@media (max-width:768px){.lem-grid{grid-template-columns:1fr}}
 /* OM discontinuation */
 .pa-badge.desc{background:#fce4ec;color:#c62828}
 .pa-om.discontinued{opacity:.7}
@@ -752,6 +779,7 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
       <button class="nb" data-v="planoacao" onclick="nav('planoacao',this)"><span class="ic">🎯</span>Plano de Ação</button>
       <button class="nb" data-v="ideias" onclick="nav('ideias',this)"><span class="ic">💡</span>Ideias & Aprendizado</button>
       <button class="nb" data-v="giro" onclick="nav('giro',this)"><span class="ic">📰</span>Giro da Semana</button>
+      <button class="nb" data-v="lembretes" onclick="nav('lembretes',this)"><span class="ic">🔔</span>Lembretes</button>
       <button class="nb" data-v="audit"    onclick="nav('audit',this)" id="navAudit" style="display:none"><span class="ic">🔍</span>Governança <span style="background:var(--orange);color:#fff;font-size:9px;padding:1px 6px;border-radius:20px;margin-left:auto;font-weight:800">ADMIN</span></button>
       <button class="nb" data-v="users"    onclick="nav('users',this)" id="navUsers" style="display:none"><span class="ic">⚙️</span>Usuários <span style="background:var(--orange);color:#fff;font-size:9px;padding:1px 6px;border-radius:20px;margin-left:auto;font-weight:800">ADMIN</span></button>
       <button class="nb" data-v="import"  onclick="nav('import',this)" id="navImport" style="display:none"><span class="ic">📥</span>Importar PA <span style="background:var(--orange);color:#fff;font-size:9px;padding:1px 6px;border-radius:20px;margin-left:auto;font-weight:800">ADMIN</span></button>
@@ -968,6 +996,17 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
         </div>
         <div id="giroContent"></div>
         <div id="giroIAResult" style="display:none"></div>
+      </section>
+
+      <!-- LEMBRETES / AUTOMAÇÕES -->
+      <section class="view" id="vLembretes">
+        <div class="vh">
+          <div><h1>🔔 Lembretes & Automações</h1><div class="vh-sub">Lembretes automáticos por e-mail e Teams — mantenha a equipe informada mesmo de férias</div></div>
+          <div class="vh-grow"></div>
+          <button class="btn" onclick="sendDigestNow('teams')" id="btnSendTeams">📤 Enviar Digest Teams</button>
+          <button class="btn primary" onclick="sendDigestNow('email')" id="btnSendEmail">📧 Enviar Digest E-mail</button>
+        </div>
+        <div id="lembretesContent"></div>
       </section>
 
       <!-- AUDIT / GOVERNANÇA -->
@@ -2550,6 +2589,7 @@ function renderAll(){
   if(AV==='planoacao') renderPlanoAcao();
   if(AV==='ideias')    renderIdeias();
   if(AV==='giro')      renderGiro();
+  if(AV==='lembretes') renderLembretes();
   if(AV==='audit')     renderAudit();
   if(AV==='users')     renderUsers();
   if(AV==='import')    renderImport();
@@ -4072,6 +4112,436 @@ async function reativarOm(omId){
   logAudit({action:'om_reativar', entityType:'pa', entityId:String(omId),
     summary:`OM${omId} reativada`});
   renderPlanoAcao();
+}
+
+/* ============================================================
+   LEMBRETES & AUTOMAÇÕES
+============================================================ */
+let LEMB_LOG = [];
+
+function getLembConfig(){
+  const def = {
+    teams_ativo: false,
+    teams_webhook: localStorage.getItem('teams_webhook')||'',
+    email_ativo: false,
+    email_service: 'resend',
+    email_api_key: '',
+    email_destinatarios: '',
+    email_remetente: 'nid-news@funcef.com.br',
+    regras: {
+      tarefas_atrasadas: true,
+      tarefas_prazo_3dias: true,
+      reunioes_dia: true,
+      entregas_pendentes: true,
+      plano_acao_prazos: true,
+      digest_semanal: true
+    },
+    horario: '08:00',
+    dias_semana: [1,2,3,4,5],
+    antecedencia_dias: 3
+  };
+  try {
+    const saved = JSON.parse(localStorage.getItem('lemb_config')||'{}');
+    return {...def, ...saved, regras:{...def.regras, ...(saved.regras||{})}};
+  } catch{ return def; }
+}
+function saveLembConfig(cfg){
+  localStorage.setItem('lemb_config', JSON.stringify(cfg));
+  if(cfg.teams_webhook) localStorage.setItem('teams_webhook', cfg.teams_webhook);
+}
+
+function buildDigestData(){
+  const today = new Date().toISOString().slice(0,10);
+  const in3d = new Date(Date.now()+3*864e5).toISOString().slice(0,10);
+  const s = cs();
+  const sprintTasks = s ? spT(s.id) : [];
+
+  const atrasadas = sprintTasks.filter(t=>t.status!=='concluido'&&t.data_fim&&t.data_fim<today);
+  const prazo3d = sprintTasks.filter(t=>t.status!=='concluido'&&t.data_fim&&t.data_fim>=today&&t.data_fim<=in3d);
+  const reunioesHoje = EV.filter(ev=>{
+    if(!ev.data) return false;
+    if(ev.recorrencia && ev.recorrencia!=='nenhuma'){
+      const evDate = new Date(ev.data+'T12:00:00');
+      const d = new Date(today+'T12:00:00');
+      if(ev.recorrencia==='semanal' && d.getDay()===evDate.getDay()) return true;
+      return false;
+    }
+    return ev.data===today;
+  });
+  const entregasPend = s ? (s.entregas||[]).filter(e=>e.status!=='concluida') : [];
+
+  const paPrazos = PA_GB.filter((it,idx)=>{
+    if(!it.fim) return false;
+    const omSt = OMST[it.om];
+    if(omSt?.descontinuado) return false;
+    const st = paEffStatus(idx);
+    if(/concl/i.test(st)) return false;
+    return it.fim>=today && it.fim<=in3d;
+  });
+
+  const spDone = sprintTasks.filter(t=>t.status==='concluido').length;
+  const spPct = sprintTasks.length ? Math.round(100*spDone/sprintTasks.length) : 0;
+
+  return {atrasadas, prazo3d, reunioesHoje, entregasPend, paPrazos,
+    sprint: s, sprintTasks, spDone, spPct, today};
+}
+
+function formatDigestText(data, cfg){
+  const s = data.sprint;
+  let msg = `🔔 **LEMBRETE NID/COBEN**\n`;
+  msg += `📅 ${new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'})}`;
+  if(s) msg += ` | Sprint ${s.id} — ${s.m}`;
+  msg += '\n\n';
+
+  if(cfg.regras.tarefas_atrasadas && data.atrasadas.length){
+    msg += `🚨 **TAREFAS ATRASADAS (${data.atrasadas.length})**\n`;
+    data.atrasadas.forEach(t=>{
+      const resp = t.criado_por ? mBI(t.criado_por) : null;
+      msg += `- ${(t.titulo||'').replace(/^\[.*?\]\s*/,'').slice(0,80)}`;
+      if(t.data_fim) msg += ` · Prazo: ${t.data_fim}`;
+      if(resp) msg += ` · ${resp.nome.split(' ')[0]}`;
+      msg += '\n';
+    });
+    msg += '\n';
+  }
+
+  if(cfg.regras.tarefas_prazo_3dias && data.prazo3d.length){
+    msg += `⏰ **PRAZO NOS PRÓXIMOS ${cfg.antecedencia_dias||3} DIAS (${data.prazo3d.length})**\n`;
+    data.prazo3d.forEach(t=>{
+      const resp = t.criado_por ? mBI(t.criado_por) : null;
+      msg += `- ${(t.titulo||'').replace(/^\[.*?\]\s*/,'').slice(0,80)}`;
+      if(t.data_fim) msg += ` · Prazo: ${t.data_fim}`;
+      if(resp) msg += ` · ${resp.nome.split(' ')[0]}`;
+      msg += '\n';
+    });
+    msg += '\n';
+  }
+
+  if(cfg.regras.reunioes_dia && data.reunioesHoje.length){
+    msg += `📅 **REUNIÕES DE HOJE (${data.reunioesHoje.length})**\n`;
+    data.reunioesHoje.forEach(ev=>{
+      const mems = (EVM[ev.id]||[]).map(id=>mBI(id)).filter(Boolean);
+      msg += `- ${ev.titulo} (${ev.hora_inicio||'—'})`;
+      if(mems.length) msg += ` · ${mems.map(m=>m.nome.split(' ')[0]).join(', ')}`;
+      msg += '\n';
+    });
+    msg += '\n';
+  }
+
+  if(cfg.regras.entregas_pendentes && data.entregasPend.length){
+    msg += `📦 **ENTREGAS PENDENTES (${data.entregasPend.length})**\n`;
+    data.entregasPend.slice(0,10).forEach(e=>{
+      msg += `- ${(e.desc||'').slice(0,80)} · ${e.eixo||''} · ${e.status||'pendente'}\n`;
+    });
+    msg += '\n';
+  }
+
+  if(cfg.regras.plano_acao_prazos && data.paPrazos.length){
+    msg += `🎯 **PLANO DE AÇÃO — PRAZOS PRÓXIMOS (${data.paPrazos.length})**\n`;
+    data.paPrazos.forEach(it=>{
+      msg += `- OM${it.om}: ${it.sub.replace(/^[\d.]+\s*/,'').slice(0,70)} · Prazo: ${it.fim}\n`;
+    });
+    msg += '\n';
+  }
+
+  msg += `📊 **PANORAMA DA SPRINT**\n`;
+  msg += `- Tarefas: ${data.spDone}/${data.sprintTasks.length} concluídas (${data.spPct}%)\n`;
+  if(data.sprint){
+    const entDone = (data.sprint.entregas||[]).filter(e=>e.status==='concluida').length;
+    msg += `- Entregas: ${entDone}/${(data.sprint.entregas||[]).length} finalizadas\n`;
+  }
+  msg += '\n---\n_Enviado automaticamente pelo NID Agile Board_';
+
+  return msg;
+}
+
+function formatDigestAdaptiveCard(data, cfg){
+  const s = data.sprint;
+  const body = [
+    {type:'TextBlock', text:'🔔 Lembrete NID/COBEN', size:'ExtraLarge', weight:'Bolder', color:'Accent'},
+    {type:'TextBlock', text:new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'})+(s?' | Sprint '+s.id+' — '+s.m:''), isSubtle:true, size:'Small'},
+  ];
+
+  if(cfg.regras.tarefas_atrasadas && data.atrasadas.length){
+    body.push({type:'TextBlock',text:`🚨 Tarefas Atrasadas: ${data.atrasadas.length}`,weight:'Bolder',spacing:'Medium'});
+    const items = data.atrasadas.slice(0,8).map(t=>{
+      const resp = t.criado_por ? mBI(t.criado_por) : null;
+      return `- ${(t.titulo||'').replace(/^\[.*?\]\s*/,'').slice(0,60)}${resp?' ('+resp.nome.split(' ')[0]+')':''}${t.data_fim?' · '+t.data_fim:''}`;
+    }).join('\n');
+    body.push({type:'TextBlock',text:items,wrap:true,size:'Small'});
+  }
+
+  if(cfg.regras.tarefas_prazo_3dias && data.prazo3d.length){
+    body.push({type:'TextBlock',text:`⏰ Prazo Próximo: ${data.prazo3d.length} tarefa(s)`,weight:'Bolder',spacing:'Medium'});
+    const items = data.prazo3d.slice(0,8).map(t=>{
+      const resp = t.criado_por ? mBI(t.criado_por) : null;
+      return `- ${(t.titulo||'').replace(/^\[.*?\]\s*/,'').slice(0,60)}${resp?' ('+resp.nome.split(' ')[0]+')':''}${t.data_fim?' · '+t.data_fim:''}`;
+    }).join('\n');
+    body.push({type:'TextBlock',text:items,wrap:true,size:'Small'});
+  }
+
+  if(cfg.regras.reunioes_dia && data.reunioesHoje.length){
+    body.push({type:'TextBlock',text:`📅 Reuniões Hoje: ${data.reunioesHoje.length}`,weight:'Bolder',spacing:'Medium'});
+    const items = data.reunioesHoje.map(ev=>`- ${ev.titulo} (${ev.hora_inicio||'—'})`).join('\n');
+    body.push({type:'TextBlock',text:items,wrap:true,size:'Small'});
+  }
+
+  body.push({type:'ColumnSet',spacing:'Medium',columns:[
+    {type:'Column',width:'stretch',items:[{type:'TextBlock',text:'📊 Sprint',weight:'Bolder',size:'Small'},{type:'TextBlock',text:`${data.spDone}/${data.sprintTasks.length} tarefas (${data.spPct}%)`,size:'Small'}]},
+    {type:'Column',width:'stretch',items:[{type:'TextBlock',text:'🚨 Atrasadas',weight:'Bolder',size:'Small'},{type:'TextBlock',text:`${data.atrasadas.length}`,size:'Small',color:data.atrasadas.length?'Attention':'Good'}]},
+    {type:'Column',width:'stretch',items:[{type:'TextBlock',text:'⏰ Próximas',weight:'Bolder',size:'Small'},{type:'TextBlock',text:`${data.prazo3d.length}`,size:'Small',color:data.prazo3d.length?'Warning':'Good'}]},
+  ]});
+
+  return {
+    type:'message',
+    attachments:[{
+      contentType:'application/vnd.microsoft.card.adaptive',
+      contentUrl:null,
+      content:{'$schema':'http://adaptivecards.io/schemas/adaptive-card.json',type:'AdaptiveCard',version:'1.4',body}
+    }]
+  };
+}
+
+async function sendDigestNow(channel){
+  const cfg = getLembConfig();
+  const data = buildDigestData();
+
+  const hasContent = data.atrasadas.length || data.prazo3d.length || data.reunioesHoje.length || data.entregasPend.length || data.paPrazos.length;
+  if(!hasContent){ toast('Nenhum item relevante para enviar no lembrete','err'); return; }
+
+  if(channel==='teams'){
+    const webhook = cfg.teams_webhook || localStorage.getItem('teams_webhook');
+    if(!webhook){ toast('Configure o webhook do Teams primeiro','err'); return; }
+    const btn = document.getElementById('btnSendTeams');
+    btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Enviando...';
+    try {
+      const card = formatDigestAdaptiveCard(data, cfg);
+      const resp = await fetch(webhook, {method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify(card)});
+      if(!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      toast('Lembrete enviado para o Teams!');
+      logLembrete('teams','Teams Channel',formatDigestText(data,cfg).slice(0,200),'ok');
+      logAudit({action:'lembrete_enviado',entityType:'lembrete',summary:'Digest enviado via Teams'});
+    } catch(e){
+      toast('Erro ao enviar para Teams: '+e.message,'err');
+      logLembrete('teams','Teams Channel',e.message,'erro');
+    }
+    btn.disabled=false; btn.innerHTML='📤 Enviar Digest Teams';
+  }
+
+  if(channel==='email'){
+    const apiKey = cfg.email_api_key;
+    const dest = cfg.email_destinatarios;
+    if(!apiKey){ toast('Configure a chave da API de e-mail primeiro','err'); return; }
+    if(!dest){ toast('Configure os destinatários de e-mail primeiro','err'); return; }
+    const btn = document.getElementById('btnSendEmail');
+    btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Enviando...';
+    try {
+      const text = formatDigestText(data, cfg);
+      const htmlBody = text
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+        .replace(/^- (.+)$/gm,'<div style="padding-left:1rem">• $1</div>')
+        .replace(/\n\n/g,'<br><br>').replace(/\n/g,'<br>');
+      const emails = dest.split(/[,;\s]+/).filter(e=>e.includes('@'));
+      const s = cs();
+      const emailPayload = {
+        from: cfg.email_remetente || 'NID COBEN <nid@funcef.com.br>',
+        to: emails,
+        subject: `🔔 Lembrete NID/COBEN — ${new Date().toLocaleDateString('pt-BR')}${s?' · Sprint '+s.id:''}`,
+        html: `<div style="font-family:Arial,sans-serif;max-width:700px;margin:0 auto;padding:20px">${htmlBody}</div>`
+      };
+
+      let apiUrl, headers;
+      if(cfg.email_service==='resend'){
+        apiUrl = 'https://api.resend.com/emails';
+        headers = {'content-type':'application/json','Authorization':'Bearer '+apiKey};
+      } else {
+        apiUrl = 'https://api.sendgrid.com/v3/mail/send';
+        emailPayload.personalizations = [{to:emails.map(e=>({email:e}))}];
+        emailPayload.content = [{type:'text/html',value:emailPayload.html}];
+        delete emailPayload.to;
+        headers = {'content-type':'application/json','Authorization':'Bearer '+apiKey};
+      }
+
+      const resp = await fetch(apiUrl, {method:'POST', headers, body:JSON.stringify(emailPayload)});
+      if(!resp.ok){
+        const err = await resp.json().catch(()=>({}));
+        throw new Error(err.message||err.error?.message||`HTTP ${resp.status}`);
+      }
+      toast('Lembrete enviado por e-mail!');
+      logLembrete('email', emails.join(', '), text.slice(0,200), 'ok');
+      logAudit({action:'lembrete_enviado',entityType:'lembrete',summary:`Digest enviado por e-mail para ${emails.length} destinatário(s)`});
+    } catch(e){
+      toast('Erro ao enviar e-mail: '+e.message,'err');
+      logLembrete('email', dest, e.message, 'erro');
+    }
+    btn.disabled=false; btn.innerHTML='📧 Enviar Digest E-mail';
+  }
+
+  renderLembretes();
+}
+
+function logLembrete(tipo, dest, conteudo, status){
+  const entry = {tipo, dest, conteudo, status, dt: new Date().toISOString()};
+  LEMB_LOG.unshift(entry);
+  if(LEMB_LOG.length>50) LEMB_LOG.length=50;
+  try { localStorage.setItem('lemb_log', JSON.stringify(LEMB_LOG)); } catch{}
+}
+
+function renderLembretes(){
+  try { LEMB_LOG = JSON.parse(localStorage.getItem('lemb_log')||'[]'); } catch{ LEMB_LOG=[]; }
+  const cfg = getLembConfig();
+  const data = buildDigestData();
+  const el = document.getElementById('lembretesContent');
+
+  const previewText = formatDigestText(data, cfg);
+
+  el.innerHTML = `
+    <div class="lem-grid">
+      <!-- TEAMS CONFIG -->
+      <div class="lem-card">
+        <h4>📤 Microsoft Teams <span class="lem-status ${cfg.teams_webhook?'on':'off'}"></span></h4>
+        <div class="lem-field">
+          <label>URL do Webhook</label>
+          <input class="inp" id="lemTeamsUrl" value="${escapeHtml(cfg.teams_webhook)}" placeholder="https://outlook.office.com/webhook/..." onchange="updateLembConfig()">
+        </div>
+        <details style="margin-bottom:.8rem"><summary style="font-size:11px;color:var(--accent);cursor:pointer;font-weight:600">Como configurar?</summary>
+          <ol style="font-size:11px;color:var(--t2);margin:.5rem 0 0 1rem;line-height:1.6">
+            <li>Abra o Microsoft Teams e vá ao canal desejado</li>
+            <li>Clique nos três pontos (...) do canal → Conectores ou Workflows</li>
+            <li>Adicione "Incoming Webhook"</li>
+            <li>Dê um nome (ex: "NID Lembretes") e copie a URL gerada</li>
+            <li>Cole a URL acima</li>
+          </ol>
+        </details>
+        <button class="btn primary" onclick="sendDigestNow('teams')" style="width:100%">📤 Testar envio Teams agora</button>
+      </div>
+
+      <!-- EMAIL CONFIG -->
+      <div class="lem-card">
+        <h4>📧 E-mail <span class="lem-status ${cfg.email_api_key?'on':'off'}"></span></h4>
+        <div class="lem-field">
+          <label>Serviço de E-mail</label>
+          <select class="inp" id="lemEmailService" onchange="updateLembConfig()">
+            <option value="resend" ${cfg.email_service==='resend'?'selected':''}>Resend (recomendado — grátis até 100/dia)</option>
+            <option value="sendgrid" ${cfg.email_service==='sendgrid'?'selected':''}>SendGrid</option>
+          </select>
+        </div>
+        <div class="lem-field">
+          <label>API Key do serviço</label>
+          <input class="inp" id="lemEmailKey" type="password" value="${escapeHtml(cfg.email_api_key)}" placeholder="re_..." onchange="updateLembConfig()">
+        </div>
+        <div class="lem-field">
+          <label>E-mail remetente</label>
+          <input class="inp" id="lemEmailFrom" value="${escapeHtml(cfg.email_remetente)}" placeholder="nid@funcef.com.br" onchange="updateLembConfig()">
+        </div>
+        <div class="lem-field">
+          <label>Destinatários (separar com vírgula)</label>
+          <textarea class="inp" id="lemEmailDest" rows="2" placeholder="daniela.ribas@funcef.com.br, equipe@funcef.com.br" onchange="updateLembConfig()">${escapeHtml(cfg.email_destinatarios)}</textarea>
+        </div>
+        <details style="margin-bottom:.8rem"><summary style="font-size:11px;color:var(--accent);cursor:pointer;font-weight:600">Como configurar o Resend?</summary>
+          <ol style="font-size:11px;color:var(--t2);margin:.5rem 0 0 1rem;line-height:1.6">
+            <li>Crie uma conta gratuita em <strong>resend.com</strong></li>
+            <li>Vá em API Keys → Create API Key</li>
+            <li>Copie a chave (começa com "re_") e cole acima</li>
+            <li>Para produção, verifique seu domínio em Domains</li>
+          </ol>
+        </details>
+        <button class="btn primary" onclick="sendDigestNow('email')" style="width:100%">📧 Testar envio e-mail agora</button>
+      </div>
+    </div>
+
+    <!-- REGRAS DE LEMBRETE -->
+    <div class="lem-card" style="margin-bottom:1.2rem">
+      <h4>⚙️ Regras do Lembrete</h4>
+      <div class="lem-rules">
+        <label class="lem-rule"><input type="checkbox" ${cfg.regras.tarefas_atrasadas?'checked':''} onchange="updateLembRegra('tarefas_atrasadas',this.checked)"> 🚨 Tarefas atrasadas (prazo já passou)</label>
+        <label class="lem-rule"><input type="checkbox" ${cfg.regras.tarefas_prazo_3dias?'checked':''} onchange="updateLembRegra('tarefas_prazo_3dias',this.checked)"> ⏰ Tarefas com prazo nos próximos
+          <select onchange="updateLembDias(this.value)" style="margin:0 4px"><option ${cfg.antecedencia_dias===1?'selected':''} value="1">1</option><option ${cfg.antecedencia_dias===2?'selected':''} value="2">2</option><option ${cfg.antecedencia_dias===3?'selected':''} value="3">3</option><option ${cfg.antecedencia_dias===5?'selected':''} value="5">5</option><option ${cfg.antecedencia_dias===7?'selected':''} value="7">7</option></select> dias</label>
+        <label class="lem-rule"><input type="checkbox" ${cfg.regras.reunioes_dia?'checked':''} onchange="updateLembRegra('reunioes_dia',this.checked)"> 📅 Reuniões do dia</label>
+        <label class="lem-rule"><input type="checkbox" ${cfg.regras.entregas_pendentes?'checked':''} onchange="updateLembRegra('entregas_pendentes',this.checked)"> 📦 Entregas pendentes da sprint</label>
+        <label class="lem-rule"><input type="checkbox" ${cfg.regras.plano_acao_prazos?'checked':''} onchange="updateLembRegra('plano_acao_prazos',this.checked)"> 🎯 Prazos do Plano de Ação</label>
+      </div>
+    </div>
+
+    <!-- AUTOMAÇÃO -->
+    <div class="lem-card" style="margin-bottom:1.2rem">
+      <h4>🤖 Automação (Supabase Edge Function)</h4>
+      <p style="font-size:12px;color:var(--t2);line-height:1.6;margin:0 0 .8rem">
+        Para envio <strong>100% automático</strong> (mesmo com o app fechado/férias), implante a Edge Function no seu Supabase.
+        O arquivo <code>supabase-edge-function-reminders.js</code> está pronto no pacote. Siga o passo-a-passo abaixo.
+      </p>
+      <details><summary style="font-size:11px;color:var(--accent);cursor:pointer;font-weight:600">Passo-a-passo para automação</summary>
+        <ol style="font-size:11px;color:var(--t2);margin:.5rem 0 0 1rem;line-height:1.8">
+          <li><strong>Instale o Supabase CLI</strong>: <code>npm install -g supabase</code></li>
+          <li><strong>Faça login</strong>: <code>supabase login</code></li>
+          <li><strong>Crie a função</strong>: <code>supabase functions new send-reminders</code></li>
+          <li>Copie o conteúdo de <code>supabase-edge-function-reminders.js</code> para <code>supabase/functions/send-reminders/index.ts</code></li>
+          <li><strong>Configure os secrets</strong>:<br>
+            <code>supabase secrets set TEAMS_WEBHOOK_URL=https://...</code><br>
+            <code>supabase secrets set RESEND_API_KEY=re_...</code><br>
+            <code>supabase secrets set EMAIL_TO=email1@x.com,email2@x.com</code></li>
+          <li><strong>Deploy</strong>: <code>supabase functions deploy send-reminders</code></li>
+          <li><strong>Agende via pg_cron</strong> no SQL Editor do Supabase:<br>
+            <code>select cron.schedule('nid-lembretes', '0 11 * * 1-5', $$select net.http_post(url:='https://SEU-PROJECT.supabase.co/functions/v1/send-reminders', headers:='{"Authorization":"Bearer SEU-ANON-KEY"}'::jsonb, body:='{}'::jsonb);$$);</code></li>
+        </ol>
+      </details>
+      <p style="font-size:10px;color:var(--t3);margin:.8rem 0 0">Alternativa: use <strong>cron-job.org</strong> (gratuito) para chamar a URL da Edge Function diariamente.</p>
+    </div>
+
+    <div class="lem-grid">
+      <!-- PREVIEW -->
+      <div class="lem-card">
+        <h4>👁️ Preview do Lembrete de Hoje</h4>
+        <div style="margin-bottom:.5rem;font-size:11px;color:var(--t3)">
+          ${data.atrasadas.length} atrasada(s) · ${data.prazo3d.length} prazo próximo · ${data.reunioesHoje.length} reunião(ões) · ${data.entregasPend.length} entrega(s) pendente(s)
+        </div>
+        <div class="lem-preview">${escapeHtml(previewText)}</div>
+      </div>
+
+      <!-- LOG -->
+      <div class="lem-card">
+        <h4>📋 Histórico de Envios</h4>
+        <div class="lem-log">
+          ${LEMB_LOG.length ? LEMB_LOG.slice(0,15).map(l=>`
+            <div class="lem-log-item">
+              <span class="lem-log-ico">${l.tipo==='teams'?'📤':'📧'}</span>
+              <div style="flex:1;min-width:0">
+                <div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml((l.dest||'').slice(0,50))}</div>
+                <div style="font-size:10px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml((l.conteudo||'').slice(0,80))}</div>
+              </div>
+              <span class="lem-log-st ${l.status==='ok'?'ok':'err'}">${l.status==='ok'?'Enviado':'Erro'}</span>
+              <span class="lem-log-dt">${l.dt?new Date(l.dt).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):''}</span>
+            </div>
+          `).join('')
+          : '<div class="empty" style="padding:1rem"><div class="ic">📭</div>Nenhum envio registrado ainda.<br>Use os botões acima para testar.</div>'}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function updateLembConfig(){
+  const cfg = getLembConfig();
+  cfg.teams_webhook = document.getElementById('lemTeamsUrl')?.value?.trim()||'';
+  cfg.email_service = document.getElementById('lemEmailService')?.value||'resend';
+  cfg.email_api_key = document.getElementById('lemEmailKey')?.value?.trim()||'';
+  cfg.email_remetente = document.getElementById('lemEmailFrom')?.value?.trim()||'';
+  cfg.email_destinatarios = document.getElementById('lemEmailDest')?.value?.trim()||'';
+  saveLembConfig(cfg);
+  toast('Configuração salva');
+}
+function updateLembRegra(key, val){
+  const cfg = getLembConfig();
+  cfg.regras[key] = val;
+  saveLembConfig(cfg);
+  renderLembretes();
+}
+function updateLembDias(val){
+  const cfg = getLembConfig();
+  cfg.antecedencia_dias = parseInt(val)||3;
+  saveLembConfig(cfg);
+  renderLembretes();
 }
 
 /* ============================================================
