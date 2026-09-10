@@ -73,7 +73,9 @@ visual FUNCEF, com login real (Supabase Auth) e modo claro/escuro.
    - Cria tabela `reminder_log` (histórico de envios).
    - Para automação total, habilite pg_cron + pg_net e siga as instruções no arquivo SQL.
    - Para deploy da Edge Function, veja `supabase-edge-function-reminders.js`.
-17. Em **Authentication → Providers → Email** desabilite "Confirm email".
+17. (Riscos Organizacionais) Execute `schema_addon_v20.sql`.
+   - Cria tabela `riscos` com CRUD completo e dados iniciais (6 riscos COBEN).
+18. Em **Authentication → Providers → Email** desabilite "Confirm email".
 
 ### 2) Rodar localmente
 Abra `index.html` direto no navegador, ou:

@@ -579,6 +579,32 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
 .news-quote{font-family:Georgia,serif;font-size:16px;font-style:italic;text-align:center;color:var(--accent);padding:1.2rem 2rem;margin:1rem 0;border-top:2px solid var(--accent);border-bottom:2px solid var(--accent);line-height:1.5}
 .news-foot{text-align:center;padding:.8rem;font-size:10px;color:var(--t3);border-top:2px solid var(--border);margin-top:1rem}
 @media (max-width:768px){.news-grid{grid-template-columns:1fr}.news-mast h1{font-size:24px}.news-body{padding:1rem}.news-headline{font-size:18px}}
+/* Riscos */
+.risk-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;margin-bottom:.8rem;overflow:hidden}
+.risk-head{display:flex;align-items:center;gap:10px;padding:.85rem 1rem;cursor:pointer;user-select:none}
+.risk-head:hover{background:var(--bg3)}
+.risk-code{min-width:50px;height:28px;border-radius:8px;background:var(--r-bg);color:var(--red);font-weight:800;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0 8px}
+.risk-code.org{background:var(--a-bg);color:var(--amber)}
+.risk-tit{flex:1;font-size:13px;font-weight:700;line-height:1.35}
+.risk-meta{font-size:10.5px;color:var(--t3);font-weight:600;margin-top:2px}
+.risk-body{display:none;padding:0 1rem 1rem}
+.risk-card.open .risk-body{display:block}
+.risk-card.open .pa-caret{transform:rotate(90deg)}
+.risk-ctrl{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:.5rem .7rem;margin-top:.4rem;font-size:11.5px;display:flex;gap:8px;align-items:flex-start}
+.risk-ctrl-code{font-weight:800;color:var(--accent);font-size:10px;flex-shrink:0;min-width:45px}
+.risk-ctrl-desc{flex:1;line-height:1.45;color:var(--t2)}
+.risk-actions{display:flex;gap:6px;align-items:center;margin-top:.8rem;padding-top:.6rem;border-top:1px solid var(--border);flex-wrap:wrap}
+.risk-badge{font-size:10px;font-weight:700;padding:2px 9px;border-radius:12px}
+.risk-badge.manutencao{background:var(--g-bg);color:var(--green)}
+.risk-badge.mitigacao{background:var(--a-bg);color:var(--amber)}
+.risk-badge.aceito{background:var(--bg4);color:var(--t2)}
+.risk-badge.transferido{background:var(--acc-bg);color:var(--accent)}
+.risk-badge.eliminado{background:var(--r-bg);color:var(--red)}
+.risk-nivel{font-size:10px;font-weight:700;padding:2px 9px;border-radius:12px}
+.risk-nivel.baixo{background:var(--g-bg);color:var(--green)}
+.risk-nivel.moderado{background:var(--a-bg);color:var(--amber)}
+.risk-nivel.alto{background:#fff3e0;color:#e65100}
+.risk-nivel.extremo{background:var(--r-bg);color:var(--red)}
 /* Lembretes */
 .lem-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.2rem}
 .lem-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1rem}
@@ -777,8 +803,10 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
       <button class="nb" data-v="team"     onclick="nav('team',this)"><span class="ic">👥</span>Equipe</button>
       <button class="nb" data-v="reviews"  onclick="nav('reviews',this)"><span class="ic">📈</span>Reviews</button>
       <button class="nb" data-v="planoacao" onclick="nav('planoacao',this)"><span class="ic">🎯</span>Plano de Ação</button>
+      <button class="nb" data-v="riscos" onclick="nav('riscos',this)"><span class="ic">⚠️</span>Riscos</button>
       <button class="nb" data-v="ideias" onclick="nav('ideias',this)"><span class="ic">💡</span>Ideias & Aprendizado</button>
       <button class="nb" data-v="giro" onclick="nav('giro',this)"><span class="ic">📰</span>Giro da Semana</button>
+      <button class="nb" data-v="reporte" onclick="nav('reporte',this)"><span class="ic">📊</span>Reporte Conformidade</button>
       <button class="nb" data-v="lembretes" onclick="nav('lembretes',this)"><span class="ic">🔔</span>Lembretes</button>
       <button class="nb" data-v="audit"    onclick="nav('audit',this)" id="navAudit" style="display:none"><span class="ic">🔍</span>Governança <span style="background:var(--orange);color:#fff;font-size:9px;padding:1px 6px;border-radius:20px;margin-left:auto;font-weight:800">ADMIN</span></button>
       <button class="nb" data-v="users"    onclick="nav('users',this)" id="navUsers" style="display:none"><span class="ic">⚙️</span>Usuários <span style="background:var(--orange);color:#fff;font-size:9px;padding:1px 6px;border-radius:20px;margin-left:auto;font-weight:800">ADMIN</span></button>
@@ -959,6 +987,30 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
         <div id="paList"></div>
       </section>
 
+      <!-- RISCOS ORGANIZACIONAIS -->
+      <section class="view" id="vRiscos">
+        <div class="vh">
+          <div><h1>⚠️ Riscos Organizacionais</h1><div class="vh-sub">Gestão de riscos e controles — COBEN/FUNCEF · Ciclo 2026</div></div>
+          <div class="vh-grow"></div>
+          <select class="sel" id="riskFilterAbord" onchange="renderRiscos()">
+            <option value="">Todas as abordagens</option>
+            <option value="Operacional">Operacional</option>
+            <option value="Organizacionais">Organizacionais</option>
+          </select>
+          <select class="sel" id="riskFilterStatus" onchange="renderRiscos()">
+            <option value="">Todos os status</option>
+            <option value="manutencao">Manutenção</option>
+            <option value="mitigacao">Mitigação</option>
+            <option value="aceito">Aceito</option>
+            <option value="transferido">Transferido</option>
+            <option value="eliminado">Eliminado</option>
+          </select>
+          <button class="btn primary" onclick="openRisco()">+ Novo Risco</button>
+        </div>
+        <div class="pa-summary" id="riskSummary"></div>
+        <div id="riskList"></div>
+      </section>
+
       <!-- IDEIAS & APRENDIZADO -->
       <section class="view" id="vIdeias">
         <div class="vh">
@@ -996,6 +1048,19 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
         </div>
         <div id="giroContent"></div>
         <div id="giroIAResult" style="display:none"></div>
+      </section>
+
+      <!-- REPORTE SEMANAL DE CONFORMIDADE -->
+      <section class="view" id="vReporte">
+        <div class="vh">
+          <div><h1>📊 Reporte de Conformidade</h1><div class="vh-sub">Status consolidado semanal — Riscos, Auditoria e Plano de Ação para a gestão</div></div>
+          <div class="vh-grow"></div>
+          <label style="font-size:12px;color:var(--t2);margin-right:.3rem">Semana de:</label>
+          <input type="date" class="sel" id="reporteDate" onchange="renderReporte()">
+          <button class="btn primary" onclick="gerarReporteIA()" id="btnReporteIA">🤖 Gerar Reporte</button>
+        </div>
+        <div id="reporteContent"></div>
+        <div id="reporteIAResult" style="display:none"></div>
       </section>
 
       <!-- LEMBRETES / AUTOMAÇÕES -->
@@ -1849,6 +1914,7 @@ let RVD = {};        // reviews — sprint_id -> array of review objects
 let RVI = {};        // review items — review_id -> array of items
 let PAI = {};        // plano de ação — pa_idx -> item (status/vinculo/sprint)
 let OMST = {};       // pa_om_status — om_id -> {descontinuado, justificativa, ...}
+let RISKDB = [];     // riscos organizacionais
 let IDB = [];        // ideias & aprendizado
 let AUD = [];        // audit_log entries
 let EV  = [];        // calendar_events
@@ -2110,7 +2176,7 @@ async function loadAll(){
       (CLD[k]=CLD[k]||[]).push(c);
     });
     // Comments + attachments + reviews + audit + eventos em paralelo
-    const [rv, rc, ra, rau, rev, revm, rvi, rpa, rid, romst] = await Promise.all([
+    const [rv, rc, ra, rau, rev, revm, rvi, rpa, rid, romst, rrisk] = await Promise.all([
       db.from('sprint_reviews').select('*').order('data_realizacao',{ascending:false}),
       db.from('task_comments').select('*').order('created_at',{ascending:true}),
       db.from('task_attachments').select('*').order('created_at',{ascending:false}),
@@ -2121,11 +2187,13 @@ async function loadAll(){
       db.from('pa_items').select('*').then(r=>r).catch(()=>({data:[]})),
       db.from('ideias').select('*').order('created_at',{ascending:false}).then(r=>r).catch(()=>({data:[]})),
       db.from('pa_om_status').select('*').then(r=>r).catch(()=>({data:[]})),
+      db.from('riscos').select('*').order('abordagem').order('codigo').then(r=>r).catch(()=>({data:[]})),
     ]);
     AUD = rau.data || [];
     EV  = rev.data || [];
     PAI = {}; (rpa.data||[]).forEach(p=>{ PAI[p.pa_idx]=p; });
     OMST = {}; (romst.data||[]).forEach(o=>{ OMST[o.om_id]=o; });
+    RISKDB = rrisk.data || [];
     IDB = rid.data || [];
     // Sincroniza CP (perfil atual) com a versão fresca em MB
     if(CP){
@@ -2587,8 +2655,10 @@ function renderAll(){
   if(AV==='reviews')   renderReview();
   if(AV==='sobre')     renderSobre();
   if(AV==='planoacao') renderPlanoAcao();
+  if(AV==='riscos')   renderRiscos();
   if(AV==='ideias')    renderIdeias();
   if(AV==='giro')      renderGiro();
+  if(AV==='reporte')   renderReporte();
   if(AV==='lembretes') renderLembretes();
   if(AV==='audit')     renderAudit();
   if(AV==='users')     renderUsers();
@@ -4112,6 +4182,548 @@ async function reativarOm(omId){
   logAudit({action:'om_reativar', entityType:'pa', entityId:String(omId),
     summary:`OM${omId} reativada`});
   renderPlanoAcao();
+}
+
+/* ============================================================
+   RISCOS ORGANIZACIONAIS
+============================================================ */
+const RISK_STATUS_LABELS = {manutencao:'Manutenção',mitigacao:'Mitigação',aceito:'Aceito',transferido:'Transferido',eliminado:'Eliminado'};
+const RISK_NIVEL_LABELS = {baixo:'Baixo',moderado:'Moderado',alto:'Alto',extremo:'Extremo'};
+const _riskOpen = {};
+
+function renderRiscos(){
+  const fAbord = document.getElementById('riskFilterAbord')?.value||'';
+  const fSt = document.getElementById('riskFilterStatus')?.value||'';
+  let arr = RISKDB.slice();
+  if(fAbord) arr = arr.filter(r=>r.abordagem===fAbord);
+  if(fSt) arr = arr.filter(r=>r.status===fSt);
+
+  const nOp = RISKDB.filter(r=>r.abordagem==='Operacional').length;
+  const nOrg = RISKDB.filter(r=>r.abordagem==='Organizacionais').length;
+  const nMan = RISKDB.filter(r=>r.status==='manutencao').length;
+  const nMit = RISKDB.filter(r=>r.status==='mitigacao').length;
+  const nVinc = RISKDB.filter(r=>r.vinculo_tipo).length;
+  document.getElementById('riskSummary').innerHTML = `
+    <div class="rv-mc"><div class="rv-val">${RISKDB.length}</div><div class="rv-lbl">Total Riscos</div></div>
+    <div class="rv-mc"><div class="rv-val" style="color:var(--red)">${nOp}</div><div class="rv-lbl">Operacionais</div></div>
+    <div class="rv-mc"><div class="rv-val" style="color:var(--amber)">${nOrg}</div><div class="rv-lbl">Organizacionais</div></div>
+    <div class="rv-mc"><div class="rv-val" style="color:var(--green)">${nMan}</div><div class="rv-lbl">Manutenção</div></div>
+    <div class="rv-mc"><div class="rv-val" style="color:var(--accent)">${nMit}</div><div class="rv-lbl">Mitigação</div></div>
+    <div class="rv-mc"><div class="rv-val">${nVinc}</div><div class="rv-lbl">Vinculados</div></div>`;
+
+  if(!arr.length){
+    document.getElementById('riskList').innerHTML = `<div class="empty"><div class="ic">⚠️</div>Nenhum risco cadastrado com esses filtros.${!RISKDB.length?'<br><span style="font-size:11px">Execute o <code>schema_addon_v20.sql</code> no Supabase para carregar os riscos iniciais.</span>':''}</div>`;
+    return;
+  }
+
+  const groups = {};
+  arr.forEach(r=>{
+    if(!groups[r.abordagem]) groups[r.abordagem]=[];
+    groups[r.abordagem].push(r);
+  });
+
+  let html = '';
+  for(const [abord, risks] of Object.entries(groups)){
+    html += `<h3 style="font-size:13px;font-weight:700;margin:1rem 0 .5rem;color:var(--t2)">${abord} | ${risks[0]?.ciclo||'2026'} (${risks.length})</h3>`;
+    risks.forEach(r=>{
+      const isOpen = _riskOpen[r.id];
+      const ctrls = Array.isArray(r.controles) ? r.controles : [];
+      const stLabel = RISK_STATUS_LABELS[r.status]||r.status;
+      const nivelLabel = r.nivel_residual ? (RISK_NIVEL_LABELS[r.nivel_residual]||r.nivel_residual) : '';
+      const isOrg = r.abordagem==='Organizacionais';
+
+      let vinc = '';
+      if(r.vinculo_tipo==='tarefa'){
+        const t = TSK.find(t=>t.id===r.tarefa_id);
+        vinc = `<span class="pa-vinc on">🔗 Tarefa: ${escapeHtml((t?.titulo||'—').replace(/^\[.*?\]\s*/,'').slice(0,40))}</span>`;
+      } else if(r.vinculo_tipo==='entrega'){
+        vinc = `<span class="pa-vinc on">🔗 Entrega: ${escapeHtml((r.vinculo_ref||'—').slice(0,40))}</span>`;
+      }
+
+      html += `<div class="risk-card ${isOpen?'open':''}">
+        <div class="risk-head" onclick="_riskOpen['${r.id}']=!_riskOpen['${r.id}'];renderRiscos()">
+          <span class="risk-code ${isOrg?'org':''}">${escapeHtml(r.codigo)}</span>
+          <div class="risk-tit">${escapeHtml(r.titulo)}
+            <div class="risk-meta">${ctrls.length} controle(s)${vinc?' · Vinculado':''}</div>
+          </div>
+          <span class="risk-badge ${r.status}">${stLabel}</span>
+          ${nivelLabel?`<span class="risk-nivel ${r.nivel_residual}">${nivelLabel}</span>`:''}
+          <span class="pa-caret">▶</span>
+        </div>
+        <div class="risk-body">
+          <div style="font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.3px;margin-bottom:.4rem">Controles (${ctrls.length})</div>
+          ${ctrls.map(c=>`<div class="risk-ctrl"><span class="risk-ctrl-code">${escapeHtml(c.codigo||'')}</span><span class="risk-ctrl-desc">${escapeHtml(c.descricao||'')}</span></div>`).join('')}
+          ${r.observacoes?`<div style="margin-top:.6rem;font-size:11px;color:var(--t2);font-style:italic">${escapeHtml(r.observacoes)}</div>`:''}
+          ${r.plano_acao?`<div style="margin-top:.4rem;font-size:11px"><b>Plano de ação:</b> ${escapeHtml(r.plano_acao)}</div>`:''}
+          <div class="risk-actions">
+            ${vinc||'<span class="pa-vinc off">Sem vínculo</span>'}
+            <div style="flex:1"></div>
+            <select onchange="updateRiscoStatus('${r.id}',this.value)" title="Status">
+              ${Object.entries(RISK_STATUS_LABELS).map(([k,v])=>`<option value="${k}" ${r.status===k?'selected':''}>${v}</option>`).join('')}
+            </select>
+            <select onchange="updateRiscoNivel('${r.id}',this.value)" title="Nível residual">
+              <option value="">Nível residual</option>
+              ${Object.entries(RISK_NIVEL_LABELS).map(([k,v])=>`<option value="${k}" ${r.nivel_residual===k?'selected':''}>${v}</option>`).join('')}
+            </select>
+            <button class="pa-btn" onclick="openRisco('${r.id}')">✏️ Editar</button>
+            <button class="pa-btn" onclick="openRiscoLink('${r.id}')">🔗 Vincular</button>
+            <button class="pa-btn" onclick="deleteRisco('${r.id}')" style="color:var(--red)">🗑️</button>
+          </div>
+        </div>
+      </div>`;
+    });
+  }
+
+  document.getElementById('riskList').innerHTML = html;
+}
+
+async function updateRiscoStatus(id, val){
+  ss('loading','Salvando...');
+  const {error} = await db.from('riscos').update({status:val}).eq('id',id);
+  if(error){ toast('Erro: '+error.message,'err'); ss('err','Erro'); return; }
+  const r = RISKDB.find(r=>r.id===id); if(r) r.status=val;
+  ss('ok','Salvo'); toast('Status atualizado');
+  logAudit({action:'risk_update',entityType:'risco',entityId:id,summary:`Risco ${r?.codigo}: status "${RISK_STATUS_LABELS[val]||val}"`});
+  renderRiscos();
+}
+async function updateRiscoNivel(id, val){
+  ss('loading','Salvando...');
+  const {error} = await db.from('riscos').update({nivel_residual:val||null}).eq('id',id);
+  if(error){ toast('Erro: '+error.message,'err'); ss('err','Erro'); return; }
+  const r = RISKDB.find(r=>r.id===id); if(r) r.nivel_residual=val||null;
+  ss('ok','Salvo'); toast('Nível atualizado');
+  renderRiscos();
+}
+
+function openRisco(id){
+  const found = id ? RISKDB.find(r=>r.id===id) : null;
+  const r = found || {codigo:'',titulo:'',abordagem:'Operacional',ciclo:'2026',status:'manutencao',controles:[],observacoes:'',plano_acao:'',nivel_residual:''};
+  const ctrls = Array.isArray(r.controles)?r.controles:[];
+  const isNew = !found;
+
+  const html = `<div class="mbg on" id="riscoModal" onclick="if(event.target===this)this.remove()">
+    <div class="modal" style="max-width:780px">
+      <div class="mhead"><h2>${isNew?'Novo':'Editar'} Risco</h2><button class="mclose" onclick="this.closest('.mbg').remove()">&#10005;</button></div>
+      <div class="mtabs">
+        <button class="mtab on" data-p="risk-details" onclick="swPaneRisco(this)">📝 Detalhes</button>
+        <button class="mtab" data-p="risk-controls" onclick="swPaneRisco(this)">🛡️ Controles <span class="tab-ct" id="riskCtrlCt">${ctrls.length}</span></button>
+      </div>
+      <div class="mbody">
+        <div class="mpane on" data-pane="risk-details">
+          <div class="frow">
+            <div class="field" style="flex:.3"><label>Código</label><input class="inp" id="riskCodigo" value="${escapeHtml(r.codigo)}"></div>
+            <div class="field" style="flex:1"><label>Título do Risco</label><input class="inp" id="riskTitulo" value="${escapeHtml(r.titulo)}"></div>
+          </div>
+          <div class="frow">
+            <div class="field"><label>Abordagem</label><select class="inp" id="riskAbord">
+              <option value="Operacional" ${r.abordagem==='Operacional'?'selected':''}>Operacional</option>
+              <option value="Organizacionais" ${r.abordagem==='Organizacionais'?'selected':''}>Organizacionais</option>
+            </select></div>
+            <div class="field"><label>Ciclo</label><input class="inp" id="riskCiclo" value="${escapeHtml(r.ciclo||'2026')}"></div>
+            <div class="field"><label>Status</label><select class="inp" id="riskStatus">
+              ${Object.entries(RISK_STATUS_LABELS).map(([k,v])=>`<option value="${k}" ${r.status===k?'selected':''}>${v}</option>`).join('')}
+            </select></div>
+            <div class="field"><label>Nível Residual</label><select class="inp" id="riskNivel">
+              <option value="">—</option>
+              ${Object.entries(RISK_NIVEL_LABELS).map(([k,v])=>`<option value="${k}" ${r.nivel_residual===k?'selected':''}>${v}</option>`).join('')}
+            </select></div>
+          </div>
+          <div class="field"><label>Plano de Ação</label><textarea class="inp" id="riskPlano" rows="2">${escapeHtml(r.plano_acao||'')}</textarea></div>
+          <div class="field"><label>Observações</label><textarea class="inp" id="riskObs" rows="2">${escapeHtml(r.observacoes||'')}</textarea></div>
+        </div>
+        <div class="mpane" data-pane="risk-controls">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem">
+            <span style="font-size:12px;font-weight:700;color:var(--t2)">Controles do risco</span>
+            <button class="btn sm" onclick="addRiscoControle()">+ Adicionar controle</button>
+          </div>
+          <div id="riskCtrlList">${ctrls.map((c,i)=>`
+            <div class="risk-ctrl" style="margin-bottom:.4rem" data-ci="${i}">
+              <input class="inp" style="width:70px;font-size:10px;padding:3px 6px" value="${escapeHtml(c.codigo||'')}" placeholder="C 20XX" data-f="codigo">
+              <input class="inp" style="flex:1;font-size:11px;padding:3px 6px" value="${escapeHtml(c.descricao||'')}" placeholder="Descrição do controle" data-f="descricao">
+              <button onclick="this.parentElement.remove();updRiskCtrlCt()" style="border:none;background:none;color:var(--red);cursor:pointer;font-size:14px">✕</button>
+            </div>
+          `).join('')}</div>
+        </div>
+      </div>
+      <div class="mfoot">
+        ${!isNew?`<button class="btn" onclick="deleteRisco('${r.id}');document.getElementById('riscoModal').remove()" style="color:var(--red)">🗑️ Excluir</button>`:''}
+        <div style="flex:1"></div>
+        <button class="btn" onclick="this.closest('.mbg').remove()">Cancelar</button>
+        <button class="btn primary" onclick="saveRisco('${id||''}')">Salvar</button>
+      </div>
+    </div>
+  </div>`;
+  const div = document.createElement('div'); div.innerHTML = html; document.body.appendChild(div.firstElementChild);
+}
+
+function swPaneRisco(btn){
+  const modal = document.getElementById('riscoModal');
+  modal.querySelectorAll('.mtab').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  modal.querySelectorAll('.mpane').forEach(p=>p.classList.remove('on'));
+  modal.querySelector(`.mpane[data-pane="${btn.dataset.p}"]`).classList.add('on');
+}
+function addRiscoControle(){
+  const list = document.getElementById('riskCtrlList');
+  const div = document.createElement('div');
+  div.className = 'risk-ctrl';
+  div.style.marginBottom = '.4rem';
+  div.innerHTML = `<input class="inp" style="width:70px;font-size:10px;padding:3px 6px" value="" placeholder="C 20XX" data-f="codigo">
+    <input class="inp" style="flex:1;font-size:11px;padding:3px 6px" value="" placeholder="Descrição do controle" data-f="descricao">
+    <button onclick="this.parentElement.remove();updRiskCtrlCt()" style="border:none;background:none;color:var(--red);cursor:pointer;font-size:14px">✕</button>`;
+  list.appendChild(div);
+  updRiskCtrlCt();
+}
+function updRiskCtrlCt(){
+  const ct = document.getElementById('riskCtrlList')?.children.length||0;
+  const el = document.getElementById('riskCtrlCt');
+  if(el) el.textContent = ct;
+}
+
+async function saveRisco(id){
+  const codigo = document.getElementById('riskCodigo')?.value?.trim();
+  const titulo = document.getElementById('riskTitulo')?.value?.trim();
+  if(!codigo||!titulo){ toast('Preencha código e título','err'); return; }
+
+  const ctrls = [];
+  document.querySelectorAll('#riskCtrlList .risk-ctrl').forEach(el=>{
+    const cod = el.querySelector('[data-f="codigo"]')?.value?.trim()||'';
+    const desc = el.querySelector('[data-f="descricao"]')?.value?.trim()||'';
+    if(desc) ctrls.push({codigo:cod, descricao:desc});
+  });
+
+  const payload = {
+    codigo, titulo,
+    abordagem: document.getElementById('riskAbord')?.value||'Operacional',
+    ciclo: document.getElementById('riskCiclo')?.value||'2026',
+    status: document.getElementById('riskStatus')?.value||'manutencao',
+    nivel_residual: document.getElementById('riskNivel')?.value||null,
+    plano_acao: document.getElementById('riskPlano')?.value?.trim()||null,
+    observacoes: document.getElementById('riskObs')?.value?.trim()||null,
+    controles: ctrls,
+    created_by: CP?.id||null
+  };
+
+  ss('loading','Salvando risco...');
+  let result;
+  if(id){
+    result = await db.from('riscos').update(payload).eq('id',id).select().single();
+  } else {
+    result = await db.from('riscos').insert(payload).select().single();
+  }
+  if(result.error){ toast('Erro: '+result.error.message,'err'); ss('err','Erro'); return; }
+
+  document.getElementById('riscoModal')?.remove();
+  await loadAll();
+  ss('ok','Salvo'); toast(id?'Risco atualizado':'Risco cadastrado');
+  logAudit({action:id?'risk_update':'risk_create',entityType:'risco',entityId:result.data.id,
+    summary:`Risco ${codigo}: "${titulo.slice(0,60)}"`});
+  renderRiscos();
+}
+
+async function deleteRisco(id){
+  const r = RISKDB.find(r=>r.id===id);
+  if(!confirm(`Excluir o risco ${r?.codigo||''} — "${(r?.titulo||'').slice(0,60)}"?`)) return;
+  ss('loading','Excluindo...');
+  const {error} = await db.from('riscos').delete().eq('id',id);
+  if(error){ toast('Erro: '+error.message,'err'); ss('err','Erro'); return; }
+  RISKDB = RISKDB.filter(r=>r.id!==id);
+  ss('ok','Excluído'); toast('Risco excluído');
+  logAudit({action:'risk_delete',entityType:'risco',entityId:id,summary:`Risco ${r?.codigo} excluído`});
+  renderRiscos();
+}
+
+function openRiscoLink(riskId){
+  const r = RISKDB.find(x=>x.id===riskId);
+  if(!r) return;
+  const sugSid = AS;
+  const html = `<div class="mbg on" id="riskLinkModal" onclick="if(event.target===this)this.remove()">
+    <div class="modal" style="max-width:540px">
+      <div class="mhead"><h2>Vincular Risco ${r.codigo}</h2><button class="mclose" onclick="this.closest('.mbg').remove()">&#10005;</button></div>
+      <div class="mbody" style="padding:1rem">
+        <div style="font-size:12px;font-weight:600;margin-bottom:.8rem">${escapeHtml(r.titulo.slice(0,80))}</div>
+        <div class="field"><label>Sprint</label><select class="inp" id="riskLinkSprint" onchange="renderRiscoLinkTargets('${riskId}')">
+          ${SP.map(s=>`<option value="${s.id}" ${s.id===sugSid?'selected':''}>Sprint ${s.id} — ${s.m}</option>`).join('')}
+        </select></div>
+        <div id="riskLinkTargets" class="pa-link-targets" style="margin-top:.5rem"></div>
+      </div>
+      <div class="mfoot">
+        ${r.vinculo_tipo?`<button class="btn" onclick="unlinkRisco('${riskId}')" style="color:var(--red)">Desvincular</button>`:''}
+        <div style="flex:1"></div>
+        <button class="btn" onclick="this.closest('.mbg').remove()">Cancelar</button>
+        <button class="btn primary" onclick="confirmRiscoLink('${riskId}')">Vincular</button>
+      </div>
+    </div>
+  </div>`;
+  const div = document.createElement('div'); div.innerHTML = html; document.body.appendChild(div.firstElementChild);
+  renderRiscoLinkTargets(riskId);
+}
+function renderRiscoLinkTargets(riskId){
+  const sid = +document.getElementById('riskLinkSprint').value;
+  const s = SP.find(x=>x.id===sid);
+  const tasks = spT(sid).map(t=>`<label class="pa-link-opt"><input type="radio" name="riskTarget" value="t:${t.id}"><span class="echip" style="background:var(--a-bg);color:var(--amber)">T</span> ${escapeHtml((t.titulo||'').slice(0,70))}</label>`).join('');
+  document.getElementById('riskLinkTargets').innerHTML = tasks || '<div style="font-size:11px;color:var(--t3);padding:8px">Nenhuma tarefa nesta sprint</div>';
+}
+async function confirmRiscoLink(riskId){
+  const sel = document.querySelector('input[name="riskTarget"]:checked');
+  if(!sel){ toast('Selecione uma tarefa','err'); return; }
+  const [,ref] = sel.value.split(':');
+  const sid = +document.getElementById('riskLinkSprint').value;
+  ss('loading','Vinculando...');
+  const {error} = await db.from('riscos').update({vinculo_tipo:'tarefa',tarefa_id:ref,sprint_id:sid}).eq('id',riskId);
+  if(error){ toast('Erro: '+error.message,'err'); ss('err','Erro'); return; }
+  const r = RISKDB.find(x=>x.id===riskId);
+  if(r){ r.vinculo_tipo='tarefa'; r.tarefa_id=ref; r.sprint_id=sid; }
+  document.getElementById('riskLinkModal')?.remove();
+  ss('ok','Vinculado'); toast('Risco vinculado à tarefa');
+  renderRiscos();
+}
+async function unlinkRisco(riskId){
+  ss('loading','Desvinculando...');
+  const {error} = await db.from('riscos').update({vinculo_tipo:null,tarefa_id:null,vinculo_ref:null,sprint_id:null}).eq('id',riskId);
+  if(error){ toast('Erro: '+error.message,'err'); ss('err','Erro'); return; }
+  const r = RISKDB.find(x=>x.id===riskId);
+  if(r){ r.vinculo_tipo=null; r.tarefa_id=null; r.vinculo_ref=null; r.sprint_id=null; }
+  document.getElementById('riskLinkModal')?.remove();
+  ss('ok','Desvinculado'); toast('Vínculo removido');
+  renderRiscos();
+}
+
+/* ============================================================
+   REPORTE SEMANAL DE CONFORMIDADE
+============================================================ */
+function renderReporte(){
+  const dateInput = document.getElementById('reporteDate');
+  if(!dateInput.value) dateInput.value = new Date().toISOString().slice(0,10);
+  const wk = getWeekRange(dateInput.value);
+  const el = document.getElementById('reporteContent');
+  const iaEl = document.getElementById('reporteIAResult');
+  iaEl.style.display = 'none';
+
+  const today = new Date().toISOString().slice(0,10);
+  const in7d = new Date(Date.now()+7*864e5).toISOString().slice(0,10);
+  const s = cs();
+
+  const riskCount = RISKDB.length;
+  const riskMit = RISKDB.filter(r=>r.status==='mitigacao').length;
+  const riskAlto = RISKDB.filter(r=>r.nivel_residual==='alto'||r.nivel_residual==='extremo').length;
+
+  const paTotal = PA_GB.length;
+  const paConcl = PA_GB.filter((_,i)=>/concl/i.test(paEffStatus(i))).length;
+  const paPct = Math.round(100*paConcl/paTotal);
+  const paVenc = PA_GB.filter((it,idx)=>{
+    if(!it.fim) return false;
+    const st = paEffStatus(idx);
+    if(/concl/i.test(st)) return false;
+    return it.fim < today;
+  }).length;
+  const paProx = PA_GB.filter((it,idx)=>{
+    if(!it.fim) return false;
+    const st = paEffStatus(idx);
+    if(/concl/i.test(st)) return false;
+    return it.fim>=today && it.fim<=in7d;
+  }).length;
+
+  const sprintTasks = s ? spT(s.id) : [];
+  const tasksAtrasadas = sprintTasks.filter(t=>t.status!=='concluido'&&t.data_fim&&t.data_fim<today).length;
+
+  const hasKey = !!localStorage.getItem('anthropic_key');
+
+  let html = `<div class="rv-section" style="margin-bottom:1.2rem">
+    <h3 style="margin-bottom:.5rem">📊 Panorama de Conformidade — ${wk.label}</h3>
+    <div class="rv-summary">
+      <div class="rv-mc"><div class="rv-val">${riskCount}</div><div class="rv-lbl">Riscos</div></div>
+      <div class="rv-mc"><div class="rv-val" style="color:${riskAlto?'var(--red)':'var(--green)'}">${riskAlto}</div><div class="rv-lbl">Alto/Extremo</div></div>
+      <div class="rv-mc"><div class="rv-val" style="color:var(--amber)">${riskMit}</div><div class="rv-lbl">Em Mitigação</div></div>
+      <div class="rv-mc"><div class="rv-val" style="color:var(--green)">${paPct}%</div><div class="rv-lbl">Plano Ação</div></div>
+      <div class="rv-mc"><div class="rv-val" style="color:${paVenc?'var(--red)':'var(--green)'}">${paVenc}</div><div class="rv-lbl">PA Vencidas</div></div>
+      <div class="rv-mc"><div class="rv-val" style="color:var(--amber)">${paProx}</div><div class="rv-lbl">PA Próximas</div></div>
+      <div class="rv-mc"><div class="rv-val" style="color:${tasksAtrasadas?'var(--red)':'var(--green)'}">${tasksAtrasadas}</div><div class="rv-lbl">Tarefas Atras.</div></div>
+    </div>
+  </div>`;
+
+  if(!hasKey){
+    html += `<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.2rem;margin-bottom:1rem">
+      <h4 style="margin:0 0 .5rem">🔑 Configurar chave da IA</h4>
+      <p style="font-size:12px;color:var(--t2);margin:0 0 .8rem">Para gerar o reporte com IA, configure sua chave da API Anthropic (Claude).</p>
+      <div style="display:flex;gap:.5rem;align-items:center">
+        <input class="inp" id="apiKeyInput2" type="password" placeholder="sk-ant-api03-..." style="flex:1">
+        <button class="btn primary" onclick="const k=document.getElementById('apiKeyInput2')?.value?.trim();if(k){localStorage.setItem('anthropic_key',k);toast('Chave salva!');renderReporte();}else{toast('Informe a chave','err')}">Salvar chave</button>
+      </div>
+    </div>`;
+  }
+
+  el.innerHTML = html;
+}
+
+function buildReportePrompt(wk){
+  const today = new Date().toISOString().slice(0,10);
+  const in7d = new Date(Date.now()+7*864e5).toISOString().slice(0,10);
+  const s = cs();
+  const sprintTasks = s ? spT(s.id) : [];
+
+  let ctx = `Voce e o ANALISTA DE CONFORMIDADE do Nucleo de Inovacao e Dados (NID) da COBEN/FUNCEF.
+Gere um REPORTE SEMANAL DE CONFORMIDADE consolidado para a gestao.
+
+Semana: ${wk.label}
+Sprint atual: ${s?'Sprint '+s.id+' — '+s.m+' (foco: '+s.foco+')':'N/A'}
+Data de referencia: ${today}
+
+RISCOS ORGANIZACIONAIS (${RISKDB.length} riscos cadastrados):
+`;
+  RISKDB.forEach(r=>{
+    const ctrls = Array.isArray(r.controles)?r.controles:[];
+    ctx += `- [${r.abordagem}] ${r.codigo}: ${r.titulo}\n  Status: ${RISK_STATUS_LABELS[r.status]||r.status}`;
+    if(r.nivel_residual) ctx += ` | Nivel residual: ${RISK_NIVEL_LABELS[r.nivel_residual]||r.nivel_residual}`;
+    ctx += ` | ${ctrls.length} controle(s)`;
+    if(r.plano_acao) ctx += `\n  Plano de acao: ${r.plano_acao}`;
+    if(r.vinculo_tipo) ctx += `\n  Vinculado a ${r.vinculo_tipo}`;
+    ctx += '\n';
+  });
+
+  ctx += `\nPLANO DE ACAO — GESTAO DE BENEFICIO:\n`;
+  const omGroups = {};
+  PA_GB.forEach((it,idx)=>{
+    if(!omGroups[it.om]) omGroups[it.om]={titulo:it.omt,items:[]};
+    const omSt = OMST[it.om];
+    if(omSt?.descontinuado){ omGroups[it.om].descontinuado=true; return; }
+    const st = paEffStatus(idx);
+    const vencido = it.fim && it.fim<today && !/concl/i.test(st);
+    const proximo = it.fim && it.fim>=today && it.fim<=in7d && !/concl/i.test(st);
+    omGroups[it.om].items.push({sub:it.sub,st,fim:it.fim,vencido,proximo});
+  });
+  for(const [om,g] of Object.entries(omGroups)){
+    if(g.descontinuado){ ctx += `- OM${om}: ${g.titulo} — DESCONTINUADA\n`; continue; }
+    const done = g.items.filter(x=>/concl/i.test(x.st)).length;
+    const venc = g.items.filter(x=>x.vencido).length;
+    const prox = g.items.filter(x=>x.proximo).length;
+    ctx += `- OM${om}: ${g.titulo} (${done}/${g.items.length} concluidas`;
+    if(venc) ctx += `, ${venc} VENCIDA(S)`;
+    if(prox) ctx += `, ${prox} proxima(s)`;
+    ctx += ')\n';
+    g.items.filter(x=>x.vencido||x.proximo).forEach(x=>{
+      ctx += `  ${x.vencido?'🔴 VENCIDA':'🟡 PROXIMA'}: ${x.sub.replace(/^[\d.]+\s*/,'').slice(0,80)} — prazo: ${x.fim} — status: ${x.st}\n`;
+    });
+  }
+
+  const atrasadas = sprintTasks.filter(t=>t.status!=='concluido'&&t.data_fim&&t.data_fim<today);
+  if(atrasadas.length){
+    ctx += `\nTAREFAS ATRASADAS NA SPRINT (${atrasadas.length}):\n`;
+    atrasadas.forEach(t=>{
+      ctx += `- ${(t.titulo||'').replace(/^\[.*?\]\s*/,'').slice(0,80)} | prazo: ${t.data_fim} | status: ${t.status}\n`;
+    });
+  }
+
+  const weekAud = AUD.filter(a=>{ const d=a.created_at?.slice(0,10); return d&&d>=wk.start&&d<=wk.end; });
+  if(weekAud.length){
+    ctx += `\nACOES DE AUDITORIA NA SEMANA (${weekAud.length} registros no log)\n`;
+  }
+
+  ctx += `\nINSTRUCOES:
+Gere um reporte executivo de conformidade para a gestao da COBEN.
+
+ESTRUTURE o reporte com estas secoes (use ## para cada titulo):
+
+## STATUS GERAL DE CONFORMIDADE
+Visao consolidada: os riscos estao sendo monitorados? Os controles estao adequados? O plano de acao avanca?
+
+## RISCOS — SITUACAO ATUAL
+Para cada risco, indique o status e se ha algum ponto de atencao. Destaque riscos com nivel alto/extremo.
+
+## PLANO DE ACAO — PRAZOS E AVANCOS
+O que venceu, o que esta proximo, o que foi concluido. Destaque OMs com subacoes vencidas.
+
+## ALERTAS E PONTOS CRITICOS
+Itens que exigem atencao imediata da gestao: prazos estourados, riscos elevados, controles insuficientes.
+
+## RECOMENDACOES
+Acoes sugeridas para a proxima semana. Seja especifico e actionable.
+
+## CONCLUSAO
+1-2 frases resumindo o panorama de conformidade.
+
+REGRAS:
+- Tom: formal, objetivo, executivo. Este reporte vai para a gestao/diretoria.
+- Use dados concretos, numeros e percentuais.
+- Destaque urgencias com clareza.
+- Portugues brasileiro. Markdown para formatar.
+- Maximo 800 palavras.`;
+
+  return ctx;
+}
+
+async function gerarReporteIA(){
+  const key = localStorage.getItem('anthropic_key');
+  if(!key){ toast('Configure a chave da IA primeiro','err'); return; }
+
+  const dateInput = document.getElementById('reporteDate');
+  if(!dateInput.value) dateInput.value = new Date().toISOString().slice(0,10);
+  const wk = getWeekRange(dateInput.value);
+
+  const btn = document.getElementById('btnReporteIA');
+  btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Gerando...';
+
+  const iaEl = document.getElementById('reporteIAResult');
+  iaEl.style.display='';
+  iaEl.innerHTML=`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-top:1rem;text-align:center">
+    <div class="spinner" style="margin:1rem auto"></div>
+    <p style="color:var(--t2);font-size:13px">Analisando riscos, auditoria e plano de ação...</p>
+  </div>`;
+
+  try {
+    const prompt = buildReportePrompt(wk);
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'content-type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-5',max_tokens:4096,messages:[{role:'user',content:prompt}]})
+    });
+    if(!resp.ok){
+      const err = await resp.json().catch(()=>({}));
+      throw new Error(err.error?.message||`HTTP ${resp.status}`);
+    }
+    const result = await resp.json();
+    const text = result.content?.[0]?.text||'';
+    if(!text) throw new Error('Sem resposta da IA');
+
+    _lastReporteRaw = text;
+
+    const htmlText = text
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+      .replace(/^### (.+)$/gm,'<h4 style="margin:.8rem 0 .3rem;color:var(--t1)">$1</h4>')
+      .replace(/^## (.+)$/gm,'<h3 style="margin:1.2rem 0 .4rem;color:var(--accent);border-bottom:2px solid var(--accent);padding-bottom:4px">$1</h3>')
+      .replace(/^- (.+)$/gm,'<div style="padding-left:1rem;margin:.15rem 0">• $1</div>')
+      .replace(/^(\d+)\. (.+)$/gm,'<div style="padding-left:1rem;margin:.15rem 0">$1. $2</div>')
+      .replace(/\n\n/g,'<br><br>').replace(/\n/g,'<br>');
+
+    iaEl.innerHTML = `<div style="background:var(--bg2);border:2px solid var(--accent);border-radius:12px;padding:1.5rem;margin-top:1rem">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:1rem;flex-wrap:wrap">
+        <span style="font-size:20px">📊</span>
+        <h3 style="margin:0;flex:1">Reporte de Conformidade — ${wk.label}</h3>
+        <button class="btn sm" onclick="copyReporte()">📋 Copiar</button>
+        <button class="btn sm" onclick="copyReporteTeams()">📤 Teams</button>
+      </div>
+      <div style="font-size:13px;line-height:1.7;color:var(--t1)">${htmlText}</div>
+      <div style="margin-top:1rem;font-size:10px;color:var(--t3);text-align:right">Gerado por Claude (Anthropic) — Reporte de Conformidade NID/COBEN</div>
+    </div>`;
+  } catch(e){
+    iaEl.innerHTML = `<div style="background:var(--bg2);border:1px solid var(--red);border-radius:12px;padding:1.5rem;margin-top:1rem">
+      <div style="color:var(--red);font-weight:700;margin-bottom:.5rem">Erro ao gerar o reporte</div>
+      <div style="font-size:13px;color:var(--t2)">${escapeHtml(e.message)}</div>
+    </div>`;
+  }
+  btn.disabled=false; btn.innerHTML='🤖 Gerar Reporte';
+}
+
+let _lastReporteRaw = '';
+function copyReporte(){
+  if(!_lastReporteRaw){ toast('Gere o reporte primeiro','err'); return; }
+  navigator.clipboard.writeText(_lastReporteRaw).then(()=>toast('Reporte copiado!')).catch(()=>toast('Erro ao copiar','err'));
+}
+function copyReporteTeams(){
+  if(!_lastReporteRaw){ toast('Gere o reporte primeiro','err'); return; }
+  const msg = `📊 **REPORTE DE CONFORMIDADE — NID/COBEN**\n\n${_lastReporteRaw}\n\n---\n_Gerado automaticamente pelo NID Agile Board_`;
+  navigator.clipboard.writeText(msg).then(()=>toast('Copiado para colar no Teams!')).catch(()=>toast('Erro ao copiar','err'));
 }
 
 /* ============================================================
