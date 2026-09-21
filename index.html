@@ -1079,26 +1079,23 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
         <div id="riskList"></div>
       </section>
 
-      <!-- AUDITORIAS (AUDIR) -->
+      <!-- AUDITORIAS (AUDIN / AUDIR) -->
       <section class="view" id="vAuditorias">
         <div class="vh">
-          <div><h1>🔎 Auditorias</h1><div class="vh-sub">Apontamentos AUDIR da Caixa — vinculados às sprints do NID</div></div>
+          <div><h1>🔎 Auditorias</h1><div class="vh-sub">Planos de Ação — AUDIN 0007/2026 e AUDIR_MZ 0003/2026</div></div>
           <div class="vh-grow"></div>
           <select class="sel" id="audFilterStatus" onchange="renderAuditorias()">
             <option value="">Todos os status</option>
-            <option value="pendente">Pendente</option>
-            <option value="em_andamento">Em andamento</option>
-            <option value="em_revisao">Em revisão</option>
-            <option value="concluido">Concluído</option>
-            <option value="bloqueado">Bloqueado</option>
+            <option value="Não iniciado">Não iniciado</option>
+            <option value="Em andamento">Em andamento</option>
+            <option value="Concluído">Concluído</option>
+            <option value="Atrasado">Atrasado</option>
           </select>
-          <select class="sel" id="audFilterRA" onchange="renderAuditorias()">
-            <option value="">Todos os RAs</option>
+          <select class="sel" id="audFilterBloco" onchange="renderAuditorias()">
+            <option value="">AUDIN + AUDIR</option>
+            <option value="AUDIN">AUDIN</option>
+            <option value="AUDIR">AUDIR</option>
           </select>
-          <select class="sel" id="audFilterSprint" onchange="renderAuditorias()">
-            <option value="">Todas as sprints</option>
-          </select>
-          <button class="btn primary" onclick="openTaskAud()">+ Nova tarefa AUD</button>
         </div>
         <div class="pa-summary" id="audSummary"></div>
         <div id="audList"></div>
@@ -1820,6 +1817,55 @@ const PA_GB = [
 ];
 
 /* ============================================================
+   CATÁLOGO DE AUDITORIAS — AUDIN 0007/2026 + AUDIR_MZ 0003/2026
+============================================================ */
+const AUD_GB = [
+// AUDIN 0007/2026 — Apontamento 1: Atualizar MEG 036
+{bloco:'AUDIN',ra:'RA AUDIN 0007/2026',ap:1,tipo:'NC',nap:'NAP 134xx',apt:`Atualizar o MEG 036 — adequação entre normativo vigente e prática operacional do adiantamento de benefícios`,sub:`Aprovar o VO DIBEN 0012/2026, que trata da atualização da DEX 020.07 na Diretoria Executiva`,resp:'DE',inicio:'2026-06-22',fim:'2026-07-29',st:'Não iniciado'},
+{bloco:'AUDIN',ra:'RA AUDIN 0007/2026',ap:1,tipo:'NC',nap:'NAP 134xx',apt:`Atualizar o MEG 036 — adequação entre normativo vigente e prática operacional do adiantamento de benefícios`,sub:`Publicar a DEX 020-07 no SIMCO – Módulo Normas`,resp:'COCIC',inicio:'2026-07-30',fim:'2026-07-31',st:'Não iniciado'},
+{bloco:'AUDIN',ra:'RA AUDIN 0007/2026',ap:1,tipo:'NC',nap:'NAP 134xx',apt:`Atualizar o MEG 036 — adequação entre normativo vigente e prática operacional do adiantamento de benefícios`,sub:`Atualizar o Manual Gerencial – MEG 036 pela COBEN`,resp:'COBEN',inicio:'2026-08-01',fim:'2026-09-30',st:'Não iniciado'},
+{bloco:'AUDIN',ra:'RA AUDIN 0007/2026',ap:1,tipo:'NC',nap:'NAP 134xx',apt:`Atualizar o MEG 036 — adequação entre normativo vigente e prática operacional do adiantamento de benefícios`,sub:`Análise de Conformidade e validação do processo pela COCIC e atualização dos Mapas dos Processos pela COPEP`,resp:'COCIC COPEP',inicio:'2026-10-01',fim:'2026-10-30',st:'Não iniciado'},
+{bloco:'AUDIN',ra:'RA AUDIN 0007/2026',ap:1,tipo:'NC',nap:'NAP 134xx',apt:`Atualizar o MEG 036 — adequação entre normativo vigente e prática operacional do adiantamento de benefícios`,sub:`Aprovação do MEG 036 pela DIBEN`,resp:'DIBEN',inicio:'2026-11-01',fim:'2026-11-30',st:'Não iniciado'},
+{bloco:'AUDIN',ra:'RA AUDIN 0007/2026',ap:1,tipo:'NC',nap:'NAP 134xx',apt:`Atualizar o MEG 036 — adequação entre normativo vigente e prática operacional do adiantamento de benefícios`,sub:`Publicar a MEG 036 no SIMCO – Módulo Normas`,resp:'COCIC',inicio:'2026-12-01',fim:'2026-12-20',st:'Não iniciado'},
+// AUDIN 0007/2026 — Apontamento 2: Melhorar controles de adiantamento
+{bloco:'AUDIN',ra:'RA AUDIN 0007/2026',ap:2,tipo:'NC',nap:'NAP 134xx',apt:`Implementar melhorias nos controles do processo de solicitação de adiantamento de benefícios`,sub:`Treinamento da Equipe para utilizar a ferramenta disponível como canal único de operação`,resp:'COBEN',inicio:'2026-08-01',fim:'2026-09-30',st:'Não iniciado'},
+{bloco:'AUDIN',ra:'RA AUDIN 0007/2026',ap:2,tipo:'NC',nap:'NAP 134xx',apt:`Implementar melhorias nos controles do processo de solicitação de adiantamento de benefícios`,sub:`Reunião para avaliação da rotina de adiantamento, em conjunto com COGEP e COPAB, visando integração pelo FUNCEF-Suíte`,resp:'COBEN COGEP COPAB',inicio:'2026-11-01',fim:'2026-11-30',st:'Não iniciado'},
+{bloco:'AUDIN',ra:'RA AUDIN 0007/2026',ap:2,tipo:'NC',nap:'NAP 134xx',apt:`Implementar melhorias nos controles do processo de solicitação de adiantamento de benefícios`,sub:`Reunião para avaliação da rotina com COPAB e COPEP, visando mapeamento do fluxo no Sistema NEXUS`,resp:'COBEN COPAB COPEP',inicio:'2026-12-01',fim:'2027-01-30',st:'Não iniciado'},
+{bloco:'AUDIN',ra:'RA AUDIN 0007/2026',ap:2,tipo:'NC',nap:'NAP 134xx',apt:`Implementar melhorias nos controles do processo de solicitação de adiantamento de benefícios`,sub:`Definição do Sistema de operacionalização e especificação das regras de prazos, valor devido e conciliação`,resp:'COBEN',inicio:'2027-02-01',fim:'2027-05-30',st:'Não iniciado'},
+{bloco:'AUDIN',ra:'RA AUDIN 0007/2026',ap:2,tipo:'NC',nap:'NAP 134xx',apt:`Implementar melhorias nos controles do processo de solicitação de adiantamento de benefícios`,sub:`Desenvolver controles para acompanhamento da regularização dos valores adiantados`,resp:'COBEN',inicio:'2027-06-01',fim:'2027-08-30',st:'Não iniciado'},
+// AUDIN 0007/2026 — Apontamento 3: Conferir 196 benefícios >100%
+{bloco:'AUDIN',ra:'RA AUDIN 0007/2026',ap:3,tipo:'NC',nap:'NAP 134xx',apt:`Conferir os 196 benefícios com adiantamento superior a 100%, verificar eventual pagamento a maior e compensar`,sub:`Levantamento de benefícios adiantados, pendentes de regularização`,resp:'COBEN',inicio:'2026-08-10',fim:'2026-08-30',st:'Não iniciado'},
+{bloco:'AUDIN',ra:'RA AUDIN 0007/2026',ap:3,tipo:'NC',nap:'NAP 134xx',apt:`Conferir os 196 benefícios com adiantamento superior a 100%, verificar eventual pagamento a maior e compensar`,sub:`Análise da situação do benefício (ativo, retido ou encerrado)`,resp:'COBEN',inicio:'2026-09-01',fim:'2026-09-30',st:'Não iniciado'},
+{bloco:'AUDIN',ra:'RA AUDIN 0007/2026',ap:3,tipo:'NC',nap:'NAP 134xx',apt:`Conferir os 196 benefícios com adiantamento superior a 100%, verificar eventual pagamento a maior e compensar`,sub:`Revisão e implementação de cobranças, se for o caso`,resp:'COBEN',inicio:'2026-10-01',fim:'2026-11-30',st:'Não iniciado'},
+{bloco:'AUDIN',ra:'RA AUDIN 0007/2026',ap:3,tipo:'NC',nap:'NAP 134xx',apt:`Conferir os 196 benefícios com adiantamento superior a 100%, verificar eventual pagamento a maior e compensar`,sub:`Comunicação aos assistidos`,resp:'COBEN',inicio:'2026-12-01',fim:'2026-12-15',st:'Não iniciado'},
+// AUDIN 0007/2026 — Apontamento 4: Atualizar normativos de concessão
+{bloco:'AUDIN',ra:'RA AUDIN 0007/2026',ap:4,tipo:'NC',nap:'NAP 134xx',apt:`Atualizar os normativos de Concessão de Benefícios — prazos de validação conforme DEX 001, item 3.5.2.1`,sub:`Atualizar o Manual Gerencial – MEG 036 pela COBEN`,resp:'COBEN',inicio:'2026-08-01',fim:'2026-09-30',st:'Não iniciado'},
+{bloco:'AUDIN',ra:'RA AUDIN 0007/2026',ap:4,tipo:'NC',nap:'NAP 134xx',apt:`Atualizar os normativos de Concessão de Benefícios — prazos de validação conforme DEX 001, item 3.5.2.1`,sub:`Análise de Conformidade e validação do processo pela COCIC e atualização dos Mapas pela COPEP`,resp:'COCIC COPEP',inicio:'2026-10-01',fim:'2026-10-30',st:'Não iniciado'},
+{bloco:'AUDIN',ra:'RA AUDIN 0007/2026',ap:4,tipo:'NC',nap:'NAP 134xx',apt:`Atualizar os normativos de Concessão de Benefícios — prazos de validação conforme DEX 001, item 3.5.2.1`,sub:`Aprovação do MEG 036 pela DIBEN`,resp:'DIBEN',inicio:'2026-11-01',fim:'2026-11-30',st:'Não iniciado'},
+{bloco:'AUDIN',ra:'RA AUDIN 0007/2026',ap:4,tipo:'NC',nap:'NAP 134xx',apt:`Atualizar os normativos de Concessão de Benefícios — prazos de validação conforme DEX 001, item 3.5.2.1`,sub:`Publicar a MEG 036 no SIMCO – Módulo Normas`,resp:'COCIC',inicio:'2026-12-01',fim:'2026-12-20',st:'Não iniciado'},
+// AUDIR_MZ 0003/2026 — Plano 1: Dívidas Previdenciárias
+{bloco:'AUDIR',ra:'RA AUDIR_MZ 0003/2026',ap:1,tipo:'PA',nap:'',apt:`Fragilidades na cobrança administrativa das dívidas previdenciárias`,sub:`Levantamento e diagnóstico das dívidas previdenciárias pendentes de cobrança`,resp:'COBEN',inicio:'',fim:'',st:'Não iniciado'},
+{bloco:'AUDIR',ra:'RA AUDIR_MZ 0003/2026',ap:1,tipo:'PA',nap:'',apt:`Fragilidades na cobrança administrativa das dívidas previdenciárias`,sub:`Revisão dos procedimentos de cobrança administrativa e critérios de classificação`,resp:'COBEN',inicio:'',fim:'',st:'Não iniciado'},
+{bloco:'AUDIR',ra:'RA AUDIR_MZ 0003/2026',ap:1,tipo:'PA',nap:'',apt:`Fragilidades na cobrança administrativa das dívidas previdenciárias`,sub:`Implementação de controles e acompanhamento das cobranças`,resp:'COBEN',inicio:'',fim:'',st:'Não iniciado'},
+{bloco:'AUDIR',ra:'RA AUDIR_MZ 0003/2026',ap:1,tipo:'PA',nap:'',apt:`Fragilidades na cobrança administrativa das dívidas previdenciárias`,sub:`Padronização de relatórios e indicadores de recuperação`,resp:'COBEN',inicio:'',fim:'',st:'Não iniciado'},
+// AUDIR_MZ 0003/2026 — Plano 2: Fator Atuarial
+{bloco:'AUDIR',ra:'RA AUDIR_MZ 0003/2026',ap:2,tipo:'PA',nap:'',apt:`Fragilidades no cálculo e nos registros do fator atuarial`,sub:`Revisão dos parâmetros e metodologia de cálculo do fator atuarial`,resp:'COBEN',inicio:'',fim:'',st:'Não iniciado'},
+{bloco:'AUDIR',ra:'RA AUDIR_MZ 0003/2026',ap:2,tipo:'PA',nap:'',apt:`Fragilidades no cálculo e nos registros do fator atuarial`,sub:`Auditoria dos registros e conferência de dados de entrada`,resp:'COBEN',inicio:'',fim:'',st:'Não iniciado'},
+{bloco:'AUDIR',ra:'RA AUDIR_MZ 0003/2026',ap:2,tipo:'PA',nap:'',apt:`Fragilidades no cálculo e nos registros do fator atuarial`,sub:`Implementação de validações e controles nos cálculos atuariais`,resp:'COBEN',inicio:'',fim:'',st:'Não iniciado'},
+{bloco:'AUDIR',ra:'RA AUDIR_MZ 0003/2026',ap:2,tipo:'PA',nap:'',apt:`Fragilidades no cálculo e nos registros do fator atuarial`,sub:`Documentação e rastreabilidade dos ajustes realizados`,resp:'COBEN',inicio:'',fim:'',st:'Não iniciado'},
+// AUDIR_MZ 0003/2026 — Plano 3: Divergências INSS
+{bloco:'AUDIR',ra:'RA AUDIR_MZ 0003/2026',ap:3,tipo:'PA',nap:'',apt:`Fragilidades no processo de tratamento das divergências-INSS`,sub:`Mapeamento das divergências existentes entre dados FUNCEF e INSS`,resp:'COBEN',inicio:'',fim:'',st:'Não iniciado'},
+{bloco:'AUDIR',ra:'RA AUDIR_MZ 0003/2026',ap:3,tipo:'PA',nap:'',apt:`Fragilidades no processo de tratamento das divergências-INSS`,sub:`Estabelecer rotina de conciliação periódica com dados do INSS`,resp:'COBEN',inicio:'',fim:'',st:'Não iniciado'},
+{bloco:'AUDIR',ra:'RA AUDIR_MZ 0003/2026',ap:3,tipo:'PA',nap:'',apt:`Fragilidades no processo de tratamento das divergências-INSS`,sub:`Implementação de controles de qualidade e alertas automáticos`,resp:'COBEN',inicio:'',fim:'',st:'Não iniciado'},
+{bloco:'AUDIR',ra:'RA AUDIR_MZ 0003/2026',ap:3,tipo:'PA',nap:'',apt:`Fragilidades no processo de tratamento das divergências-INSS`,sub:`Regularização e plano de saneamento das divergências pendentes`,resp:'COBEN',inicio:'',fim:'',st:'Não iniciado'},
+// AUDIR_MZ 0003/2026 — Plano 4: Concessão e manutenção de benefícios
+{bloco:'AUDIR',ra:'RA AUDIR_MZ 0003/2026',ap:4,tipo:'PA',nap:'',apt:`Fragilidades nos controles do processo de concessão e manutenção de benefícios previdenciários`,sub:`Revisão e padronização dos controles de concessão de benefícios`,resp:'COBEN',inicio:'',fim:'',st:'Não iniciado'},
+{bloco:'AUDIR',ra:'RA AUDIR_MZ 0003/2026',ap:4,tipo:'PA',nap:'',apt:`Fragilidades nos controles do processo de concessão e manutenção de benefícios previdenciários`,sub:`Implementação de checklist de validação por tipo de benefício`,resp:'COBEN',inicio:'',fim:'',st:'Não iniciado'},
+{bloco:'AUDIR',ra:'RA AUDIR_MZ 0003/2026',ap:4,tipo:'PA',nap:'',apt:`Fragilidades nos controles do processo de concessão e manutenção de benefícios previdenciários`,sub:`Automatização de conferências e rastreabilidade das manutenções`,resp:'COBEN',inicio:'',fim:'',st:'Não iniciado'},
+{bloco:'AUDIR',ra:'RA AUDIR_MZ 0003/2026',ap:4,tipo:'PA',nap:'',apt:`Fragilidades nos controles do processo de concessão e manutenção de benefícios previdenciários`,sub:`Estabelecer indicadores de qualidade e conformidade do processo`,resp:'COBEN',inicio:'',fim:'',st:'Não iniciado'},
+];
+
+/* ============================================================
    SPRINT PLAN — Abril 2026 / Março 2027
 ============================================================ */
 const SP = [
@@ -2010,6 +2056,7 @@ let OMST = {};       // pa_om_status — om_id -> {descontinuado, justificativa,
 let RISKDB = [];     // riscos organizacionais
 let IDB = [];        // ideias & aprendizado
 let AUD = [];        // audit_log entries
+let AUDI = {};       // aud_items — aud_idx -> item (status/vinculo/sprint)
 let EV  = [];        // calendar_events
 let EVM = {};        // event_members — chave: evento_id -> [profile_id]
 let calDate = new Date();
@@ -2303,7 +2350,7 @@ async function loadAll(){
       (CLD[k]=CLD[k]||[]).push(c);
     });
     // Comments + attachments + reviews + audit + eventos em paralelo
-    const [rv, rc, ra, rau, rev, revm, rvi, rpa, rid, romst, rrisk] = await Promise.all([
+    const [rv, rc, ra, rau, rev, revm, rvi, rpa, raud_items, rid, romst, rrisk] = await Promise.all([
       db.from('sprint_reviews').select('*').order('data_realizacao',{ascending:false}),
       db.from('task_comments').select('*').order('created_at',{ascending:true}),
       db.from('task_attachments').select('*').order('created_at',{ascending:false}),
@@ -2312,6 +2359,7 @@ async function loadAll(){
       db.from('event_members').select('*'),
       db.from('sprint_review_items').select('*').then(r=>r).catch(()=>({data:[]})),
       db.from('pa_items').select('*').then(r=>r).catch(()=>({data:[]})),
+      db.from('aud_items').select('*').then(r=>r).catch(()=>({data:[]})),
       db.from('ideias').select('*').order('created_at',{ascending:false}).then(r=>r).catch(()=>({data:[]})),
       db.from('pa_om_status').select('*').then(r=>r).catch(()=>({data:[]})),
       db.from('riscos').select('*').order('abordagem').order('codigo').then(r=>r).catch(()=>({data:[]})),
@@ -2319,6 +2367,8 @@ async function loadAll(){
     AUD = rau.data || [];
     EV  = rev.data || [];
     PAI = {}; (rpa.data||[]).forEach(p=>{ PAI[p.pa_idx]=p; });
+    AUDI = {}; (raud_items.data||[]).forEach(a=>{ AUDI[a.aud_idx]=a; });
+    if(!raud_items.data?.length){ try{ const ls=JSON.parse(localStorage.getItem('aud_items_local')||'{}'); Object.assign(AUDI, ls); }catch(e){} }
     OMST = {}; (romst.data||[]).forEach(o=>{ OMST[o.om_id]=o; });
     RISKDB = rrisk.data || [];
     IDB = rid.data || [];
@@ -4320,176 +4370,151 @@ const RISK_NIVEL_LABELS = {baixo:'Baixo',moderado:'Moderado',alto:'Alto',extremo
 const _riskOpen = {};
 
 /* ============================================================
-   AUDITORIAS (AUDIR)
+   AUDITORIAS — Catálogo AUDIN 0007 + AUDIR_MZ 0003
 ============================================================ */
-const _audOpen = {};
 const _audBlocoOpen = {};
 const _audApontOpen = {};
 
-function getAudTasks(){
-  return TSK.filter(t => t.titulo && /^\[AUD\b/i.test(t.titulo));
-}
-
-function parseAudCode(titulo){
-  const m = titulo.match(/^\[AUD\s+(\S+)\s*·\s*#?(\d+)\s*·?\s*(\d+)?\]/i);
-  if(!m) return {auditoria:'', apontamento:'', subitem:'', label: titulo};
-  return {auditoria:m[1], apontamento:m[2], subitem:m[3]||'', label: titulo.replace(/^\[.*?\]\s*/, '')};
-}
-
-function audBlocoType(code){
-  const c = (code||'').toUpperCase();
-  if(c.includes('AUDIN')) return 'audin';
-  if(c.includes('AUDIR')) return 'audir';
-  return c.startsWith('CB') ? 'audir' : 'audin';
+function audItem(idx){ return AUDI[idx] || {}; }
+function audEffStatus(idx){ return audItem(idx).status || AUD_GB[idx]?.st || 'Não iniciado'; }
+function audStatusClass(st){
+  if(/concl/i.test(st)) return 'ok';
+  if(/andamento/i.test(st)) return 'and';
+  if(/atras/i.test(st)) return 'atraso';
+  return 'nao';
 }
 
 function renderAuditorias(){
   const fSt = document.getElementById('audFilterStatus')?.value||'';
-  const fSp = document.getElementById('audFilterSprint')?.value||'';
-  const fRA = document.getElementById('audFilterRA')?.value||'';
+  const fBloco = document.getElementById('audFilterBloco')?.value||'';
   const today = new Date().toISOString().slice(0,10);
 
-  const spSel = document.getElementById('audFilterSprint');
-  if(spSel && spSel.options.length <= 1){
-    SP.forEach(s=>{ const o=document.createElement('option'); o.value=s.id; o.textContent=`S${s.id} · ${s.m}`; spSel.appendChild(o); });
-  }
+  const blocos = [];
+  const blocoMap = {};
+  AUD_GB.forEach((it, idx)=>{
+    const key = it.bloco;
+    if(!blocoMap[key]){ blocoMap[key]={bloco:key, ra:it.ra, aponts:{}}; blocos.push(blocoMap[key]); }
+    const apKey = it.ap;
+    if(!blocoMap[key].aponts[apKey]) blocoMap[key].aponts[apKey]={num:apKey, titulo:it.apt, tipo:it.tipo, nap:it.nap, items:[]};
+    blocoMap[key].aponts[apKey].items.push({...it, idx});
+  });
 
-  const raSel = document.getElementById('audFilterRA');
-  if(raSel && raSel.options.length <= 1){
-    const codes = [...new Set(getAudTasks().map(t=>parseAudCode(t.titulo).auditoria).filter(Boolean))].sort();
-    codes.forEach(c=>{ const o=document.createElement('option'); o.value=c; o.textContent=c; raSel.appendChild(o); });
-  }
-
-  let arr = getAudTasks();
-  if(fSt) arr = arr.filter(t=>(t.status||'pendente')===fSt);
-  if(fSp) arr = arr.filter(t=>t.sprint_id===+fSp);
-  if(fRA) arr = arr.filter(t=>parseAudCode(t.titulo).auditoria===fRA);
-
-  const allAud = getAudTasks();
-  const total = allAud.length;
-  const nPend = allAud.filter(t=>(t.status||'pendente')==='pendente').length;
-  const nAnd = allAud.filter(t=>t.status==='em_andamento').length;
-  const nConc = allAud.filter(t=>t.status==='concluido').length;
-  const nVenc = allAud.filter(t=>t.status!=='concluido'&&t.data_fim&&t.data_fim<today).length;
-  const nVinc = allAud.filter(t=>t.sprint_id).length;
+  const total = AUD_GB.length;
+  const nConcl = AUD_GB.filter((_,i)=>/concl/i.test(audEffStatus(i))).length;
+  const nAnd   = AUD_GB.filter((_,i)=>/andamento/i.test(audEffStatus(i))).length;
+  const nVinc  = AUD_GB.filter((_,i)=>audItem(i).vinculo_tipo).length;
+  const nVenc  = AUD_GB.filter((_,i)=>{
+    const st=audEffStatus(i); const f=AUD_GB[i].fim;
+    return f && !/concl/i.test(st) && f<today;
+  }).length;
+  const pct = total ? Math.round(100*nConcl/total) : 0;
 
   document.getElementById('audSummary').innerHTML = `
-    <div class="rv-mc"><div class="rv-val">${total}</div><div class="rv-lbl">Total tarefas AUD</div></div>
-    <div class="rv-mc"><div class="rv-val" style="color:var(--amber)">${nPend}</div><div class="rv-lbl">Pendentes</div></div>
-    <div class="rv-mc"><div class="rv-val" style="color:var(--accent)">${nAnd}</div><div class="rv-lbl">Em andamento</div></div>
-    <div class="rv-mc"><div class="rv-val" style="color:var(--green)">${nConc}</div><div class="rv-lbl">Concluídos</div></div>
-    <div class="rv-mc"><div class="rv-val" style="color:var(--red)">${nVenc}</div><div class="rv-lbl">Vencidos</div></div>
-    <div class="rv-mc"><div class="rv-val">${nVinc}</div><div class="rv-lbl">Em sprints</div></div>`;
+    <div class="rv-mc"><div class="rv-val">${total}</div><div class="rv-lbl">Subações</div></div>
+    <div class="rv-mc"><div class="rv-val">${blocos.length}</div><div class="rv-lbl">Blocos (RA)</div></div>
+    <div class="rv-mc"><div class="rv-val" style="color:var(--green)">${nConcl}</div><div class="rv-lbl">Concluídas</div></div>
+    <div class="rv-mc"><div class="rv-val" style="color:var(--amber)">${nAnd}</div><div class="rv-lbl">Em andamento</div></div>
+    <div class="rv-mc"><div class="rv-val" style="color:var(--red)">${nVenc}</div><div class="rv-lbl">Vencidas</div></div>
+    <div class="rv-mc"><div class="rv-val">${pct}%</div><div class="rv-lbl">Progresso</div></div>`;
 
-  if(!arr.length){
-    document.getElementById('audList').innerHTML = `<div class="empty"><div class="ic">🔎</div>Nenhuma tarefa de auditoria encontrada com esses filtros.${!total?'<br><span style="font-size:11px">Crie tarefas com título iniciando em <code>[AUD ...]</code> para que apareçam aqui.</span>':''}</div>`;
-    return;
-  }
-
-  const blocos = {};
-  arr.forEach(t=>{
-    const p = parseAudCode(t.titulo);
-    const code = p.auditoria || '(sem código)';
-    if(!blocos[code]) blocos[code] = {};
-    const ap = p.apontamento || '0';
-    if(!blocos[code][ap]) blocos[code][ap] = [];
-    blocos[code][ap].push({...t, _parsed: p});
-  });
-
-  const stLabels = {pendente:'Pendente',em_andamento:'Em andamento',em_revisao:'Em revisão',concluido:'Concluído',bloqueado:'Bloqueado',despriorizado:'Despriorizado',cancelado:'Cancelado'};
   let html = '';
+  blocos.forEach(b=>{
+    if(fBloco && b.bloco!==fBloco) return;
 
-  const sortedCodes = Object.keys(blocos).sort((a,b)=>{
-    const ta = audBlocoType(a), tb = audBlocoType(b);
-    if(ta!==tb) return ta==='audin'?-1:1;
-    return a.localeCompare(b,'pt',{numeric:true});
-  });
+    const allItems = Object.values(b.aponts).flatMap(a=>a.items);
+    let filteredAponts = b.aponts;
+    if(fSt){
+      filteredAponts = {};
+      for(const [k,ap] of Object.entries(b.aponts)){
+        const fi = ap.items.filter(x=>audEffStatus(x.idx)===fSt);
+        if(fi.length) filteredAponts[k] = {...ap, items:fi};
+      }
+      if(!Object.keys(filteredAponts).length) return;
+    }
 
-  for(const code of sortedCodes){
-    const aponts = blocos[code];
-    const tipo = audBlocoType(code);
-    const tipoLabel = tipo==='audin' ? 'AUDIN' : 'AUDIR';
-    const allItems = Object.values(aponts).flat();
-    const bConc = allItems.filter(t=>t.status==='concluido').length;
-    const bVenc = allItems.filter(t=>t.status!=='concluido'&&t.data_fim&&t.data_fim<today).length;
-    const bTotal = allItems.length;
-    const bPct = bTotal ? Math.round(bConc/bTotal*100) : 0;
-    const bOpen = _audBlocoOpen[code];
-    const nAponts = Object.keys(aponts).length;
+    const bDone = allItems.filter(x=>/concl/i.test(audEffStatus(x.idx))).length;
+    const bVenc = allItems.filter(x=>{ const st=audEffStatus(x.idx); return x.fim && !/concl/i.test(st) && x.fim<today; }).length;
+    const bPct = allItems.length ? Math.round(100*bDone/allItems.length) : 0;
+    const nAp = Object.keys(b.aponts).length;
+    const isOpen = _audBlocoOpen[b.bloco];
+    const tipo = b.bloco==='AUDIN' ? 'audin' : 'audir';
 
-    html += `<div class="aud-bloco ${bOpen?'open':''}">
-      <div class="aud-bloco-head" onclick="_audBlocoOpen['${escapeHtml(code)}']=!_audBlocoOpen['${escapeHtml(code)}'];renderAuditorias()">
-        <div class="aud-bloco-icon ${tipo}">${tipoLabel.slice(0,2)}</div>
+    html += `<div class="aud-bloco ${isOpen?'open':''}">
+      <div class="aud-bloco-head" onclick="_audBlocoOpen['${b.bloco}']=!_audBlocoOpen['${b.bloco}'];renderAuditorias()">
+        <div class="aud-bloco-icon ${tipo}">${b.bloco.slice(0,2)}</div>
         <div class="aud-bloco-tit">
-          <h3>${escapeHtml(tipoLabel)} — ${escapeHtml(code)}</h3>
-          <div class="aud-bloco-sub">${nAponts} apontamento${nAponts>1?'s':''} · ${bTotal} tarefa${bTotal>1?'s':''} · ${bPct}% concluído</div>
+          <h3>${escapeHtml(b.bloco)} — ${escapeHtml(b.ra)}</h3>
+          <div class="aud-bloco-sub">${nAp} apontamento${nAp>1?'s':''} · ${allItems.length} subações · ${bPct}% concluído</div>
           <div class="aud-progbar"><div class="aud-progbar-fill" style="width:${bPct}%"></div></div>
         </div>
         <div class="aud-bloco-stats">
-          <span class="aud-st st-total">${bTotal}</span>
-          <span class="aud-st st-conc">${bConc}</span>
+          <span class="aud-st st-total">${allItems.length}</span>
+          <span class="aud-st st-conc">${bDone}</span>
           ${bVenc?`<span class="aud-st st-venc">${bVenc} venc.</span>`:''}
         </div>
         <span class="pa-caret">▶</span>
       </div>
       <div class="aud-bloco-body">`;
 
-    const sortedAponts = Object.keys(aponts).sort((a,b)=>a.localeCompare(b,'pt',{numeric:true}));
-    for(const ap of sortedAponts){
-      const tasks = aponts[ap];
-      const apKey = code+'#'+ap;
+    const sortedAps = Object.keys(filteredAponts).sort((a,b)=>+a - +b);
+    for(const apk of sortedAps){
+      const ap = filteredAponts[apk];
+      const apKey = b.bloco+'#'+apk;
       const apOpen = _audApontOpen[apKey];
-      const apConc = tasks.filter(t=>t.status==='concluido').length;
-      const apVenc = tasks.filter(t=>t.status!=='concluido'&&t.data_fim&&t.data_fim<today).length;
-      const apPct = tasks.length ? Math.round(apConc/tasks.length*100) : 0;
-      const firstLabel = tasks[0]?._parsed?.label || '';
+      const apDone = ap.items.filter(x=>/concl/i.test(audEffStatus(x.idx))).length;
+      const apVenc = ap.items.filter(x=>{ const st=audEffStatus(x.idx); return x.fim && !/concl/i.test(st) && x.fim<today; }).length;
+      const apPct = ap.items.length ? Math.round(100*apDone/ap.items.length) : 0;
 
       html += `<div class="aud-apont ${apOpen?'open':''}">
         <div class="aud-apont-head" onclick="_audApontOpen['${apKey}']=!_audApontOpen['${apKey}'];renderAuditorias()">
-          <span class="aud-apont-num">${escapeHtml(ap)}</span>
-          <div class="aud-apont-tit">Apontamento #${escapeHtml(ap)}${firstLabel?' — '+escapeHtml(firstLabel.slice(0,60)):''}
-            <div class="aud-apont-sub">${tasks.length} tarefa${tasks.length>1?'s':''} · ${apConc} concluída${apConc!==1?'s':''}${apVenc?' · <span style="color:var(--red)">'+apVenc+' vencida'+( apVenc!==1?'s':'')+'</span>':''} · ${apPct}%</div>
+          <span class="aud-apont-num">${apk}</span>
+          <div class="aud-apont-tit">
+            ${ap.tipo?`<span style="font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;background:var(--r-bg);color:var(--red);margin-right:4px">${escapeHtml(ap.tipo)}</span>`:''}${escapeHtml(ap.titulo.slice(0,90))}
+            <div class="aud-apont-sub">${ap.items.length} subação${ap.items.length>1?'ões':''} · ${apDone} concluída${apDone!==1?'s':''}${apVenc?' · <span style="color:var(--red)">'+apVenc+' vencida'+(apVenc!==1?'s':'')+'</span>':''} · ${apPct}%</div>
             <div class="aud-progbar"><div class="aud-progbar-fill" style="width:${apPct}%"></div></div>
           </div>
           <span class="pa-caret">▶</span>
         </div>
         <div class="aud-apont-body">`;
 
-      tasks.sort((a,b)=>(a._parsed.subitem||'0').localeCompare(b._parsed.subitem||'0','pt',{numeric:true}));
-      tasks.forEach(t=>{
-        const p = t._parsed;
-        const isOpen = _audOpen[t.id];
-        const st = t.status||'pendente';
-        const stL = stLabels[st]||st;
-        const spLabel = t.sprint_id ? `S${t.sprint_id}` : '';
-        const desc = t.descricao || '';
-        const vencido = st!=='concluido' && t.data_fim && t.data_fim < today;
-        const mems = gTM(t.id);
-        const memHtml = mems.length ? mems.slice(0,3).map(x=>avH(mBI(x.id),'xs')).join('') + (mems.length>3?`<span class="av-more">+${mems.length-3}</span>`:'') : '';
+      ap.items.forEach(x=>{
+        const st = audEffStatus(x.idx);
+        const ai = audItem(x.idx);
+        const sugSid = sprintForDate(x.fim);
+        const sugS = SP.find(s=>s.id===sugSid);
+        const vencido = x.fim && !/concl/i.test(st) && x.fim<today;
+        let vinc = '';
+        if(ai.vinculo_tipo==='tarefa'){
+          const t = TSK.find(t=>t.id===ai.tarefa_id);
+          vinc = `<span class="pa-vinc on">🔗 Tarefa: ${escapeHtml((t?.titulo||'—').replace(/^\[.*?\]\s*/,'').slice(0,40))} · S${ai.sprint_id}</span>`;
+        } else {
+          vinc = `<span class="pa-vinc off">Sem vínculo</span>`;
+        }
 
-        html += `<div class="aud-card ${isOpen?'open':''} ${vencido?'aud-vencido':''}">
-          <div class="aud-head" onclick="_audOpen['${t.id}']=!_audOpen['${t.id}'];renderAuditorias()">
-            <span class="aud-code">${p.subitem||'—'}</span>
-            <div class="aud-tit">${escapeHtml(p.label)}
-              <div class="aud-meta">${t.data_fim ? fmtD(t.data_fim) : ''}${t.prioridade ? ' · '+t.prioridade : ''}${vencido?' · <span style="color:var(--red);font-weight:600">VENCIDO</span>':''}</div>
+        html += `<div class="pa-sub ${vencido?'aud-vencido':''}">
+          <div class="pa-sub-top">
+            <span class="pa-sub-code" style="min-width:20px;text-align:center">${x.idx - AUD_GB.findIndex(g=>g.bloco===x.bloco&&g.ap===x.ap) + 1}</span>
+            <div style="flex:1">
+              <div class="pa-sub-desc">${escapeHtml(x.sub)}</div>
+              <div class="pa-sub-meta">
+                ${x.resp?`<span><b>Resp.:</b> ${escapeHtml(x.resp)}</span>`:''}
+                ${x.inicio&&x.fim?`<span><b>Prazo:</b> ${fmtD(x.inicio)} → ${fmtD(x.fim)}</span>`:''}
+                ${x.fim?`<span><b>Sprint sugerida:</b> S${sugSid} (${sugS?.m||''})</span>`:''}
+                ${vencido?'<span style="color:var(--red);font-weight:600">VENCIDO</span>':''}
+              </div>
             </div>
-            ${memHtml ? `<span class="aud-mems">${memHtml}</span>` : ''}
-            <span class="aud-badge ${st}">${stL}</span>
-            ${spLabel ? `<span class="aud-sprint">${spLabel}</span>` : ''}
-            <span class="pa-caret">▶</span>
+            <span class="pa-badge ${audStatusClass(st)}">${escapeHtml(st)}</span>
           </div>
-          <div class="aud-body">
-            ${desc ? `<div style="white-space:pre-wrap;margin-bottom:.4rem">${escapeHtml(desc)}</div>` : '<div style="color:var(--t3);font-style:italic">Sem descrição.</div>'}
-            ${t.fase ? `<div style="margin-top:.2rem"><b>Fase:</b> ${escapeHtml(t.fase)}</div>` : ''}
-            ${t.data_fim ? `<div style="margin-top:.2rem"><b>Prazo:</b> ${fmtD(t.data_fim)}${vencido?' <span style="color:var(--red);font-weight:600">(vencido)</span>':''}</div>` : ''}
-            ${t.story_points ? `<div style="margin-top:.2rem"><b>Story Points:</b> ${t.story_points}</div>` : ''}
-            ${mems.length ? `<div style="margin-top:.2rem"><b>Responsável:</b> ${mems.map(x=>{const m=mBI(x.id);return m?escapeHtml(m.nome):'?'}).join(', ')}</div>` : ''}
-            <div class="aud-actions">
-              <select onchange="updateAudStatus('${t.id}',this.value)" style="font-size:11px;padding:3px 6px;border-radius:6px;border:1px solid var(--border);background:var(--bg2);color:var(--text)">
-                ${Object.entries(stLabels).map(([k,v])=>`<option value="${k}" ${st===k?'selected':''}>${v}</option>`).join('')}
-              </select>
-              <button class="pa-btn" onclick="openTask('${t.id}')">✏️ Editar</button>
-            </div>
+          <div class="pa-sub-actions">
+            ${vinc}
+            <div style="flex:1"></div>
+            <select onchange="audSetStatus(${x.idx}, this.value)" title="Status">
+              ${['Não iniciado','Em andamento','Concluído','Atrasado'].map(s=>`<option ${st===s?'selected':''}>${s}</option>`).join('')}
+            </select>
+            ${ai.vinculo_tipo
+              ? `<button class="pa-btn" onclick="audUnlink(${x.idx})">Desvincular</button>`
+              : `<button class="pa-btn" onclick="openAudLink(${x.idx})">🔗 Vincular</button>
+                 <button class="pa-btn primary" onclick="audCreateTask(${x.idx})">+ Criar tarefa</button>`}
           </div>
         </div>`;
       });
@@ -4498,29 +4523,77 @@ function renderAuditorias(){
     }
 
     html += `</div></div>`;
-  }
+  });
 
-  document.getElementById('audList').innerHTML = html;
+  document.getElementById('audList').innerHTML = html || `<div class="empty"><div class="ic">🔎</div>Nenhuma subação com esses filtros</div>`;
 }
 
-async function updateAudStatus(id, val){
+async function audUpsert(idx, patch){
+  const cur = AUDI[idx] || {aud_idx: idx};
+  const payload = {...cur, ...patch, aud_idx: idx};
+  delete payload.id; delete payload.updated_at;
+  const {data, error} = await db.from('aud_items').upsert(payload, {onConflict:'aud_idx'}).select().single();
+  if(error){
+    if(error.code==='42P01'){
+      const ls = JSON.parse(localStorage.getItem('aud_items_local')||'{}');
+      ls[idx] = {...(ls[idx]||{}), ...patch, aud_idx:idx};
+      localStorage.setItem('aud_items_local', JSON.stringify(ls));
+      AUDI[idx] = ls[idx];
+      return ls[idx];
+    }
+    toast('Erro: '+error.message,'err'); ss('err','Erro'); return null;
+  }
+  AUDI[idx] = data;
+  return data;
+}
+
+async function audSetStatus(idx, val){
   ss('loading','Salvando...');
-  const {error} = await db.from('subtarefas').update({status:val}).eq('id',id);
-  if(error){ toast('Erro: '+error.message,'err'); ss('err','Erro'); return; }
-  const t = TSK.find(t=>t.id===id); if(t) t.status=val;
+  const r = await audUpsert(idx, {status: val});
+  if(!r) return;
   ss('ok','Salvo'); toast('Status atualizado');
-  logAudit({action:'task_update',entityType:'subtarefa',entityId:id,summary:`Auditoria: status → "${val}"`});
+  logAudit({action:'aud_update', entityType:'auditoria', entityId:String(idx),
+    summary:`AUD ${AUD_GB[idx].bloco} ap${AUD_GB[idx].ap}: status "${val}"`});
   renderAuditorias();
 }
 
-function openTaskAud(){
-  openTask(null);
-  setTimeout(()=>{
-    const el = document.getElementById('tTitle');
-    if(el && !el.value) el.value = '[AUD  · # · ] ';
-    el?.focus();
-    el?.setSelectionRange(5, 5);
-  }, 100);
+async function audCreateTask(idx){
+  const it = AUD_GB[idx];
+  const sugSid = sprintForDate(it.fim);
+  const titulo = `[AUD ${it.bloco} · #${it.ap}] ${it.sub.slice(0,80)}`;
+  ss('loading','Criando tarefa...');
+  const {data, error} = await db.from('subtarefas').insert({
+    titulo, descricao: it.sub, sprint_id: sugSid, status:'pendente',
+    data_inicio: it.inicio||null, data_fim: it.fim||null, fase: it.resp
+  }).select().single();
+  if(error){ toast('Erro: '+error.message,'err'); ss('err','Erro'); return; }
+  TSK.push(data);
+  await audUpsert(idx, {vinculo_tipo:'tarefa', tarefa_id:data.id, sprint_id:sugSid});
+  ss('ok','Criada'); toast(`Tarefa criada na S${sugSid}`);
+  logAudit({action:'aud_create_task', entityType:'auditoria', entityId:String(idx), sprintId:sugSid,
+    summary:`AUD ${it.bloco} ap${it.ap}: tarefa criada S${sugSid}`});
+  renderAuditorias();
+}
+
+function openAudLink(idx){
+  const it = AUD_GB[idx];
+  const sugSid = sprintForDate(it.fim);
+  const candidates = TSK.filter(t=>t.sprint_id===sugSid);
+  if(!candidates.length){ toast('Nenhuma tarefa na sprint sugerida','warn'); return; }
+  const list = candidates.map(t=>`${t.id} — ${(t.titulo||'').slice(0,60)}`).join('\n');
+  const choice = prompt(`Vincular a qual tarefa da S${sugSid}?\n\n${list}\n\nDigite o ID:`);
+  if(!choice) return;
+  const tid = choice.trim();
+  const t = TSK.find(t=>t.id===tid);
+  if(!t){ toast('Tarefa não encontrada','err'); return; }
+  audUpsert(idx, {vinculo_tipo:'tarefa', tarefa_id:tid, sprint_id:t.sprint_id}).then(()=>{
+    toast('Vinculada'); renderAuditorias();
+  });
+}
+
+async function audUnlink(idx){
+  await audUpsert(idx, {vinculo_tipo:null, tarefa_id:null, sprint_id:null});
+  toast('Desvinculada'); renderAuditorias();
 }
 
 function renderRiscos(){
