@@ -711,6 +711,7 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
       <label class="lbl">Senha</label>
       <input class="lin" id="liPass"  type="password" placeholder="••••••••" autocomplete="current-password">
       <button class="lbtn" onclick="doLogin()" id="btnLogin">Entrar</button>
+      <div style="text-align:center;margin-top:.6rem"><a href="#" onclick="swAuth('reset');return false" style="font-size:11px;color:var(--accent);text-decoration:none;opacity:.85">Esqueci minha senha</a></div>
     </div>
 
     <div id="paneSignup" style="display:none">
@@ -728,6 +729,22 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
       <label class="lbl">Senha (mínimo 6 caracteres)</label>
       <input class="lin" id="suPass" type="password" placeholder="••••••••" autocomplete="new-password">
       <button class="lbtn" onclick="doSignup()" id="btnSignup">Criar conta</button>
+    </div>
+
+    <div id="paneReset" style="display:none">
+      <label class="lbl">E-mail da sua conta</label>
+      <input class="lin" id="resetEmail" type="email" placeholder="seu.email@funcef.com.br" autocomplete="email">
+      <button class="lbtn" onclick="doResetPassword()" id="btnReset">Enviar link de recuperação</button>
+      <div style="text-align:center;margin-top:.6rem"><a href="#" onclick="swAuth('login');return false" style="font-size:11px;color:var(--accent);text-decoration:none;opacity:.85">Voltar ao login</a></div>
+    </div>
+
+    <div id="paneNewPass" style="display:none">
+      <p style="font-size:12px;color:var(--t2);margin-bottom:1rem;text-align:center">Digite sua nova senha abaixo.</p>
+      <label class="lbl">Nova senha (mínimo 6 caracteres)</label>
+      <input class="lin" id="newPass" type="password" placeholder="••••••••" autocomplete="new-password">
+      <label class="lbl">Confirmar nova senha</label>
+      <input class="lin" id="newPassConfirm" type="password" placeholder="••••••••" autocomplete="new-password">
+      <button class="lbtn" onclick="doUpdatePassword()" id="btnNewPass">Salvar nova senha</button>
     </div>
 
     <div class="foot">Sessão segura via Supabase Auth</div>
@@ -1946,8 +1963,12 @@ applyTheme(localStorage.getItem('nid_theme') || 'dark');
 function swAuth(which){
   document.getElementById('tabLogin').classList.toggle('on', which==='login');
   document.getElementById('tabSignup').classList.toggle('on', which==='signup');
-  document.getElementById('paneLogin').style.display  = which==='login'  ? '' : 'none';
-  document.getElementById('paneSignup').style.display = which==='signup' ? '' : 'none';
+  document.getElementById('paneLogin').style.display   = which==='login'   ? '' : 'none';
+  document.getElementById('paneSignup').style.display  = which==='signup'  ? '' : 'none';
+  document.getElementById('paneReset').style.display   = which==='reset'   ? '' : 'none';
+  document.getElementById('paneNewPass').style.display = which==='newpass' ? '' : 'none';
+  const tabs = document.querySelector('.authtabs');
+  tabs.style.display = (which==='reset' || which==='newpass') ? 'none' : '';
   document.getElementById('aerr').classList.remove('on');
   document.getElementById('aok').classList.remove('on');
 }
@@ -2012,6 +2033,36 @@ async function doSignup(){
 async function doLogout(){
   await db.auth.signOut();
   location.reload();
+}
+
+async function doResetPassword(){
+  const email = document.getElementById('resetEmail').value.trim();
+  if(!email){ aerr('Informe o e-mail da sua conta'); return; }
+  const btn = document.getElementById('btnReset'); btn.disabled=true; btn.textContent='Enviando...';
+  const {error} = await db.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin + window.location.pathname
+  });
+  btn.disabled=false; btn.textContent='Enviar link de recuperação';
+  if(error){
+    aerr('Falha ao enviar: ' + error.message); return;
+  }
+  aok('Link de recuperação enviado! Verifique sua caixa de entrada (e spam).');
+}
+
+async function doUpdatePassword(){
+  const pass = document.getElementById('newPass').value;
+  const confirm = document.getElementById('newPassConfirm').value;
+  if(!pass || !confirm){ aerr('Preencha ambos os campos'); return; }
+  if(pass.length < 6){ aerr('Senha precisa ter pelo menos 6 caracteres'); return; }
+  if(pass !== confirm){ aerr('As senhas não coincidem'); return; }
+  const btn = document.getElementById('btnNewPass'); btn.disabled=true; btn.textContent='Salvando...';
+  const {error} = await db.auth.updateUser({ password: pass });
+  btn.disabled=false; btn.textContent='Salvar nova senha';
+  if(error){
+    aerr('Falha ao atualizar senha: ' + error.message); return;
+  }
+  aok('Senha atualizada com sucesso!');
+  setTimeout(()=>{ swAuth('login'); }, 1500);
 }
 
 /* ============================================================
@@ -7256,6 +7307,8 @@ function escapeHtml(s){
 ============================================================ */
 document.getElementById('liPass').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
 document.getElementById('suPass').addEventListener('keydown', e=>{ if(e.key==='Enter') doSignup(); });
+document.getElementById('resetEmail').addEventListener('keydown', e=>{ if(e.key==='Enter') doResetPassword(); });
+document.getElementById('newPassConfirm').addEventListener('keydown', e=>{ if(e.key==='Enter') doUpdatePassword(); });
 
 /* ============================================================
    STARTUP
@@ -7269,6 +7322,12 @@ document.getElementById('suPass').addEventListener('keydown', e=>{ if(e.key==='E
 
 db.auth.onAuthStateChange((evt, sess)=>{
   if(evt==='SIGNED_OUT'){ location.reload(); }
+  if(evt==='PASSWORD_RECOVERY'){
+    document.getElementById('authPage').style.display = '';
+    document.getElementById('shell').classList.remove('on');
+    swAuth('newpass');
+    aok('Defina sua nova senha abaixo.');
+  }
 });
 
 </script>
