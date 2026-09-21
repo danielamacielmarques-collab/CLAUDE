@@ -605,28 +605,56 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
 .risk-nivel.moderado{background:var(--a-bg);color:var(--amber)}
 .risk-nivel.alto{background:#fff3e0;color:#e65100}
 .risk-nivel.extremo{background:var(--r-bg);color:var(--red)}
-/* Auditorias */
-.aud-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;margin-bottom:.6rem;overflow:hidden}
-.aud-head{display:flex;align-items:center;gap:.6rem;padding:.75rem 1rem;cursor:pointer}
+/* Auditorias — 3 níveis: bloco RA > apontamento > tarefa */
+.aud-bloco{background:var(--bg2);border:1px solid var(--border);border-radius:14px;margin-bottom:1rem;overflow:hidden}
+.aud-bloco-head{display:flex;align-items:center;gap:.7rem;padding:.85rem 1rem;cursor:pointer;user-select:none}
+.aud-bloco-head:hover{background:var(--bg3)}
+.aud-bloco-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;flex-shrink:0}
+.aud-bloco-icon.audin{background:rgba(43,106,255,.12);color:var(--accent)}
+.aud-bloco-icon.audir{background:rgba(255,69,87,.10);color:var(--red)}
+.aud-bloco-tit{flex:1}
+.aud-bloco-tit h3{font-size:14px;font-weight:700;margin:0;line-height:1.3}
+.aud-bloco-tit .aud-bloco-sub{font-size:11px;color:var(--t3);margin-top:1px}
+.aud-bloco-stats{display:flex;gap:8px;align-items:center;flex-shrink:0}
+.aud-bloco-stats .aud-st{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px}
+.aud-bloco-stats .st-total{background:var(--bg3);color:var(--t2)}
+.aud-bloco-stats .st-conc{background:var(--g-bg);color:var(--green)}
+.aud-bloco-stats .st-venc{background:var(--r-bg);color:var(--red)}
+.aud-bloco-body{display:none;padding:0 .6rem .8rem}
+.aud-bloco.open .aud-bloco-body{display:block}
+.aud-bloco.open .pa-caret{transform:rotate(90deg)}
+.aud-apont{background:var(--bg);border:1px solid var(--border);border-radius:10px;margin-bottom:.5rem;overflow:hidden}
+.aud-apont-head{display:flex;align-items:center;gap:.5rem;padding:.6rem .8rem;cursor:pointer;user-select:none;font-size:12px;font-weight:600}
+.aud-apont-head:hover{background:var(--bg3)}
+.aud-apont-num{width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.aud-apont-tit{flex:1;line-height:1.3}
+.aud-apont-tit .aud-apont-sub{font-size:10px;font-weight:400;color:var(--t3);margin-top:1px}
+.aud-apont-body{display:none;padding:0 .5rem .5rem}
+.aud-apont.open .aud-apont-body{display:block}
+.aud-apont.open .pa-caret{transform:rotate(90deg)}
+.aud-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;margin-bottom:.4rem;overflow:hidden}
+.aud-head{display:flex;align-items:center;gap:.5rem;padding:.6rem .8rem;cursor:pointer}
 .aud-head:hover{background:var(--bg3)}
-.aud-code{font-size:10px;font-weight:800;padding:3px 8px;border-radius:6px;background:rgba(43,106,255,.15);color:var(--accent);letter-spacing:.02em;white-space:nowrap}
-.aud-tit{flex:1;font-size:13px;font-weight:600;line-height:1.35}
-.aud-tit .aud-meta{font-size:11px;font-weight:400;color:var(--t3);margin-top:1px}
-.aud-badge{font-size:10px;font-weight:700;padding:2px 9px;border-radius:12px;white-space:nowrap}
+.aud-code{font-size:9px;font-weight:800;padding:2px 7px;border-radius:5px;background:rgba(43,106,255,.12);color:var(--accent);letter-spacing:.02em;white-space:nowrap}
+.aud-tit{flex:1;font-size:12px;font-weight:600;line-height:1.3}
+.aud-tit .aud-meta{font-size:10px;font-weight:400;color:var(--t3);margin-top:1px}
+.aud-badge{font-size:9px;font-weight:700;padding:2px 8px;border-radius:10px;white-space:nowrap}
 .aud-badge.pendente{background:var(--a-bg);color:var(--amber)}
 .aud-badge.em_andamento{background:rgba(43,106,255,.15);color:var(--accent)}
 .aud-badge.em_revisao{background:rgba(245,165,36,.15);color:var(--amber)}
 .aud-badge.concluido{background:var(--g-bg);color:var(--green)}
 .aud-badge.bloqueado{background:var(--r-bg);color:var(--red)}
-.aud-sprint{font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;background:var(--bg3);color:var(--t2);white-space:nowrap}
-.aud-body{display:none;padding:0 1rem .8rem;font-size:12px;color:var(--t2);line-height:1.6}
+.aud-sprint{font-size:9px;font-weight:600;padding:2px 7px;border-radius:10px;background:var(--bg3);color:var(--t2);white-space:nowrap}
+.aud-body{display:none;padding:0 .8rem .7rem;font-size:11px;color:var(--t2);line-height:1.5}
 .aud-card.open .aud-body{display:block}
 .aud-card.open .pa-caret{transform:rotate(90deg)}
-.aud-actions{display:flex;align-items:center;gap:6px;margin-top:.6rem;flex-wrap:wrap}
-.aud-mems{display:flex;align-items:center;gap:-2px;flex-shrink:0}
-.aud-mems .av.xs{width:22px;height:22px;font-size:8px;margin-left:-4px}
+.aud-actions{display:flex;align-items:center;gap:6px;margin-top:.5rem;flex-wrap:wrap}
+.aud-mems{display:flex;align-items:center;flex-shrink:0}
+.aud-mems .av.xs{margin-left:-4px}
 .aud-mems .av.xs:first-child{margin-left:0}
 .aud-vencido{border-left:3px solid var(--red)}
+.aud-progbar{height:4px;border-radius:2px;background:var(--bg3);margin-top:4px;overflow:hidden}
+.aud-progbar-fill{height:100%;border-radius:2px;background:var(--green);transition:width .3s}
 /* Lembretes */
 .lem-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.2rem}
 .lem-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1rem}
@@ -4295,6 +4323,8 @@ const _riskOpen = {};
    AUDITORIAS (AUDIR)
 ============================================================ */
 const _audOpen = {};
+const _audBlocoOpen = {};
+const _audApontOpen = {};
 
 function getAudTasks(){
   return TSK.filter(t => t.titulo && /^\[AUD\b/i.test(t.titulo));
@@ -4304,6 +4334,13 @@ function parseAudCode(titulo){
   const m = titulo.match(/^\[AUD\s+(\S+)\s*·\s*#?(\d+)\s*·?\s*(\d+)?\]/i);
   if(!m) return {auditoria:'', apontamento:'', subitem:'', label: titulo};
   return {auditoria:m[1], apontamento:m[2], subitem:m[3]||'', label: titulo.replace(/^\[.*?\]\s*/, '')};
+}
+
+function audBlocoType(code){
+  const c = (code||'').toUpperCase();
+  if(c.includes('AUDIN')) return 'audin';
+  if(c.includes('AUDIR')) return 'audir';
+  return c.startsWith('CB') ? 'audir' : 'audin';
 }
 
 function renderAuditorias(){
@@ -4333,7 +4370,6 @@ function renderAuditorias(){
   const nPend = allAud.filter(t=>(t.status||'pendente')==='pendente').length;
   const nAnd = allAud.filter(t=>t.status==='em_andamento').length;
   const nConc = allAud.filter(t=>t.status==='concluido').length;
-  const nBloc = allAud.filter(t=>t.status==='bloqueado').length;
   const nVenc = allAud.filter(t=>t.status!=='concluido'&&t.data_fim&&t.data_fim<today).length;
   const nVinc = allAud.filter(t=>t.sprint_id).length;
 
@@ -4350,58 +4386,118 @@ function renderAuditorias(){
     return;
   }
 
-  const groups = {};
+  const blocos = {};
   arr.forEach(t=>{
     const p = parseAudCode(t.titulo);
-    const key = p.auditoria + ' · #' + p.apontamento;
-    if(!groups[key]) groups[key] = {auditoria: p.auditoria, apontamento: p.apontamento, items:[]};
-    groups[key].items.push({...t, _parsed: p});
+    const code = p.auditoria || '(sem código)';
+    if(!blocos[code]) blocos[code] = {};
+    const ap = p.apontamento || '0';
+    if(!blocos[code][ap]) blocos[code][ap] = [];
+    blocos[code][ap].push({...t, _parsed: p});
   });
 
   const stLabels = {pendente:'Pendente',em_andamento:'Em andamento',em_revisao:'Em revisão',concluido:'Concluído',bloqueado:'Bloqueado',despriorizado:'Despriorizado',cancelado:'Cancelado'};
   let html = '';
-  for(const [gkey, g] of Object.entries(groups)){
-    const gConc = g.items.filter(t=>t.status==='concluido').length;
-    const gVenc = g.items.filter(t=>t.status!=='concluido'&&t.data_fim&&t.data_fim<today).length;
-    html += `<h3 style="font-size:13px;font-weight:700;margin:1rem 0 .5rem;color:var(--t2)">Apontamento ${escapeHtml(gkey)} <span style="font-weight:500;font-size:11px;color:var(--t3)">${gConc}/${g.items.length} concluído(s)${gVenc?' · <span style="color:var(--red)">'+gVenc+' vencido(s)</span>':''}</span></h3>`;
-    g.items.sort((a,b)=>(a._parsed.subitem||'0').localeCompare(b._parsed.subitem||'0','pt',{numeric:true}));
-    g.items.forEach(t=>{
-      const p = t._parsed;
-      const isOpen = _audOpen[t.id];
-      const st = t.status||'pendente';
-      const stL = stLabels[st]||st;
-      const spLabel = t.sprint_id ? `S${t.sprint_id}` : '';
-      const desc = t.descricao || '';
-      const vencido = st!=='concluido' && t.data_fim && t.data_fim < today;
-      const mems = gTM(t.id);
-      const memHtml = mems.length ? mems.slice(0,3).map(x=>avH(mBI(x.id),'xs')).join('') + (mems.length>3?`<span class="av-more">+${mems.length-3}</span>`:'') : '';
 
-      html += `<div class="aud-card ${isOpen?'open':''} ${vencido?'aud-vencido':''}">
-        <div class="aud-head" onclick="_audOpen['${t.id}']=!_audOpen['${t.id}'];renderAuditorias()">
-          <span class="aud-code">${escapeHtml(p.subitem ? p.auditoria+' · '+p.subitem : p.auditoria)}</span>
-          <div class="aud-tit">${escapeHtml(p.label)}
-            <div class="aud-meta">${p.apontamento ? '#'+p.apontamento : ''}${t.prioridade ? ' · '+t.prioridade : ''}${t.data_fim ? ' · '+fmtD(t.data_fim) : ''}${vencido?' · <span style="color:var(--red);font-weight:600">VENCIDO</span>':''}</div>
+  const sortedCodes = Object.keys(blocos).sort((a,b)=>{
+    const ta = audBlocoType(a), tb = audBlocoType(b);
+    if(ta!==tb) return ta==='audin'?-1:1;
+    return a.localeCompare(b,'pt',{numeric:true});
+  });
+
+  for(const code of sortedCodes){
+    const aponts = blocos[code];
+    const tipo = audBlocoType(code);
+    const tipoLabel = tipo==='audin' ? 'AUDIN' : 'AUDIR';
+    const allItems = Object.values(aponts).flat();
+    const bConc = allItems.filter(t=>t.status==='concluido').length;
+    const bVenc = allItems.filter(t=>t.status!=='concluido'&&t.data_fim&&t.data_fim<today).length;
+    const bTotal = allItems.length;
+    const bPct = bTotal ? Math.round(bConc/bTotal*100) : 0;
+    const bOpen = _audBlocoOpen[code];
+    const nAponts = Object.keys(aponts).length;
+
+    html += `<div class="aud-bloco ${bOpen?'open':''}">
+      <div class="aud-bloco-head" onclick="_audBlocoOpen['${escapeHtml(code)}']=!_audBlocoOpen['${escapeHtml(code)}'];renderAuditorias()">
+        <div class="aud-bloco-icon ${tipo}">${tipoLabel.slice(0,2)}</div>
+        <div class="aud-bloco-tit">
+          <h3>${escapeHtml(tipoLabel)} — ${escapeHtml(code)}</h3>
+          <div class="aud-bloco-sub">${nAponts} apontamento${nAponts>1?'s':''} · ${bTotal} tarefa${bTotal>1?'s':''} · ${bPct}% concluído</div>
+          <div class="aud-progbar"><div class="aud-progbar-fill" style="width:${bPct}%"></div></div>
+        </div>
+        <div class="aud-bloco-stats">
+          <span class="aud-st st-total">${bTotal}</span>
+          <span class="aud-st st-conc">${bConc}</span>
+          ${bVenc?`<span class="aud-st st-venc">${bVenc} venc.</span>`:''}
+        </div>
+        <span class="pa-caret">▶</span>
+      </div>
+      <div class="aud-bloco-body">`;
+
+    const sortedAponts = Object.keys(aponts).sort((a,b)=>a.localeCompare(b,'pt',{numeric:true}));
+    for(const ap of sortedAponts){
+      const tasks = aponts[ap];
+      const apKey = code+'#'+ap;
+      const apOpen = _audApontOpen[apKey];
+      const apConc = tasks.filter(t=>t.status==='concluido').length;
+      const apVenc = tasks.filter(t=>t.status!=='concluido'&&t.data_fim&&t.data_fim<today).length;
+      const apPct = tasks.length ? Math.round(apConc/tasks.length*100) : 0;
+      const firstLabel = tasks[0]?._parsed?.label || '';
+
+      html += `<div class="aud-apont ${apOpen?'open':''}">
+        <div class="aud-apont-head" onclick="_audApontOpen['${apKey}']=!_audApontOpen['${apKey}'];renderAuditorias()">
+          <span class="aud-apont-num">${escapeHtml(ap)}</span>
+          <div class="aud-apont-tit">Apontamento #${escapeHtml(ap)}${firstLabel?' — '+escapeHtml(firstLabel.slice(0,60)):''}
+            <div class="aud-apont-sub">${tasks.length} tarefa${tasks.length>1?'s':''} · ${apConc} concluída${apConc!==1?'s':''}${apVenc?' · <span style="color:var(--red)">'+apVenc+' vencida'+( apVenc!==1?'s':'')+'</span>':''} · ${apPct}%</div>
+            <div class="aud-progbar"><div class="aud-progbar-fill" style="width:${apPct}%"></div></div>
           </div>
-          ${memHtml ? `<span class="aud-mems">${memHtml}</span>` : ''}
-          <span class="aud-badge ${st}">${stL}</span>
-          ${spLabel ? `<span class="aud-sprint">${spLabel}</span>` : ''}
           <span class="pa-caret">▶</span>
         </div>
-        <div class="aud-body">
-          ${desc ? `<div style="white-space:pre-wrap;margin-bottom:.5rem">${escapeHtml(desc)}</div>` : '<div style="color:var(--t3);font-style:italic">Sem descrição.</div>'}
-          ${t.fase ? `<div style="margin-top:.3rem"><b>Fase:</b> ${escapeHtml(t.fase)}</div>` : ''}
-          ${t.data_fim ? `<div style="margin-top:.2rem"><b>Prazo:</b> ${fmtD(t.data_fim)}${vencido?' <span style="color:var(--red);font-weight:600">(vencido)</span>':''}</div>` : ''}
-          ${t.story_points ? `<div style="margin-top:.2rem"><b>Story Points:</b> ${t.story_points}</div>` : ''}
-          ${mems.length ? `<div style="margin-top:.3rem"><b>Responsável:</b> ${mems.map(x=>{const m=mBI(x.id);return m?escapeHtml(m.nome):'?'}).join(', ')}</div>` : ''}
-          <div class="aud-actions">
-            <select onchange="updateAudStatus('${t.id}',this.value)" style="font-size:11px;padding:3px 6px;border-radius:6px;border:1px solid var(--border);background:var(--bg2);color:var(--text)">
-              ${Object.entries(stLabels).map(([k,v])=>`<option value="${k}" ${st===k?'selected':''}>${v}</option>`).join('')}
-            </select>
-            <button class="pa-btn" onclick="openTask('${t.id}')">✏️ Editar</button>
+        <div class="aud-apont-body">`;
+
+      tasks.sort((a,b)=>(a._parsed.subitem||'0').localeCompare(b._parsed.subitem||'0','pt',{numeric:true}));
+      tasks.forEach(t=>{
+        const p = t._parsed;
+        const isOpen = _audOpen[t.id];
+        const st = t.status||'pendente';
+        const stL = stLabels[st]||st;
+        const spLabel = t.sprint_id ? `S${t.sprint_id}` : '';
+        const desc = t.descricao || '';
+        const vencido = st!=='concluido' && t.data_fim && t.data_fim < today;
+        const mems = gTM(t.id);
+        const memHtml = mems.length ? mems.slice(0,3).map(x=>avH(mBI(x.id),'xs')).join('') + (mems.length>3?`<span class="av-more">+${mems.length-3}</span>`:'') : '';
+
+        html += `<div class="aud-card ${isOpen?'open':''} ${vencido?'aud-vencido':''}">
+          <div class="aud-head" onclick="_audOpen['${t.id}']=!_audOpen['${t.id}'];renderAuditorias()">
+            <span class="aud-code">${p.subitem||'—'}</span>
+            <div class="aud-tit">${escapeHtml(p.label)}
+              <div class="aud-meta">${t.data_fim ? fmtD(t.data_fim) : ''}${t.prioridade ? ' · '+t.prioridade : ''}${vencido?' · <span style="color:var(--red);font-weight:600">VENCIDO</span>':''}</div>
+            </div>
+            ${memHtml ? `<span class="aud-mems">${memHtml}</span>` : ''}
+            <span class="aud-badge ${st}">${stL}</span>
+            ${spLabel ? `<span class="aud-sprint">${spLabel}</span>` : ''}
+            <span class="pa-caret">▶</span>
           </div>
-        </div>
-      </div>`;
-    });
+          <div class="aud-body">
+            ${desc ? `<div style="white-space:pre-wrap;margin-bottom:.4rem">${escapeHtml(desc)}</div>` : '<div style="color:var(--t3);font-style:italic">Sem descrição.</div>'}
+            ${t.fase ? `<div style="margin-top:.2rem"><b>Fase:</b> ${escapeHtml(t.fase)}</div>` : ''}
+            ${t.data_fim ? `<div style="margin-top:.2rem"><b>Prazo:</b> ${fmtD(t.data_fim)}${vencido?' <span style="color:var(--red);font-weight:600">(vencido)</span>':''}</div>` : ''}
+            ${t.story_points ? `<div style="margin-top:.2rem"><b>Story Points:</b> ${t.story_points}</div>` : ''}
+            ${mems.length ? `<div style="margin-top:.2rem"><b>Responsável:</b> ${mems.map(x=>{const m=mBI(x.id);return m?escapeHtml(m.nome):'?'}).join(', ')}</div>` : ''}
+            <div class="aud-actions">
+              <select onchange="updateAudStatus('${t.id}',this.value)" style="font-size:11px;padding:3px 6px;border-radius:6px;border:1px solid var(--border);background:var(--bg2);color:var(--text)">
+                ${Object.entries(stLabels).map(([k,v])=>`<option value="${k}" ${st===k?'selected':''}>${v}</option>`).join('')}
+              </select>
+              <button class="pa-btn" onclick="openTask('${t.id}')">✏️ Editar</button>
+            </div>
+          </div>
+        </div>`;
+      });
+
+      html += `</div></div>`;
+    }
+
+    html += `</div></div>`;
   }
 
   document.getElementById('audList').innerHTML = html;
