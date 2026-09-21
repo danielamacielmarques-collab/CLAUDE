@@ -623,6 +623,10 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
 .aud-card.open .aud-body{display:block}
 .aud-card.open .pa-caret{transform:rotate(90deg)}
 .aud-actions{display:flex;align-items:center;gap:6px;margin-top:.6rem;flex-wrap:wrap}
+.aud-mems{display:flex;align-items:center;gap:-2px;flex-shrink:0}
+.aud-mems .av.xs{width:22px;height:22px;font-size:8px;margin-left:-4px}
+.aud-mems .av.xs:first-child{margin-left:0}
+.aud-vencido{border-left:3px solid var(--red)}
 /* Lembretes */
 .lem-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.2rem}
 .lem-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1rem}
@@ -1059,6 +1063,9 @@ html[data-theme="light"] .card:hover{box-shadow:0 6px 20px rgba(43,106,255,.13)}
             <option value="em_revisao">Em revisão</option>
             <option value="concluido">Concluído</option>
             <option value="bloqueado">Bloqueado</option>
+          </select>
+          <select class="sel" id="audFilterRA" onchange="renderAuditorias()">
+            <option value="">Todos os RAs</option>
           </select>
           <select class="sel" id="audFilterSprint" onchange="renderAuditorias()">
             <option value="">Todas as sprints</option>
@@ -4302,32 +4309,40 @@ function parseAudCode(titulo){
 function renderAuditorias(){
   const fSt = document.getElementById('audFilterStatus')?.value||'';
   const fSp = document.getElementById('audFilterSprint')?.value||'';
+  const fRA = document.getElementById('audFilterRA')?.value||'';
+  const today = new Date().toISOString().slice(0,10);
 
   const spSel = document.getElementById('audFilterSprint');
   if(spSel && spSel.options.length <= 1){
     SP.forEach(s=>{ const o=document.createElement('option'); o.value=s.id; o.textContent=`S${s.id} · ${s.m}`; spSel.appendChild(o); });
   }
 
-  let arr = getAudTasks();
-  if(fSt){
-    const stMap = {pendente:'pendente',em_andamento:'em_andamento',em_revisao:'em_revisao',concluido:'concluido',bloqueado:'bloqueado'};
-    arr = arr.filter(t=>(t.status||'pendente')===stMap[fSt]);
+  const raSel = document.getElementById('audFilterRA');
+  if(raSel && raSel.options.length <= 1){
+    const codes = [...new Set(getAudTasks().map(t=>parseAudCode(t.titulo).auditoria).filter(Boolean))].sort();
+    codes.forEach(c=>{ const o=document.createElement('option'); o.value=c; o.textContent=c; raSel.appendChild(o); });
   }
-  if(fSp) arr = arr.filter(t=>t.sprint_id===+fSp);
 
-  const total = getAudTasks().length;
-  const nPend = getAudTasks().filter(t=>(t.status||'pendente')==='pendente').length;
-  const nAnd = getAudTasks().filter(t=>t.status==='em_andamento').length;
-  const nConc = getAudTasks().filter(t=>t.status==='concluido').length;
-  const nBloc = getAudTasks().filter(t=>t.status==='bloqueado').length;
-  const nVinc = getAudTasks().filter(t=>t.sprint_id).length;
+  let arr = getAudTasks();
+  if(fSt) arr = arr.filter(t=>(t.status||'pendente')===fSt);
+  if(fSp) arr = arr.filter(t=>t.sprint_id===+fSp);
+  if(fRA) arr = arr.filter(t=>parseAudCode(t.titulo).auditoria===fRA);
+
+  const allAud = getAudTasks();
+  const total = allAud.length;
+  const nPend = allAud.filter(t=>(t.status||'pendente')==='pendente').length;
+  const nAnd = allAud.filter(t=>t.status==='em_andamento').length;
+  const nConc = allAud.filter(t=>t.status==='concluido').length;
+  const nBloc = allAud.filter(t=>t.status==='bloqueado').length;
+  const nVenc = allAud.filter(t=>t.status!=='concluido'&&t.data_fim&&t.data_fim<today).length;
+  const nVinc = allAud.filter(t=>t.sprint_id).length;
 
   document.getElementById('audSummary').innerHTML = `
     <div class="rv-mc"><div class="rv-val">${total}</div><div class="rv-lbl">Total tarefas AUD</div></div>
     <div class="rv-mc"><div class="rv-val" style="color:var(--amber)">${nPend}</div><div class="rv-lbl">Pendentes</div></div>
     <div class="rv-mc"><div class="rv-val" style="color:var(--accent)">${nAnd}</div><div class="rv-lbl">Em andamento</div></div>
     <div class="rv-mc"><div class="rv-val" style="color:var(--green)">${nConc}</div><div class="rv-lbl">Concluídos</div></div>
-    <div class="rv-mc"><div class="rv-val" style="color:var(--red)">${nBloc}</div><div class="rv-lbl">Bloqueados</div></div>
+    <div class="rv-mc"><div class="rv-val" style="color:var(--red)">${nVenc}</div><div class="rv-lbl">Vencidos</div></div>
     <div class="rv-mc"><div class="rv-val">${nVinc}</div><div class="rv-lbl">Em sprints</div></div>`;
 
   if(!arr.length){
@@ -4346,7 +4361,9 @@ function renderAuditorias(){
   const stLabels = {pendente:'Pendente',em_andamento:'Em andamento',em_revisao:'Em revisão',concluido:'Concluído',bloqueado:'Bloqueado',despriorizado:'Despriorizado',cancelado:'Cancelado'};
   let html = '';
   for(const [gkey, g] of Object.entries(groups)){
-    html += `<h3 style="font-size:13px;font-weight:700;margin:1rem 0 .5rem;color:var(--t2)">Apontamento ${escapeHtml(gkey)} (${g.items.length} tarefa${g.items.length>1?'s':''})</h3>`;
+    const gConc = g.items.filter(t=>t.status==='concluido').length;
+    const gVenc = g.items.filter(t=>t.status!=='concluido'&&t.data_fim&&t.data_fim<today).length;
+    html += `<h3 style="font-size:13px;font-weight:700;margin:1rem 0 .5rem;color:var(--t2)">Apontamento ${escapeHtml(gkey)} <span style="font-weight:500;font-size:11px;color:var(--t3)">${gConc}/${g.items.length} concluído(s)${gVenc?' · <span style="color:var(--red)">'+gVenc+' vencido(s)</span>':''}</span></h3>`;
     g.items.sort((a,b)=>(a._parsed.subitem||'0').localeCompare(b._parsed.subitem||'0','pt',{numeric:true}));
     g.items.forEach(t=>{
       const p = t._parsed;
@@ -4355,13 +4372,17 @@ function renderAuditorias(){
       const stL = stLabels[st]||st;
       const spLabel = t.sprint_id ? `S${t.sprint_id}` : '';
       const desc = t.descricao || '';
+      const vencido = st!=='concluido' && t.data_fim && t.data_fim < today;
+      const mems = gTM(t.id);
+      const memHtml = mems.length ? mems.slice(0,3).map(x=>avH(mBI(x.id),'xs')).join('') + (mems.length>3?`<span class="av-more">+${mems.length-3}</span>`:'') : '';
 
-      html += `<div class="aud-card ${isOpen?'open':''}">
+      html += `<div class="aud-card ${isOpen?'open':''} ${vencido?'aud-vencido':''}">
         <div class="aud-head" onclick="_audOpen['${t.id}']=!_audOpen['${t.id}'];renderAuditorias()">
           <span class="aud-code">${escapeHtml(p.subitem ? p.auditoria+' · '+p.subitem : p.auditoria)}</span>
           <div class="aud-tit">${escapeHtml(p.label)}
-            <div class="aud-meta">${p.apontamento ? '#'+p.apontamento : ''}${t.prioridade ? ' · '+t.prioridade : ''}</div>
+            <div class="aud-meta">${p.apontamento ? '#'+p.apontamento : ''}${t.prioridade ? ' · '+t.prioridade : ''}${t.data_fim ? ' · '+fmtD(t.data_fim) : ''}${vencido?' · <span style="color:var(--red);font-weight:600">VENCIDO</span>':''}</div>
           </div>
+          ${memHtml ? `<span class="aud-mems">${memHtml}</span>` : ''}
           <span class="aud-badge ${st}">${stL}</span>
           ${spLabel ? `<span class="aud-sprint">${spLabel}</span>` : ''}
           <span class="pa-caret">▶</span>
@@ -4369,7 +4390,9 @@ function renderAuditorias(){
         <div class="aud-body">
           ${desc ? `<div style="white-space:pre-wrap;margin-bottom:.5rem">${escapeHtml(desc)}</div>` : '<div style="color:var(--t3);font-style:italic">Sem descrição.</div>'}
           ${t.fase ? `<div style="margin-top:.3rem"><b>Fase:</b> ${escapeHtml(t.fase)}</div>` : ''}
+          ${t.data_fim ? `<div style="margin-top:.2rem"><b>Prazo:</b> ${fmtD(t.data_fim)}${vencido?' <span style="color:var(--red);font-weight:600">(vencido)</span>':''}</div>` : ''}
           ${t.story_points ? `<div style="margin-top:.2rem"><b>Story Points:</b> ${t.story_points}</div>` : ''}
+          ${mems.length ? `<div style="margin-top:.3rem"><b>Responsável:</b> ${mems.map(x=>{const m=mBI(x.id);return m?escapeHtml(m.nome):'?'}).join(', ')}</div>` : ''}
           <div class="aud-actions">
             <select onchange="updateAudStatus('${t.id}',this.value)" style="font-size:11px;padding:3px 6px;border-radius:6px;border:1px solid var(--border);background:var(--bg2);color:var(--text)">
               ${Object.entries(stLabels).map(([k,v])=>`<option value="${k}" ${st===k?'selected':''}>${v}</option>`).join('')}
